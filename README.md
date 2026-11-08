@@ -1,74 +1,73 @@
-<p align="center"><img src="assets/logo.svg" width="88" height="88" alt="retype logo"></p>
+# English Assist — Windows development branch
 
-# retype
+English Assist is a Windows English input-method project derived from
+[Retype at 902e35e](https://github.com/L-Chris/retype/tree/902e35e06ee4f744320cf995c39b1f64693034cf).
+It aims to provide local word completion and spelling suggestions, plus explicit
+AI grammar correction and sentence completion, through a real English TSF entry.
 
-This project was developed by Qwen3.8 Max.
+[简体中文](README.zh-CN.md) · [English input](docs/english-input.md) ·
+[P0 validation](docs/english-assist/INPUT_VALIDATION.md)
 
-A Chinese input method for Windows and [Android](docs/android.md), built around a shared Rust input engine.
+**Current status:** source implementation in progress. This branch has not yet
+been compiled, installed or validated in real applications. Do not treat upstream
+release binaries or historical upstream test results as this product's deliverable.
 
-A native [macOS preview](docs/macos.md) is also in development, with AppKit candidate and settings windows, AI translation and voice input, statistics, cloud sync, and LAN clipboard sharing. Mac runtime validation is still pending.
+## Implemented in source, awaiting validation
 
-[简体中文](README.zh-CN.md) · [Latest release](https://github.com/L-Chris/retype/releases/latest) · [Roadmap](docs/roadmap.md)
+- Independent English Assist 英文助手 entry under English (United States).
+- Local prefix completion and spelling suggestions with original case preserved.
+- Literal digits 0–9; English candidate numbers are removed.
+- Tab or mouse acceptance without an automatic trailing space.
+- Space preserves the original spelling unless a candidate was explicitly selected.
+- Enter after explicit candidate navigation confirms the candidate without also
+  submitting a chat, search or newline; a second Enter retains native behavior.
+- Read-only offline English vocabulary packaging, separate product identity and
+  user-data paths.
+- Automatic English word learning disabled.
+- Chinese settings work and explicit AI-editing protocol/service work in progress.
 
-## Features
+Theme polish, manual personal-word management, optional next-word prediction,
+and full AI editing validation remain on the project plan.
 
-- Windows TSF input method for 64-bit and 32-bit desktop applications.
-- An Android keyboard with offline input, personal learning, optional dictionaries, typing statistics, AI translation and WebDAV sync; see [Android](docs/android.md).
-- Full Pinyin and Xiaohe Shuangpin, selectable from the language bar; incomplete Shuangpin codes preview matching characters and phrases.
-- A downloadable Wanxiang Base dictionary with word-specific pronunciations and phrase weights; typing works offline after installation.
-- A compact horizontal candidate window with keyboard and mouse selection.
-- Separate `retype 中文` and `retype English` system entries on Windows, macOS and Android.
-- Offline English word completion and spelling suggestions, with case preservation and persistent personal vocabulary; see [English input](docs/english-input.md).
-- [Voice input](docs/voice-input.md) on Windows and Android, with recording previews, audio-capable AI models, and separate voice counts.
-- Configurable AI providers and models, with a shortcut to translate and replace supported input fields or preview the result first.
-- Personal learning saved locally and shared across applications, Full Pinyin, and Xiaohe Shuangpin, with frequency-based ranking and decaying recent preferences.
-- Local typing statistics in Settings, with separate Chinese and English counts, speeds, and a seven-day trend; input text is never saved.
-- Update controls in Settings > About, with daily checks, version skipping, verified downloads, and installation after user confirmation.
-- Optional [WebDAV cloud sync](docs/cloud-sync.md) for settings, personal learning, and typing history across computers.
-- Paired [LAN clipboard sync](docs/lan-clipboard.md) for plain text between Windows and Android, with a quick paste preview in the mobile keyboard.
+## Build and installation status
 
-The M1 desktop preview has passed a dedicated RichEdit input test. Compatibility across common applications and modern Windows app environments is still being evaluated; see the [validation record](docs/m1-validation.md).
+Windows builds require Rust stable with MSVC targets, Visual C++ build tools,
+the Windows SDK, and the i686-pc-windows-msvc target. Installer compilation also
+requires Inno Setup 6.
 
-## Install and use
+~~~powershell
+.\platforms\windows\installer\build-english-assist.ps1 -Installer
+~~~
 
-On first use, open **Settings → Dictionary** to download the Chinese and English base dictionaries. They are separate from the installer and remain available offline afterward. Upgrades reuse compatible local dictionaries; [local import](docs/base-resources.md) is also available.
+The English-specific script builds both TSF architectures, the settings/helper
+programs and the pinned English vocabulary, then runs its configured checks.
+It does not install the product or modify the system keyboard list.
 
-Download the Windows installer from the [latest release](https://github.com/L-Chris/retype/releases/latest). It includes both 64-bit and 32-bit input components. If an earlier installer has a pending restart, complete that restart before upgrading.
+Expected installer output after a successful build:
+dist/english-assist-0.1.0-windows-x64-setup.exe. No successful build is claimed yet.
+Do not use the inherited Retype installer, register.ps1 or upstream release
+download links for this fork.
 
-For Android, download the APK from the same release and enable retype in the system keyboard settings. Signed release APKs use a different certificate from development previews; remove the preview app before switching to the release channel.
+A validated installation should appear under Windows Settings → Time & language
+→ Language & region → English (United States) → Language options → Keyboards,
+and be selectable with Win+Space. It must preserve the existing default keyboard.
+These behaviors remain P0 acceptance items.
 
-Select **retype 中文** or **retype English** with `Win+Space`. Type `nihao` in Full Pinyin or `nihc` in Xiaohe Shuangpin, then press Space to commit “你好”. Tap Shift alone to switch between the two retype entries, or click the mode icon on the left of the branded language indicator. While composing, use `-` and `=` to turn candidate pages; keys `1`–`8` select from the current page. Right-click the mode icon and choose **Settings** to change the Pinyin scheme, view typing statistics, or check for updates. Reopen applications that were already running after an update so they load the new input component.
+## Everyday keyboard behavior
 
-In English mode, Space commits what you typed; Tab or clicking a candidate accepts it with a trailing space. Use Up/Down to select explicitly, then Space to accept it with a trailing space. Numbered candidates support selection with 1–8 and add a trailing space; digits without a matching visible candidate and punctuation remain ordinary input. Press Esc before typing digits in words such as `python3`. Settings > Input controls English completion and spelling suggestions.
+Type python3 directly. Use Tab to accept a word without adding a space, or
+Up/Down then Space to accept it with a space. Space alone keeps the spelling you
+typed. Explicitly selected candidates consume the first Enter; otherwise Enter
+retains the application's normal action. Esc keeps the original text.
 
-## Build from source
+See [English input](docs/english-input.md) for the full keyboard contract and
+[P0 validation](docs/english-assist/INPUT_VALIDATION.md) for actual test status.
 
-Windows development requires stable Rust, the MSVC C++ build tools, and the `i686-pc-windows-msvc` target. Inno Setup is needed to build an installer.
+## License and attribution
 
-```powershell
-cargo test --workspace --features retype-learning/broker,retype-ai/service
-.\platforms\windows\installer\build.ps1
-.\platforms\windows\installer\build.ps1 -Installer -SkipDict -NoTest
-```
-
-The [developer notes](docs/development-notes.md) cover the terminal input tool and build pitfalls. The Rust engine, TSF adapter, dictionary pipeline, typing statistics, and update design are documented in [ARCHITECTURE.md](ARCHITECTURE.md), [Windows TSF](docs/windows-tsf.md), [dictionary](docs/dict.md), [typing statistics](docs/typing-statistics.md), and [automatic updates](docs/auto-update.md).
-
-Personal learning storage, sharing, and recovery boundaries are described in [user learning](docs/user-learning.md).
-Provider configuration, translation shortcuts, and editor compatibility boundaries are described in [AI translation](docs/ai-translation.md).
-
-## Milestones
-
-| Milestone | Goal | Status |
-| --- | --- | --- |
-| M0 | Shared engine, dictionary, TSF foundation, and diagnostic tool | Complete |
-| M1 | Chinese input in Windows applications | Desktop preview; application compatibility review in progress |
-| M2 | Context and personal dictionary | Persistent shared learning available; context learning planned |
-| M3 | Cloud-assisted candidate refinement | Planned |
-| M4 | Streaming voice input | Planned |
-| M5 | Product polish and Android input method | In progress; Windows distribution and the Android keyboard preview are available |
-
-Detailed acceptance criteria and current gaps are in the [roadmap](docs/roadmap.md). Historical measurements are in [performance notes](docs/performance.md).
-
-## License
-
-Code is MIT licensed. The bundled Wanxiang Base dictionary is CC BY 4.0; its source and attribution are in [NOTICE.txt](NOTICE.txt) and [its license](data/dict/raw/wanxiang-base/LICENSE).
+Inherited source code is MIT licensed; retain LICENSE and NOTICE.txt.
+The English vocabulary has separate SymSpell, SCOWL and Google Ngram notices
+under data/dict/raw/english/. Data licenses do not become MIT because the code is MIT.
+Inherited modules for Chinese input, other platforms and synchronization remain
+in the checkout; their existence does not imply those features ship in this
+English-only product.

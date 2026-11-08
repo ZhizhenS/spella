@@ -1,9 +1,8 @@
 //! TSF input-mode indicator. COM ownership stays in the activating apartment.
-use crate::{
-    edit,
-    tip::{guarded, lock, TipState},
-};
-use retype_types::{InputEvent, PinyinScheme};
+use crate::tip::{guarded, lock, TipState};
+#[cfg(test)]
+use retype_types::InputEvent;
+use retype_types::PinyinScheme;
 use std::sync::{
     atomic::{AtomicBool, Ordering},
     Arc, Mutex, Weak,
@@ -144,29 +143,11 @@ impl LanguageBar {
             voice: false,
         }
         .into();
-        let microphone: ITfLangBarItemButton = Button {
-            state: Arc::downgrade(state),
-            sink: Arc::new(Mutex::new(None)),
-            hidden: AtomicBool::new(false),
-            voice: true,
-        }
-        .into();
         // SAFETY: Item and manager belong to this apartment; Drop removes the registration.
         unsafe {
             manager.AddItem(&item)?;
         }
-        let microphone = match unsafe { manager.AddItem(&microphone) } {
-            Ok(()) => Some(microphone),
-            Err(error) => {
-                crate::settings_log::event(
-                    "launcher",
-                    "voice_button_unavailable",
-                    0,
-                    format!("hresult={:08x}", error.code().0),
-                );
-                None
-            }
-        };
+        let microphone = None;
         Ok(Self {
             manager,
             item,
@@ -208,7 +189,7 @@ impl Button_Impl {
                 s.backend
                     .with_kernel(|k| (k.is_chinese(), k.config().pinyin_scheme))
             })
-            .unwrap_or((true, PinyinScheme::Full))
+            .unwrap_or((false, PinyinScheme::Full))
     }
     fn update(&self) {
         let sink = lock(&self.sink).clone();
@@ -217,32 +198,6 @@ impl Button_Impl {
                 let _ = sink.OnUpdate(TF_LBI_ICON | TF_LBI_TEXT | TF_LBI_STATUS);
             }
         }
-    }
-    fn action(&self, work: edit::Work) -> Result<()> {
-        guarded(|| {
-            let Some(state) = self.state.upgrade() else {
-                return Ok(());
-            };
-            if matches!(work, edit::Work::Toggle) && !state.can_toggle_mode() {
-                return Ok(());
-            }
-            let manager = lock(&state.thread_mgr).clone();
-            let context =
-                manager.and_then(|m| unsafe { m.GetFocus().and_then(|d| d.GetTop()).ok() });
-            if let Some(context) = context {
-                edit::request(&state, &context, work)?;
-            } else if lock(&state.composition).is_none() {
-                if let Some(session) = state.session() {
-                    let event = match work {
-                        edit::Work::Toggle => InputEvent::ToggleChinese,
-                        _ => return Ok(()),
-                    };
-                    session.submit(event);
-                    state.notify_language_bar();
-                }
-            }
-            Ok(())
-        })
     }
 }
 impl ITfLangBarItem_Impl for Button_Impl {
@@ -263,7 +218,7 @@ impl ITfLangBarItem_Impl for Button_Impl {
         for (to, from) in value
             .szDescription
             .iter_mut()
-            .zip("retype 输入模式".encode_utf16())
+            .zip("English Assist 英文助手设置".encode_utf16())
         {
             *to = from;
         }
@@ -274,19 +229,11 @@ impl ITfLangBarItem_Impl for Button_Impl {
         Ok(())
     }
     fn GetStatus(&self) -> Result<u32> {
-        Ok(
-            if self.hidden.load(Ordering::SeqCst)
-                || !self.voice
-                    && self
-                        .state
-                        .upgrade()
-                        .is_some_and(|state| !state.can_toggle_mode())
-            {
-                TF_LBI_STATUS_HIDDEN
-            } else {
-                0
-            },
-        )
+        Ok(if self.hidden.load(Ordering::SeqCst) || self.voice {
+            TF_LBI_STATUS_HIDDEN
+        } else {
+            0
+        })
     }
     fn Show(&self, show: BOOL) -> Result<()> {
         self.hidden.store(!show.as_bool(), Ordering::SeqCst);
@@ -303,30 +250,13 @@ impl ITfLangBarItem_Impl for Button_Impl {
                 .as_str(),
             ));
         }
-        let (chinese, scheme) = self.mode();
-        Ok(BSTR::from(
-            format!(
-                "retype · {} · {}\n点击或 {} 切换中英；右键打开设置",
-                if chinese { "中文" } else { "英文" },
-                if scheme == PinyinScheme::Flypy {
-                    "小鹤双拼"
-                } else {
-                    "全拼"
-                },
-                retype_ai::secrets::shortcuts().mode.label()
-            )
-            .as_str(),
-        ))
+        Ok(BSTR::from("English Assist 英文助手 · 点击或右键打开设置"))
     }
 }
 impl ITfLangBarItemButton_Impl for Button_Impl {
     fn OnClick(&self, click: TfLBIClick, point: &POINT, _rect: *const RECT) -> Result<()> {
         if click == TF_LBI_CLK_LEFT {
-            self.action(if self.voice {
-                edit::Work::Voice(false)
-            } else {
-                edit::Work::Toggle
-            })
+            crate::preferences::open_settings()
         } else if click == TF_LBI_CLK_RIGHT {
             guarded(|| {
                 crate::settings_log::event("launcher", "menu_open_requested", 0, "right click");
@@ -671,8 +601,12 @@ mod tests {
             let cookie = source.AdviseSink(&ITfLangBarItemSink::IID, &sink)?;
             assert!(source.AdviseSink(&ITfLangBarItemSink::IID, &sink).is_err());
             crate::profiles::apply(&state, false)?;
-            assert_eq!(item.GetStatus()?, TF_LBI_STATUS_HIDDEN);
-            item.OnClick(TF_LBI_CLK_LEFT, POINT::default(), std::ptr::null())?;
+            assert_eq!(
+                item.GetStatus()?,
+                0,
+                "English entry keeps its settings button"
+            );
+            assert!(item.GetTooltipString()?.to_string().contains("英文助手"));
             assert!(!state
                 .session()
                 .ok_or(E_FAIL)?
@@ -685,7 +619,7 @@ mod tests {
                 voice: true,
             }
             .into();
-            assert_eq!(microphone.GetStatus()?, 0, "English keeps its voice button");
+            assert_eq!(microphone.GetStatus()?, TF_LBI_STATUS_HIDDEN);
             crate::profiles::apply(&state, true)?;
             assert_eq!(item.GetStatus()?, 0);
             item.Show(false)?;

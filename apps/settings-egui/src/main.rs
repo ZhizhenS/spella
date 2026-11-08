@@ -69,7 +69,7 @@ fn main() -> std::process::ExitCode {
             windows::Win32::UI::WindowsAndMessaging::MessageBoxW(
                 None,
                 windows::core::PCWSTR(message.as_ptr()),
-                windows::core::w!("retype 设置"),
+                windows::core::w!("English Assist 英文助手设置"),
                 windows::Win32::UI::WindowsAndMessaging::MB_OK
                     | windows::Win32::UI::WindowsAndMessaging::MB_ICONERROR,
             );

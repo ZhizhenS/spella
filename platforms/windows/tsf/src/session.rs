@@ -22,12 +22,12 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 /// 词库文件位置的环境变量覆盖（开发/诊断时最常用）。
-pub const ENV_DICT: &str = "RETYPE_DICT";
+pub const ENV_DICT: &str = "ENGLISH_ASSIST_DICT";
 /// 影子模式：把按键喂给内核但**不吃掉**它们，用于在真实宿主进程里观察内核行为。
 ///
 /// M0 默认关闭。打开后仍然不会有任何文字被输入法接管（`OnKeyDown` 一律返回
 /// `eaten = false`），所以即使配错了也不会丢用户的按键。
-pub const ENV_SHADOW: &str = "RETYPE_TSF_SHADOW";
+pub const ENV_SHADOW: &str = "ENGLISH_ASSIST_TSF_SHADOW";
 
 /// 本 DLL 自己所在的目录。
 ///
@@ -218,6 +218,10 @@ impl Session {
             return;
         };
         let enabled = crate::preferences::enabled_packs();
+        if enabled == 0 {
+            self.packs.uninstall();
+            return;
+        }
         let session = Arc::clone(self);
         let _ = std::thread::Builder::new()
             .name("retype-pack-load".into())
@@ -268,7 +272,11 @@ impl Session {
         self.raw_input_only() && matches!(ev, InputEvent::Key { .. })
     }
     pub(crate) fn raw_input_only(&self) -> bool {
-        self.managed_resources && !self.dict.is_loaded()
+        // English completion owns an independent vocabulary. A missing Chinese
+        // dictionary must never turn the installed English entry into raw input.
+        self.managed_resources
+            && !self.dict.is_loaded()
+            && self.backend.with_kernel(|kernel| kernel.is_chinese())
     }
 
     fn watch_resources(self: &Arc<Self>) {
@@ -314,17 +322,12 @@ impl Session {
                         }
                     }
                     // A legacy base stays usable while the settings worker installs the new one.
-                    let current = retype_resources::Catalog::builtin()
-                        .ok()
-                        .map(|c| c.components[0].path(&root));
                     let current_english = retype_resources::Catalog::builtin()
                         .ok()
                         .map(|c| c.components[1].path(&root));
-                    if loaded.is_some()
-                        && loaded == current
-                        && english.is_some()
-                        && english == current_english
-                    {
+                    // English Assist only registers the English profile. Once
+                    // its image is active, do not keep polling for Chinese data.
+                    if english.is_some() && english == current_english {
                         break;
                     }
                     drop(session);
@@ -416,6 +419,21 @@ mod tests {
     #![allow(clippy::unwrap_used, clippy::expect_used)]
 
     use super::*;
+
+    #[test]
+    fn english_entry_does_not_require_a_chinese_dictionary() {
+        let session =
+            Session::start_internal(PathBuf::from("Z:/missing/english-only-base.bin"), true);
+        assert!(session.raw_input_only());
+        session.submit(InputEvent::ToggleChinese);
+        assert!(!session.backend.with_kernel(|kernel| kernel.is_chinese()));
+        assert!(
+            !session.raw_input_only(),
+            "English entry must not depend on Chinese base data"
+        );
+        session.submit(InputEvent::ToggleChinese);
+        assert!(session.raw_input_only());
+    }
 
     #[test]
     fn session_starts_fast_without_a_dict_file() {

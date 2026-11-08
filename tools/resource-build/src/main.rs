@@ -19,6 +19,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         BufReader::new(File::open("data/dict/raw/english/frequency.txt")?),
         File::create(&english)?,
     )?;
+    if args.iter().any(|v| v == "--english-only") {
+        // An offline English installer needs no 99 MB Chinese base dictionary.
+        // Match the pinned catalog before packaging; never silently ship stale data.
+        let catalog = Catalog::builtin()?;
+        let component = &catalog.components[1];
+        if fs::metadata(&english)?.len() != component.bytes
+            || checksum(&english)? != component.sha256
+        {
+            return Err("Compiled English vocabulary does not match the pinned catalog".into());
+        }
+        let target = component.path(&out);
+        fs::rename(&english, &target)?;
+        println!("Built offline English vocabulary: {}", target.display());
+        return Ok(());
+    }
     let mut components = Vec::new();
     let mut archives = Vec::new();
     for (id, format, source) in [

@@ -8,7 +8,7 @@ use std::{
 };
 pub fn endpoint() -> Result<String, String> {
     Ok(format!(
-        r"\\.\pipe\retype-ai-{}-v1",
+        r"\\.\pipe\EnglishAssist-ai-{}-v1",
         transport::user_sid().map_err(|e| e.to_string())?
     ))
 }

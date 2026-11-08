@@ -5,6 +5,7 @@ use crate::{
 };
 use eframe::egui::{self, Color32, FontFamily, RichText, Stroke, Vec2};
 use raw_window_handle::HasWindowHandle;
+#[cfg(test)]
 use retype_types::PinyinScheme;
 use std::sync::{
     atomic::{AtomicBool, Ordering},
@@ -24,7 +25,8 @@ pub(crate) const DANGER: Color32 = Color32::from_rgb(209, 61, 61);
 pub(crate) const MUTED: Color32 = Color32::from_rgb(101, 119, 129);
 const BACKGROUND: Color32 = Color32::from_rgb(246, 249, 250);
 pub(crate) const BORDER: Color32 = Color32::from_rgb(227, 233, 236);
-const PREFERENCES: &str = "Software\\retype";
+#[cfg(test)]
+const PREFERENCES: &str = "Software\\EnglishAssist";
 
 type AppResult<T> = backend::Result<T>;
 
@@ -93,6 +95,8 @@ impl Options {
                 return Err(format!("unknown argument: {argument}").into());
             }
         }
+        options.page = english_page(options.page);
+        options.updates = false;
         Ok(options)
     }
 }
@@ -105,6 +109,7 @@ fn read_scheme_at(key: &str) -> AppResult<PinyinScheme> {
         PinyinScheme::Full
     })
 }
+#[cfg(test)]
 fn write_scheme_at(key: &str, scheme: PinyinScheme) -> AppResult<()> {
     backend::set_at(
         key,
@@ -168,6 +173,13 @@ enum Page {
     About,
 }
 
+// Unsupported legacy pages cannot start sync, microphone or updater services.
+fn english_page(page: Page) -> Page {
+    match page {
+        Page::Voice | Page::Statistics | Page::Cloud | Page::Lan => Page::Input,
+        other => other,
+    }
+}
 struct SettingsApp {
     open_request: u32,
     open_started: Instant,
@@ -177,7 +189,6 @@ struct SettingsApp {
     lan: Option<crate::lan::LanPage>,
     options: Options,
     started: Instant,
-    scheme: PinyinScheme,
     page: Page,
     preferences: backend::Preferences,
     packs: Vec<backend::Pack>,
@@ -212,6 +223,7 @@ struct SettingsApp {
 impl SettingsApp {
     fn select_page(&mut self, page: Page) {
         self.ai.cancel_capture();
+        let page = english_page(page);
         self.page = page;
         match page {
             Page::Dictionary => {
@@ -294,7 +306,6 @@ impl SettingsApp {
         if let Some(cloud) = &mut self.cloud {
             if cloud.tick(ctx) {
                 if let Ok(prefs) = backend::preferences() {
-                    self.scheme = prefs.scheme;
                     self.preferences = prefs;
                 }
                 self.ai.refresh_from_disk();
@@ -328,7 +339,6 @@ impl SettingsApp {
             ctx.send_viewport_cmd(egui::ViewportCommand::Visible(true));
             ctx.send_viewport_cmd(egui::ViewportCommand::Focus);
             if let Ok(preferences) = backend::preferences() {
-                self.scheme = preferences.scheme;
                 self.preferences = preferences;
             }
             crate::settings_log::event(
@@ -448,26 +458,8 @@ impl SettingsApp {
         }
     }
 
-    fn save(&mut self, name: &str, value: bool) -> bool {
-        match backend::set(name, u32::from(value)) {
-            Ok(()) => {
-                self.error = None;
-                true
-            }
-            Err(error) => {
-                self.error = Some(format!("保存设置失败：{error}"));
-                false
-            }
-        }
-    }
-
     fn check_update(&mut self) {
-        if self.updating || self.installing {
-            return;
-        }
-        self.updating = true;
-        self.update_message = "正在检查更新…".into();
-        let _ = self.tasks.send(Task::Check);
+        self.update_message = "此开发版请使用 English Assist 安装包更新。".into();
     }
 
     fn open(&mut self, destination: &str) {
@@ -538,6 +530,7 @@ impl SettingsApp {
             .send(Task::BaseInstall(source, Arc::clone(&self.cancel_download)));
     }
 
+    #[allow(dead_code)] // Retained upstream page, not reachable in the English-only product.
     fn dictionary_page(&mut self, ui: &mut egui::Ui) {
         self.base_resources_ui(ui);
         if self.installed_packs.is_empty() {
@@ -848,92 +841,66 @@ impl SettingsApp {
 
     fn about_page(&mut self, ui: &mut egui::Ui) {
         card(ui, |ui| {
-            ui.horizontal(|ui| {
-                ui.add(egui::Image::new(&self.logo).fit_to_exact_size(Vec2::splat(34.0)));
-                ui.vertical(|ui| {
-                    ui.spacing_mut().item_spacing.y = 2.0;
-                    ui.label(RichText::new("retype 输入法").size(16.0).strong());
-                    ui.label(
-                        RichText::new(&self.preferences.version)
-                            .size(12.0)
-                            .color(MUTED),
-                    );
-                });
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                    if icon_button(
-                        ui,
-                        Icon::Refresh,
-                        "检查更新",
-                        false,
-                        false,
-                        !self.updating && !self.installing,
-                    ) {
-                        self.check_update();
-                    }
-                    if self.updating || self.installing {
-                        ui.spinner();
-                    }
-                });
-            });
-            ui.separator();
-            let mut enabled = self.preferences.auto_check;
-            if switch_row(ui, &mut enabled, "自动检查更新") && self.save("AutoCheck", enabled)
-            {
-                self.preferences.auto_check = enabled;
-            }
-            if !self.update_message.is_empty() && self.update_message != "检查是否有新版本。"
-            {
-                ui.label(RichText::new(&self.update_message).size(13.0).color(MUTED));
-            }
-            if let Some(offer) = self.offer.clone() {
-                if offer.available {
-                    ui.horizontal_wrapped(|ui| {
-                        if offer.installable && primary_button(ui, "下载并安装", !self.installing)
-                        {
-                            if let Some(version) = &offer.version {
-                                self.installing = true;
-                                self.update_message = "正在准备下载…".into();
-                                let _ = self.tasks.send(Task::Install(version.clone()));
-                            }
-                        }
-                        if let Some(url) = offer.url.filter(|url| {
-                            url.starts_with("https://github.com/L-Chris/retype/releases/")
-                        }) {
-                            if ui.button("版本说明").clicked() {
-                                self.open(&url);
-                            }
-                        }
-                        if ui
-                            .add_enabled(!self.installing, egui::Button::new("跳过"))
-                            .on_hover_text("跳过此版本的自动提醒")
-                            .clicked()
-                        {
-                            if let Some(version) = &offer.version {
-                                let _ = self.tasks.send(Task::Skip(version.clone()));
-                            }
-                        }
-                    });
-                }
-            }
+            ui.label(
+                RichText::new("English Assist · 英文助手")
+                    .size(18.0)
+                    .strong(),
+            );
+            ui.label(format!("开发验证版 · {}", self.preferences.version));
+            ui.label("Windows 原生英文输入法：本地补词、拼写建议与主动 AI 编辑。");
+            ui.label(
+                RichText::new("此分支基于 Retype 修改；输入兼容性以随包验证记录为准。")
+                    .color(MUTED),
+            );
         });
         ui.add_space(12.0);
         card(ui, |ui| {
+            ui.label(RichText::new("来源与许可").strong());
+            ui.label("Retype 源码使用 MIT；词库数据保留各自许可与署名。");
             ui.horizontal(|ui| {
-                ui.label(RichText::new("关于与支持").strong());
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                    if ui.button("反馈").on_hover_text("提交问题反馈").clicked() {
-                        self.open("https://github.com/L-Chris/retype/issues");
+                for (title, file) in [("查看署名", "NOTICE.txt"), ("查看许可", "LICENSE")] {
+                    if ui.button(title).clicked() {
+                        self.open(&self.preferences.directory.join(file).to_string_lossy());
                     }
-                    for (title, file) in [("署名", "NOTICE.txt"), ("许可", "LICENSE")] {
-                        if ui.button(title).clicked() {
-                            self.open(&self.preferences.directory.join(file).to_string_lossy());
-                        }
-                    }
-                    if ui.button("主页").clicked() {
-                        self.open("https://github.com/L-Chris/retype");
-                    }
-                });
+                }
+                ui.hyperlink_to("上游源码", "https://github.com/L-Chris/retype");
             });
+        });
+        ui.add_space(12.0);
+        card(ui, |ui| {
+            ui.label(RichText::new("卸载").strong());
+            ui.label("请在 Windows 设置 → 应用 → 已安装的应用中卸载 English Assist。");
+            ui.label("卸载会移除本项目英语入口和密钥；使用中的组件可能需重启后清理。");
+        });
+    }
+    fn english_dictionary_page(&mut self, ui: &mut egui::Ui) {
+        card(ui, |ui| {
+            ui.label(RichText::new("离线英文词库").strong());
+            match &self.base_status {
+                Some(status) if status.english.is_some() => {
+                    ui.colored_label(ONLINE, "英文词库已就绪");
+                    ui.label("单词补全与拼写建议无需联网。");
+                }
+                Some(_) => {
+                    ui.colored_label(DANGER, "未找到英文词库，请修复或重新安装 English Assist。");
+                }
+                None => {
+                    ui.spinner();
+                    ui.label("正在检查词库…");
+                }
+            }
+            if ui.button("刷新状态").clicked() {
+                let _ = self.tasks.send(Task::BaseStatus);
+            }
+            ui.label(
+                RichText::new("英文词频来源：SymSpell / SCOWL / Google Ngram，详见随包 NOTICE。")
+                    .color(MUTED),
+            );
+        });
+        ui.add_space(12.0);
+        card(ui, |ui| {
+            ui.label(RichText::new("个人词库").strong());
+            ui.label("此开发版先验证基础英文输入；手动词条管理将在后续版本加入。");
         });
     }
     fn new(
@@ -1000,7 +967,6 @@ impl SettingsApp {
         );
         let preferences = backend::preferences()?;
         crate::settings_log::event("app", "preferences_ready", options.request_id, "loaded");
-        let scheme = preferences.scheme;
         let error = None;
         let page = options.page;
         let (tasks, events, busy) = backend::worker(cc.egui_ctx.clone());
@@ -1042,13 +1008,8 @@ impl SettingsApp {
             frame_logged: false,
             ai,
             lan: None,
-            cloud: (page == Page::Cloud
-                || retype_sync::config::root()
-                    .and_then(|root| retype_sync::config::Config::load_at(&root))
-                    .is_ok_and(|config| config.enabled))
-            .then(crate::cloud::CloudPage::new),
+            cloud: None,
             started,
-            scheme,
             page,
             preferences,
             packs: backend::packs()?,
@@ -1089,38 +1050,17 @@ impl SettingsApp {
     }
 
     fn input_page(&mut self, ui: &mut egui::Ui) {
-        self.base_resources_ui(ui);
         card(ui, |ui| {
-            crate::ai::configure_form(ui);
-            let field_width = (ui.available_width() - 120.0).clamp(140.0, 320.0);
-            egui::Grid::new("input-scheme-grid")
-                .num_columns(2)
-                .min_row_height(36.0)
-                .spacing([20.0, 12.0])
-                .show(ui, |ui| {
-                    crate::ai::form_label(ui, "拼音方案", 96.0);
-                    let mut current = self.scheme;
-                    egui::ComboBox::from_id_salt("input-scheme-combo")
-                        .width(field_width)
-                        .selected_text(match current {
-                            PinyinScheme::Full => "全拼",
-                            PinyinScheme::Flypy => "小鹤双拼",
-                        })
-                        .show_ui(ui, |ui| {
-                            ui.selectable_value(&mut current, PinyinScheme::Full, "全拼");
-                            ui.selectable_value(&mut current, PinyinScheme::Flypy, "小鹤双拼");
-                        });
-                    if current != self.scheme {
-                        match write_scheme_at(PREFERENCES, current) {
-                            Ok(()) => {
-                                self.scheme = current;
-                                self.error = None;
-                            }
-                            Err(error) => self.error = Some(format!("保存设置失败：{error}")),
-                        }
-                    }
-                    ui.end_row();
-                });
+            ui.label(
+                RichText::new("English Assist · 英文助手")
+                    .size(17.0)
+                    .strong(),
+            );
+            ui.label("在 Windows 的英语（美国）键盘列表中选择 English Assist。");
+            ui.label(
+                RichText::new("本地补词与拼写建议离线工作；AI 只在你主动触发时处理选中的文本。")
+                    .color(MUTED),
+            );
         });
         ui.add_space(14.0);
         card(ui, |ui| {
@@ -1151,13 +1091,21 @@ impl SettingsApp {
         card(ui, |ui| {
             if switch_row(ui, &mut self.preferences.symbol_completion, "符号自动补全") {
                 if let Err(error) = backend::set(
-                    "SymbolCompletionDisabled",
-                    u32::from(!self.preferences.symbol_completion),
+                    "SymbolCompletionEnabled",
+                    u32::from(self.preferences.symbol_completion),
                 ) {
                     self.preferences.symbol_completion = !self.preferences.symbol_completion;
                     self.error = Some(format!("保存设置失败：{error}"));
                 }
             }
+        });
+        ui.add_space(14.0);
+        card(ui, |ui| {
+            ui.label(RichText::new("键盘操作").strong());
+            ui.label("Tab 接受候选，不自动加空格；↑↓ 选择其他候选。");
+            ui.label("空格默认保留原词；明确选择后才接受候选。");
+            ui.label("明确选词后，Enter 只接受候选；再次 Enter 才换行或发送。");
+            ui.label("Esc 保留原词；数字始终按原样输入，例如 python3。");
         });
         if let Some(error) = &self.error {
             ui.colored_label(Color32::DARK_RED, error);
@@ -1507,7 +1455,7 @@ impl eframe::App for SettingsApp {
                 ui.add_space(8.0);
                 let brand = ui.horizontal(|ui| {
                     ui.add(egui::Image::new(&self.logo).fit_to_exact_size(Vec2::splat(34.0)));
-                    ui.label(RichText::new("retype").size(18.0).strong());
+                    ui.label(RichText::new("英文助手").size(18.0).strong());
                 });
                 if brand.response.interact(egui::Sense::drag()).drag_started() {
                     ctx.send_viewport_cmd(egui::ViewportCommand::StartDrag);
@@ -1526,12 +1474,8 @@ impl eframe::App for SettingsApp {
                             (Page::Input, "输入"),
                             (Page::Dictionary, "词库"),
                             (Page::Providers, "AI 提供商"),
-                            (Page::Translation, "翻译"),
-                            (Page::Voice, "语音输入"),
+                            (Page::Translation, "AI 纠错与补句"),
                             (Page::Shortcuts, "快捷键"),
-                            (Page::Statistics, "统计"),
-                            (Page::Cloud, "云同步"),
-                            (Page::Lan, "跨设备"),
                             (Page::About, "关于"),
                         ] {
                             if navigation(ui, page, title, self.page == page, row_height) {
@@ -1549,7 +1493,7 @@ impl eframe::App for SettingsApp {
                         Page::Input => "输入",
                         Page::Dictionary => "词库",
                         Page::Providers => "AI 提供商",
-                        Page::Translation => "翻译",
+                        Page::Translation => "AI 纠错与补句",
                         Page::Voice => "语音输入",
                         Page::Shortcuts => "快捷键",
                         Page::Statistics => "统计",
@@ -1613,7 +1557,7 @@ impl eframe::App for SettingsApp {
                             ui.set_style(content_style);
                             match self.page {
                                 Page::Input => self.input_page(ui),
-                                Page::Dictionary => self.dictionary_page(ui),
+                                Page::Dictionary => self.english_dictionary_page(ui),
                                 Page::Providers => self.ai.providers(ui),
                                 Page::Translation => {
                                     self.ai.translation(ui);
@@ -1763,7 +1707,7 @@ pub fn run() -> AppResult<()> {
         centered: true,
         persist_window: false,
         viewport: egui::ViewportBuilder::default()
-            .with_title("retype 设置")
+            .with_title("English Assist 英文助手设置")
             .with_decorations(false)
             .with_inner_size([840.0, 600.0])
             .with_min_inner_size([760.0, 520.0]),
@@ -1777,7 +1721,7 @@ pub fn run() -> AppResult<()> {
         format!("elapsed_ms={}", started.elapsed().as_millis()),
     );
     let result = eframe::run_native(
-        "retype 设置",
+        "English Assist 英文助手设置",
         native,
         Box::new(move |cc| {
             SettingsApp::new(cc, options, started)
@@ -1818,7 +1762,7 @@ mod tests {
     fn scheme_round_trip_uses_the_shared_dword_format() -> AppResult<()> {
         // Exercise Windows persistence without changing the user's input mode.
         let key = format!(
-            "Software\\retype\\Tests\\SettingsEgui-{}",
+            "Software\\EnglishAssist\\Tests\\SettingsEgui-{}",
             std::process::id()
         );
         let result = (|| -> AppResult<()> {

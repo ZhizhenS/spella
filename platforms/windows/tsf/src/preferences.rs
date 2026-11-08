@@ -10,7 +10,7 @@ pub fn scheme() -> PinyinScheme {
     let result = unsafe {
         RegGetValueW(
             HKEY_CURRENT_USER,
-            w!("Software\\retype"),
+            w!("Software\\EnglishAssist"),
             w!("PinyinScheme"),
             RRF_RT_REG_DWORD,
             None,
@@ -34,7 +34,7 @@ pub fn english_options() -> (bool, bool) {
 }
 
 pub fn symbol_completion() -> bool {
-    read_dword(w!("SymbolCompletionDisabled")) == 0
+    read_dword(w!("SymbolCompletionEnabled")) != 0
 }
 
 fn read_dword(name: windows_core::PCWSTR) -> u32 {
@@ -44,7 +44,7 @@ fn read_dword(name: windows_core::PCWSTR) -> u32 {
     unsafe {
         let _ = RegGetValueW(
             HKEY_CURRENT_USER,
-            w!("Software\\retype"),
+            w!("Software\\EnglishAssist"),
             name,
             RRF_RT_REG_DWORD,
             None,
@@ -70,7 +70,7 @@ pub fn pack_root() -> Option<std::path::PathBuf> {
     let result = unsafe {
         RegGetValueW(
             HKEY_CURRENT_USER,
-            w!("Software\\retype"),
+            w!("Software\\EnglishAssist"),
             w!("DictionaryRoot"),
             RRF_RT_REG_SZ,
             None,
@@ -176,7 +176,7 @@ fn open_settings_inner(request: u32) -> Result<()> {
     unsafe {
         let read = RegGetValueW(
             HKEY_LOCAL_MACHINE,
-            w!("Software\\retype"),
+            w!("Software\\EnglishAssist"),
             w!("ActiveDir"),
             RRF_RT_REG_SZ | RRF_SUBKEY_WOW6464KEY,
             None,
@@ -219,8 +219,8 @@ fn open_settings_inner(request: u32) -> Result<()> {
         while let Ok(window) = FindWindowExW(
             None,
             previous,
-            w!("Retype.Settings.Command"),
-            w!("retype 设置"),
+            w!("EnglishAssist.Settings.Command"),
+            w!("English Assist 英文助手设置"),
         ) {
             previous = Some(window);
             let mut pid = 0;

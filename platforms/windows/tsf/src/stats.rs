@@ -137,7 +137,7 @@ fn directory() -> Option<PathBuf> {
         let result = unsafe {
             RegGetValueW(
                 HKEY_CURRENT_USER,
-                w!("Software\\retype"),
+                w!("Software\\EnglishAssist"),
                 w!("StatisticsPath"),
                 RRF_RT_REG_SZ,
                 None,
@@ -153,7 +153,7 @@ fn directory() -> Option<PathBuf> {
     }
     std::env::var_os("LOCALAPPDATA")
         .map(PathBuf::from)
-        .map(|path| path.join("retype").join("statistics"))
+        .map(|path| path.join("EnglishAssist").join("statistics"))
 }
 
 fn sender() -> Option<&'static SyncSender<Delta>> {

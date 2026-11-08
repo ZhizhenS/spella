@@ -10,6 +10,6 @@ pub fn root() -> Result<PathBuf> {
     #[cfg(not(target_os = "macos"))]
     Ok(
         PathBuf::from(std::env::var_os("LOCALAPPDATA").ok_or("无法找到本地数据目录")?)
-            .join("retype/sync"),
+            .join("EnglishAssist/sync"),
     )
 }

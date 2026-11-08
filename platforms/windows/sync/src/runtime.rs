@@ -120,7 +120,7 @@ fn registry(name: &str) -> Result<Option<u32>> {
     let code = unsafe {
         RegGetValueW(
             HKEY_CURRENT_USER,
-            transport::wide(r"Software\retype").as_ptr(),
+            transport::wide(r"Software\EnglishAssist").as_ptr(),
             transport::wide(name).as_ptr(),
             RRF_RT_REG_DWORD,
             std::ptr::null_mut(),
@@ -141,7 +141,7 @@ fn set_registry(name: &str, value: u32) -> Result<()> {
     unsafe {
         let code = RegCreateKeyExW(
             HKEY_CURRENT_USER,
-            transport::wide(r"Software\retype").as_ptr(),
+            transport::wide(r"Software\EnglishAssist").as_ptr(),
             0,
             std::ptr::null(),
             REG_OPTION_NON_VOLATILE,

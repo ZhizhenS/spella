@@ -9,10 +9,10 @@ use windows_sys::Win32::{
     Foundation::*, Security::Credentials::*, Storage::FileSystem::*, System::Registry::*,
 };
 pub fn key(id: &str) -> io::Result<String> {
-    read_credential(&format!("retype/ai/{id}"))
+    read_credential(&format!("EnglishAssist/ai/{id}"))
 }
 pub fn cloud_password(account: &str) -> io::Result<String> {
-    read_credential(&format!("retype/sync/{account}"))
+    read_credential(&format!("EnglishAssist/sync/{account}"))
 }
 fn read_credential(target: &str) -> io::Result<String> {
     let name = wide(target);
@@ -44,14 +44,14 @@ fn read_credential(target: &str) -> io::Result<String> {
     }
 }
 pub fn save_key(id: &str, value: &str) -> io::Result<()> {
-    write_credential(&format!("retype/ai/{id}"), value)
+    write_credential(&format!("EnglishAssist/ai/{id}"), value)
 }
 pub fn save_cloud_password(account: &str, value: &str) -> io::Result<()> {
-    write_credential(&format!("retype/sync/{account}"), value)
+    write_credential(&format!("EnglishAssist/sync/{account}"), value)
 }
 fn write_credential(target: &str, value: &str) -> io::Result<()> {
     let name = wide(target);
-    let user = wide("retype");
+    let user = wide("EnglishAssist");
     // SAFETY: synchronous APIs copy the live input buffers.
     unsafe {
         if value.is_empty() {
@@ -98,7 +98,7 @@ pub fn shortcuts() -> crate::config::Shortcuts {
     let status = unsafe {
         RegGetValueW(
             HKEY_CURRENT_USER,
-            wide(r"Software\retype").as_ptr(),
+            wide(r"Software\EnglishAssist").as_ptr(),
             wide("Shortcuts").as_ptr(),
             RRF_RT_REG_SZ,
             null_mut(),
@@ -133,7 +133,7 @@ pub fn save_shortcuts(value: crate::config::Shortcuts) -> io::Result<()> {
     unsafe {
         let s = RegCreateKeyExW(
             HKEY_CURRENT_USER,
-            wide(r"Software\retype").as_ptr(),
+            wide(r"Software\EnglishAssist").as_ptr(),
             0,
             null(),
             REG_OPTION_NON_VOLATILE,

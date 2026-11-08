@@ -1,18 +1,34 @@
 use crate::{
     config::Provider,
-    protocol::{Operation, Response, MAX_TEXT},
+    protocol::{AssistTask, Operation, Response, MAX_TEXT},
 };
 pub use retype_ai_core::service::*;
 #[cfg(windows)]
 fn key(provider: &Provider) -> Result<String, String> {
-    crate::secrets::key(&provider.id).map_err(|_| "无法读取 API Key".into())
+    let key = crate::secrets::key(&provider.id).map_err(|_| "无法读取 API Key".to_string())?;
+    if key.trim().is_empty() && provider.kind != crate::config::ApiKind::Ollama {
+        return Err("请先在设置 → AI 提供商中填写 API Key".into());
+    }
+    Ok(key)
 }
 #[cfg(not(windows))]
 fn key(_: &Provider) -> Result<String, String> {
     Ok(String::new())
 }
 pub fn perform(operation: Operation) -> Result<Response, String> {
+    let grammar = matches!(&operation, Operation::GrammarCorrect { .. });
     match operation {
+        Operation::GrammarCorrect { text } | Operation::CompleteSentence { text } => {
+            let task = if grammar {
+                AssistTask::GrammarCorrect
+            } else {
+                AssistTask::CompleteSentence
+            };
+            let config = crate::config::load().map_err(|_| "无法读取 AI 配置".to_string())?;
+            let provider = config.selected()?;
+            let text = assist_with_key(provider, &config.model, &text, task, &key(provider)?)?;
+            Ok(Response::Assistance { text })
+        }
         Operation::Models { provider } => {
             configured_provider(&provider)?;
             models(&provider).map(Response::Models)

@@ -1,6 +1,6 @@
-<#
+﻿<#
 .SYNOPSIS
-  Add/remove retype in the current user's Windows keyboard list (no elevation needed).
+  Add/remove English Assist in the current user's Windows keyboard list (no elevation needed).
 .DESCRIPTION
   Machine registration alone does not add a TIP to the Windows user language list.
   Call InstallLayoutOrTip without default/clean-install flags, preserving other keyboards.
@@ -10,11 +10,10 @@
 param([switch]$Uninstall, [switch]$Verify)
 $ErrorActionPreference = 'Stop'
 $entries = @(
-  @{ Language = [ushort]0x0804; Profile = 'A3F1C6D9-2E47-4B8A-9C51-6D0E8F2A3B74'; Name = 'retype Chinese' },
-  @{ Language = [ushort]0x0409; Profile = '8E082735-45E3-4D99-8BCA-A5CD3591C4E6'; Name = 'retype English' }
+  @{ Language = [ushort]0x0409; Profile = 'F395A724-DC88-4E75-B3D4-9063A552B8F4'; Name = 'English Assist' }
 )
 foreach ($entry in $entries) {
-  $entry.Tip = ('{0:X4}:{{7E4C9A21-5B38-4D2E-9F6A-1C0D8E7B4A52}}{{{1}}}' -f $entry.Language, $entry.Profile)
+  $entry.Tip = ('{0:X4}:{{9257DCE8-EC1B-4D4A-8EA0-8795A9FD881D}}{{{1}}}' -f $entry.Language, $entry.Profile)
 }
 $tips = @($entries | ForEach-Object { $_.Tip })
 
@@ -28,25 +27,24 @@ if ($Uninstall) {
   if (Test-Path -LiteralPath $syncHost) {
     Start-Process -FilePath $syncHost -ArgumentList '--stop' -WindowStyle Hidden -Wait | Out-Null
   }
-  Remove-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run' -Name 'retype Learning' -ErrorAction SilentlyContinue
+  Remove-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run' -Name 'EnglishAssist Learning' -ErrorAction SilentlyContinue
   $learningHost = Join-Path $PSScriptRoot 'retype-learning-host.exe'
   if (Test-Path -LiteralPath $learningHost) {
     Start-Process -FilePath $learningHost -ArgumentList '--stop' -WindowStyle Hidden -Wait | Out-Null
   }
-  if (-not @($before | Where-Object { $tips -contains $_ }).Count) { return }
 }
 if (-not $Uninstall) {
   foreach ($entry in $entries) {
     $languageKey = '0x{0:x8}' -f $entry.Language
-    $profile = "Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\CTF\TIP\{7E4C9A21-5B38-4D2E-9F6A-1C0D8E7B4A52}\LanguageProfile\$languageKey\{$($entry.Profile)}"
+    $profile = "Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\CTF\TIP\{9257DCE8-EC1B-4D4A-8EA0-8795A9FD881D}\LanguageProfile\$languageKey\{$($entry.Profile)}"
     if (-not (Test-Path -LiteralPath $profile)) { throw "Install $($entry.Name) before adding its keyboard." }
   }
 }
-if (-not ('Retype.UserInputProfile' -as [type])) {
+if (-not ('EnglishAssist.UserInputProfile' -as [type])) {
   Add-Type -TypeDefinition @'
 using System;
 using System.Runtime.InteropServices;
-namespace Retype {
+namespace EnglishAssist {
     [ComImport, Guid("1F02B6C5-7842-4EE6-8A0B-9A24183A95CA"),
      InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     internal interface IInputProcessorProfiles {
@@ -72,7 +70,7 @@ namespace Retype {
             var instance = Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid("33C53A50-F456-4884-B049-85FD643ECFED")));
             try {
                 var profiles = (IInputProcessorProfiles)instance;
-                var clsid = new Guid("7E4C9A21-5B38-4D2E-9F6A-1C0D8E7B4A52");
+                var clsid = new Guid("9257DCE8-EC1B-4D4A-8EA0-8795A9FD881D");
                 var profile = new Guid(profileId);
                 bool enabled;
                 profiles.IsEnabledLanguageProfile(ref clsid, language, ref profile, out enabled);
@@ -83,7 +81,7 @@ namespace Retype {
             var instance = Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid("33C53A50-F456-4884-B049-85FD643ECFED")));
             try {
                 var profiles = (IInputProcessorProfiles)instance;
-                var clsid = new Guid("7E4C9A21-5B38-4D2E-9F6A-1C0D8E7B4A52");
+                var clsid = new Guid("9257DCE8-EC1B-4D4A-8EA0-8795A9FD881D");
                 var profile = new Guid(profileId);
                 profiles.EnableLanguageProfile(ref clsid, language, ref profile, enabled);
                 bool actual;
@@ -104,18 +102,28 @@ namespace Retype {
 # 0 = append/enable, 1 = uninstall. Never change the user's default input method.
 if ($Verify) {
   foreach ($entry in $entries) {
-    if ($before -notcontains $entry.Tip -or -not [Retype.UserInputProfile]::IsEnabled($entry.Language, $entry.Profile)) {
+    if ($before -notcontains $entry.Tip -or -not [EnglishAssist.UserInputProfile]::IsEnabled($entry.Language, $entry.Profile)) {
       throw "$($entry.Name) is missing or disabled for the current user."
     }
   }
   return
 }
 if (-not $Uninstall) {
+  $baseRoot = Join-Path $PSScriptRoot 'dictionaries'
+  $englishHash = 'e1098fbaa665d52788f6ed1fde2a00eb8145e459c41583f5e59f4678db7619bc'
+  $englishImage = Join-Path $baseRoot ("english-$englishHash.bin")
+  if (-not (Test-Path -LiteralPath $englishImage -PathType Leaf) -or
+      (Get-Item -LiteralPath $englishImage).Length -ne 3044297 -or
+      (Get-FileHash -LiteralPath $englishImage -Algorithm SHA256).Hash -ne $englishHash) {
+    throw 'The installed offline English vocabulary is missing or failed verification.'
+  }
   # TIPs in AppContainer hosts (including Windows Search) must read the same
   # input preferences as desktop apps. Share this settings key read-only;
   # preserve its existing ACL and do not grant access to sibling/subkeys.
-  $preferences = 'HKCU:\Software\retype'
+  $preferences = 'HKCU:\Software\EnglishAssist'
   if (-not (Test-Path $preferences)) { New-Item -Path $preferences -Force | Out-Null }
+  Set-ItemProperty -LiteralPath $preferences -Name 'ProfileOwnerSid' -Value ([Security.Principal.WindowsIdentity]::GetCurrent().User.Value)
+  Set-ItemProperty -LiteralPath $preferences -Name 'ProfileInstallDir' -Value ([IO.Path]::GetFullPath($PSScriptRoot))
   $acl = Get-Acl -Path $preferences
   $packages = [Security.Principal.SecurityIdentifier]::new('S-1-15-2-1')
   $read = [Security.AccessControl.RegistryAccessRule]::new($packages,
@@ -128,7 +136,7 @@ if (-not $Uninstall) {
 
   # Dedicated startup-only diagnostics, including failures in AppContainer hosts.
   # No typed text, credentials or provider configuration is written here.
-  $settingsLogs = Join-Path $env:LOCALAPPDATA 'retype\logs'
+  $settingsLogs = Join-Path $env:LOCALAPPDATA 'EnglishAssist\logs'
   New-Item -ItemType Directory -Path $settingsLogs -Force | Out-Null
   $logsAcl = Get-Acl -LiteralPath $settingsLogs
   $logsWrite = [Security.AccessControl.FileSystemAccessRule]::new($packages,
@@ -143,7 +151,7 @@ if (-not $Uninstall) {
   # The TIP runs inside desktop and AppContainer hosts. Give the dedicated
   # count-only directory (not the whole retype data tree) write access, and
   # publish its real user path since AppContainer LOCALAPPDATA is redirected.
-  $statistics = Join-Path $env:LOCALAPPDATA 'retype\statistics'
+  $statistics = Join-Path $env:LOCALAPPDATA 'EnglishAssist\statistics'
   New-Item -ItemType Directory -Path $statistics -Force | Out-Null
   $statsAcl = Get-Acl -LiteralPath $statistics
   $statsWrite = [Security.AccessControl.FileSystemAccessRule]::new($packages,
@@ -157,7 +165,7 @@ if (-not $Uninstall) {
 
   # Category dictionaries live outside versioned installs. Search/AppContainer
   # hosts must read the real profile path, but never write downloaded files.
-  $dictionaryRoot = Join-Path $env:LOCALAPPDATA 'retype\dict-packs'
+  $dictionaryRoot = Join-Path $env:LOCALAPPDATA 'EnglishAssist\dict-packs'
   New-Item -ItemType Directory -Path $dictionaryRoot -Force | Out-Null
   $packAcl = Get-Acl -LiteralPath $dictionaryRoot
   $packRead = [Security.AccessControl.FileSystemAccessRule]::new($packages,
@@ -169,23 +177,15 @@ if (-not $Uninstall) {
   Set-Acl -LiteralPath $dictionaryRoot -AclObject $packAcl
   Set-ItemProperty -Path $preferences -Name 'DictionaryRoot' -Value $dictionaryRoot
 
-  # Public base images share read access only; personal learning stays private.
-  $baseRoot = Join-Path $env:LOCALAPPDATA 'retype\dictionaries'
-  New-Item -ItemType Directory -Path $baseRoot -Force | Out-Null
-  $baseAcl = Get-Acl -LiteralPath $baseRoot
-  $baseAcl.SetAccessRule($packRead)
-  Set-Acl -LiteralPath $baseRoot -AclObject $baseAcl
+  # Immutable offline vocabulary is installed under Program Files, independently of personal data.
+  $baseRoot = Join-Path $PSScriptRoot 'dictionaries'
+  if (-not (Test-Path -LiteralPath $baseRoot -PathType Container)) { throw 'Offline English vocabulary is missing from the installation.' }
   Set-ItemProperty -Path $preferences -Name 'BaseDictionaryRoot' -Value $baseRoot
-  # Migrate a compatible older dictionary without starting the UI or using the network.
-  $resourceSettings = Join-Path $PSScriptRoot 'settings\retype.exe'
-  if (Test-Path -LiteralPath $resourceSettings) {
-    $resourceProcess = Start-Process -FilePath $resourceSettings -ArgumentList '--prepare-resources' -WindowStyle Hidden -Wait -PassThru
-    if ($resourceProcess.ExitCode) { Write-Warning 'Base dictionary migration is incomplete; retry in Settings.' }
-  }
+  # No online dictionary download or Chinese base migration is needed.
 
   # The broker alone owns word-bearing learning files. AppContainers get pipe access,
   # never permission to open this directory. The native broker also enforces this ACL.
-  $learning = Join-Path $env:LOCALAPPDATA 'retype\learning'
+  $learning = Join-Path $env:LOCALAPPDATA 'EnglishAssist\learning'
   New-Item -ItemType Directory -Path $learning -Force | Out-Null
   $learningAcl = Get-Acl -LiteralPath $learning
   $learningAcl.SetAccessRuleProtection($true, $false)
@@ -205,17 +205,18 @@ if (-not $Uninstall) {
     if (-not (Test-Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run')) {
       New-Item -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run' | Out-Null
     }
-    Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run' -Name 'retype Learning' -Value ('"' + $learningHost + '" --serve')
+    Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run' -Name 'EnglishAssist Learning' -Value ('"' + $learningHost + '" --serve')
     Start-Process -FilePath $learningHost -ArgumentList '--serve' -WindowStyle Hidden | Out-Null
   }
 }
 $flags = if ($Uninstall) { [uint32]1 } else { [uint32]0 }
 foreach ($entry in $entries) {
-  if ($Uninstall -and $before -notcontains $entry.Tip) { continue }
-  if (-not [Retype.UserInputProfile]::InstallLayoutOrTip($entry.Tip, $flags)) {
-    throw "InstallLayoutOrTip failed for $($entry.Name)."
+  if (-not $Uninstall -or $before -contains $entry.Tip) {
+    if (-not [EnglishAssist.UserInputProfile]::InstallLayoutOrTip($entry.Tip, $flags)) {
+      throw "InstallLayoutOrTip failed for $($entry.Name)."
+    }
   }
-  [Retype.UserInputProfile]::SetEnabled($entry.Language, $entry.Profile, -not [bool]$Uninstall)
+  [EnglishAssist.UserInputProfile]::SetEnabled($entry.Language, $entry.Profile, -not [bool]$Uninstall)
 }
 # Verify both the keyboard list and TSF enablement; never change the default.
 for ($attempt = 0; $attempt -lt 10; $attempt++) {
@@ -225,6 +226,10 @@ for ($attempt = 0; $attempt -lt 10; $attempt++) {
   Start-Sleep -Milliseconds 300
 }
 if ($pending.Count) { throw 'Windows has not reflected the requested keyboard changes in the user language list.' }
+foreach ($entry in $entries) {
+  $enabled = [EnglishAssist.UserInputProfile]::IsEnabled($entry.Language, $entry.Profile)
+  if ($enabled -eq [bool]$Uninstall) { throw "Unexpected TSF enablement after changing $($entry.Name)." }
+}
 $missing = @($before | Where-Object { $tips -notcontains $_ -and $after -notcontains $_ })
 if ($missing.Count) { throw "Other keyboard entries changed during registration: $($missing -join ', ')" }
-Write-Host $(if ($Uninstall) { 'retype removed from the current user keyboard list.' } else { 'retype added to the current user keyboard list. Use Win+Space in a desktop app.' })
+Write-Host $(if ($Uninstall) { 'English Assist removed from the current user keyboard list.' } else { 'English Assist added to the current user keyboard list. Use Win+Space in a desktop app.' })

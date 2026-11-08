@@ -109,14 +109,22 @@ impl Default for Config {
     fn default() -> Self {
         Self {
             version: 1,
-            providers: Vec::new(),
-            provider: String::new(),
-            model: String::new(),
+            providers: vec![Provider {
+                id: "deepseek".into(),
+                preset: "DeepSeek".into(),
+                name: "DeepSeek".into(),
+                kind: ApiKind::Compatible,
+                base_url: "https://api.deepseek.com/v1".into(),
+                models: vec!["deepseek-flash".into()],
+                voice_protocols: Default::default(),
+            }],
+            provider: "deepseek".into(),
+            model: "deepseek-flash".into(),
             target: "English".into(),
-            preview: false,
+            preview: true,
             instructions: String::new(),
             reasoning: "none".into(),
-            timeout_seconds: 60,
+            timeout_seconds: 10,
             voice: Default::default(),
         }
     }
@@ -126,7 +134,7 @@ impl Config {
         self.providers
             .iter()
             .find(|p| p.id == self.provider && p.models.contains(&self.model))
-            .ok_or_else(|| "请先在设置 → 翻译中选择可用模型".into())
+            .ok_or_else(|| "请先在设置 → AI 纠错中选择可用模型".into())
     }
     pub fn load_at(path: &std::path::Path) -> io::Result<Self> {
         match std::fs::read(path) {
@@ -155,7 +163,7 @@ impl Shortcut {
         modifiers: 0,
     };
     pub const TRANSLATE: Self = Self {
-        vk: 0x30,
+        vk: 0x47,
         modifiers: 3,
     };
     pub const VOICE: Self = Self {
@@ -221,9 +229,9 @@ pub struct Shortcuts {
 impl Default for Shortcuts {
     fn default() -> Self {
         Self {
-            mode: Shortcut::SHIFT,
+            mode: Shortcut::DISABLED,
             translate: Shortcut::TRANSLATE,
-            voice: Shortcut::VOICE,
+            voice: Shortcut::DISABLED,
         }
     }
 }
@@ -262,14 +270,10 @@ mod tests {
         .is_err());
     }
     #[test]
-    fn voice_default_is_right_alt_hold_only() {
-        assert_eq!(
-            Shortcuts::default().voice,
-            Shortcut {
-                vk: 0xa5,
-                modifiers: 0
-            }
-        );
+    fn english_shortcuts_leave_shift_and_right_alt_to_the_host() {
+        assert_eq!(Shortcuts::default().voice, Shortcut::DISABLED);
+        assert_eq!(Shortcuts::default().mode, Shortcut::DISABLED);
+        assert_eq!(Shortcuts::default().translate.label(), "Ctrl + Alt + G");
         assert!(Shortcut::VOICE.valid_voice());
         assert!(!Shortcut::VOICE.valid(false));
         assert!(!Shortcut::VOICE.is_tap());
@@ -282,6 +286,10 @@ mod tests {
     }
     #[test]
     fn missing_model_does_not_silently_select_another() {
-        assert!(Config::default().selected().is_err());
+        let mut config = Config::default();
+        assert!(config.preview);
+        assert_eq!(config.timeout_seconds, 10);
+        config.model = "missing-model".into();
+        assert!(config.selected().is_err());
     }
 }

@@ -4,7 +4,7 @@ use windows::Win32::Foundation::{E_INVALIDARG, E_POINTER};
 use windows::Win32::UI::TextServices::*;
 use windows_core::{implement, Result, BSTR, GUID, HRESULT};
 
-pub const ATTRIBUTE: GUID = GUID::from_u128(0x70e34804_2913_4359_923e_74b45b7f12db);
+pub const ATTRIBUTE: GUID = GUID::from_u128(0x476fa73f_fbc9_4847_96b4_587d9148a56f);
 pub fn info() -> ITfDisplayAttributeInfo {
     Attribute.into()
 }
@@ -21,7 +21,7 @@ impl ITfDisplayAttributeInfo_Impl for Attribute_Impl {
         Ok(ATTRIBUTE)
     }
     fn GetDescription(&self) -> Result<BSTR> {
-        Ok(BSTR::from("retype composition"))
+        Ok(BSTR::from("English Assist composition"))
     }
     fn GetAttributeInfo(&self, value: *mut TF_DISPLAYATTRIBUTE) -> Result<()> {
         if value.is_null() {

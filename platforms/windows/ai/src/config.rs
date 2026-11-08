@@ -37,5 +37,5 @@ fn path() -> io::Result<PathBuf> {
     Ok(PathBuf::from(
         std::env::var_os("LOCALAPPDATA").ok_or_else(|| io::Error::other("LOCALAPPDATA missing"))?,
     )
-    .join("retype/ai/settings.json"))
+    .join("EnglishAssist/ai/settings.json"))
 }

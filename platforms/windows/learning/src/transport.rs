@@ -85,7 +85,7 @@ pub fn user_sid() -> io::Result<String> {
     token_sid(Handle::new(token)?.0)
 }
 pub fn pipe_name(sid: &str) -> String {
-    format!(r"\\.\pipe\retype-learning-{sid}-v1")
+    format!(r"\\.\pipe\EnglishAssist-learning-{sid}-v1")
 }
 
 pub fn is_app_container() -> io::Result<bool> {
@@ -146,7 +146,7 @@ pub fn private_directory(path: &std::path::Path, sid: &str) -> io::Result<()> {
 }
 
 pub fn read_machine_registry(name: &str) -> Option<String> {
-    let key = wide(r"Software\retype");
+    let key = wide(r"Software\EnglishAssist");
     let name = wide(name);
     let mut buffer = vec![0u16; 32768];
     let mut bytes = (buffer.len() * 2) as u32;

@@ -13,7 +13,7 @@ fn text(hive: HKEY, name: &str) -> Option<PathBuf> {
     let result = unsafe {
         RegGetValueW(
             hive,
-            w!("Software\\retype"),
+            w!("Software\\EnglishAssist"),
             PCWSTR(name.as_ptr()),
             RRF_RT_REG_SZ,
             None,
@@ -28,7 +28,7 @@ fn text(hive: HKEY, name: &str) -> Option<PathBuf> {
     path.is_absolute().then_some(path)
 }
 pub fn root() -> Option<PathBuf> {
-    std::env::var_os("RETYPE_BASE_RESOURCES")
+    std::env::var_os("ENGLISH_ASSIST_BASE_RESOURCES")
         .map(PathBuf::from)
         .filter(|p| p.is_absolute())
         .or_else(|| text(HKEY_CURRENT_USER, "BaseDictionaryRoot"))
@@ -36,7 +36,7 @@ pub fn root() -> Option<PathBuf> {
             std::env::var_os("LOCALAPPDATA")
                 .map(PathBuf::from)
                 .filter(|p| p.is_absolute())
-                .map(|p| p.join("retype/dictionaries"))
+                .map(|p| p.join("EnglishAssist/dictionaries"))
         })
 }
 pub fn legacy(hint: Option<&Path>) -> Vec<PathBuf> {
@@ -61,7 +61,7 @@ pub fn legacy(hint: Option<&Path>) -> Vec<PathBuf> {
         }
     }
     if let Some(local) = std::env::var_os("LOCALAPPDATA") {
-        directories.push(PathBuf::from(local).join("retype"));
+        directories.push(PathBuf::from(local).join("EnglishAssist"));
     }
     let mut paths = Vec::new();
     for directory in directories {

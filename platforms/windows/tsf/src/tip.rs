@@ -8,8 +8,8 @@ use windows::Win32::Foundation::{E_INVALIDARG, E_POINTER, E_UNEXPECTED, LPARAM, 
 use windows::Win32::UI::TextServices::*;
 use windows_core::{implement, Interface, Ref, Result, BOOL, GUID};
 
-const VOICE_COMMAND: GUID = GUID::from_u128(0x813e19d9_51f0_4b3f_9d7a_a21ef2e1d652);
-const TRANSLATION_COMMAND: GUID = GUID::from_u128(0x40926c8b_8ca6_4ae0_b17c_706ac447a38d);
+const VOICE_COMMAND: GUID = GUID::from_u128(0x47805eb0_5b02_401f_9fac_208241093d0b);
+const TRANSLATION_COMMAND: GUID = GUID::from_u128(0xcbff3256_54cc_49bf_91a1_bf63b665e728);
 
 fn preserved_voice(binding: retype_ai::config::Shortcut) -> Option<TF_PRESERVEDKEY> {
     if binding == retype_ai::config::Shortcut::VOICE {
@@ -254,7 +254,10 @@ impl TipState {
             Ok(bridge) => *lock(&self.entry_bridge) = Some(bridge),
             Err(error) => tracing::warn!("TSF input entry notifications unavailable: {error}"),
         }
-        crate::profiles::apply(self, crate::profiles::active_chinese().unwrap_or(true))?;
+        // This product registers only the English entry. Some hosts do not
+        // report the active profile until activation finishes; never fall back
+        // to an unregistered Chinese mode with no installed Chinese dictionary.
+        crate::profiles::apply(self, crate::profiles::active_chinese().unwrap_or(false))?;
         match crate::langbar::LanguageBar::attach(self, &mgr) {
             Ok(bar) => *lock(&self.language_bar) = Some(bar),
             Err(error) => {
@@ -575,7 +578,7 @@ impl TipState {
                     ) || candidates
                         && (matches!(key, Key::Up | Key::Down)
                             || key == Key::Tab && !mods.contains(Modifiers::SHIFT))
-                        || selected && matches!(key, Key::PageUp | Key::PageDown));
+                        || selected && matches!(key, Key::PageUp | Key::PageDown | Key::Enter));
         }
         if chinese
             && english
@@ -773,6 +776,14 @@ impl KeyEventSink_Impl {
         };
         if status.dwDynamicFlags & TS_SD_READONLY != 0 {
             return Ok(false.into());
+        }
+        if crate::translation::handle_key(
+            &state,
+            vk.0,
+            shortcut_modifiers(keymap::read_modifiers()),
+            test,
+        ) {
+            return Ok(true.into());
         }
         if crate::voice::active(&state) && vk.0 == 0x1b {
             if !test {

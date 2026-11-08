@@ -155,7 +155,7 @@ fn log_root() -> Option<PathBuf> {
         let result = unsafe {
             RegGetValueW(
                 HKEY_CURRENT_USER,
-                w!("Software\\retype"),
+                w!("Software\\EnglishAssist"),
                 w!("SettingsLogPath"),
                 RRF_RT_REG_SZ,
                 None,
@@ -174,7 +174,7 @@ fn log_root() -> Option<PathBuf> {
     std::env::var_os("LOCALAPPDATA")
         .map(PathBuf::from)
         .filter(|p| p.is_absolute())
-        .map(|p| p.join("retype/logs"))
+        .map(|p| p.join("EnglishAssist/logs"))
 }
 #[cfg(test)]
 mod tests {

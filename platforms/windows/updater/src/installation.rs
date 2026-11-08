@@ -15,7 +15,7 @@ pub fn installed(name: &str) -> Result<String> {
     unsafe {
         RegGetValueW(
             HKEY_LOCAL_MACHINE,
-            w!("Software\\retype"),
+            w!("Software\\EnglishAssist"),
             PCWSTR(name.as_ptr()),
             RRF_RT_REG_SZ | RRF_SUBKEY_WOW6464KEY,
             None,
@@ -44,7 +44,7 @@ pub fn auto_check() -> Result<Option<bool>> {
     let result = unsafe {
         RegGetValueW(
             HKEY_CURRENT_USER,
-            w!("Software\\retype"),
+            w!("Software\\EnglishAssist"),
             w!("AutoCheck"),
             RRF_RT_REG_DWORD,
             None,

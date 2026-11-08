@@ -25,7 +25,7 @@ use windows::{
 };
 
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
-pub const KEY: &str = "Software\\retype";
+pub const KEY: &str = "Software\\EnglishAssist";
 pub fn wide(value: &str) -> Vec<u16> {
     value.encode_utf16().chain([0]).collect()
 }
@@ -136,7 +136,7 @@ fn installed(name: &str) -> Result<Option<String>> {
     let status = unsafe {
         RegGetValueW(
             HKEY_LOCAL_MACHINE,
-            w!("Software\\retype"),
+            w!("Software\\EnglishAssist"),
             PCWSTR(name.as_ptr()),
             RRF_RT_REG_SZ | RRF_SUBKEY_WOW6464KEY,
             None,
@@ -154,7 +154,7 @@ fn installed(name: &str) -> Result<Option<String>> {
 pub fn local_root() -> Result<PathBuf> {
     Ok(
         PathBuf::from(std::env::var_os("LOCALAPPDATA").ok_or("无法找到本地数据目录")?)
-            .join("retype"),
+            .join("EnglishAssist"),
     )
 }
 #[derive(Clone)]
@@ -197,7 +197,7 @@ pub fn preferences() -> Result<Preferences> {
                 .unwrap_or_default()
         });
     Ok(Preferences {
-        symbol_completion: dword_at(KEY, "SymbolCompletionDisabled")?.unwrap_or(0) == 0,
+        symbol_completion: dword_at(KEY, "SymbolCompletionEnabled")?.unwrap_or(0) != 0,
         english: (
             dword_at(KEY, "EnglishDisabled")?.unwrap_or(0) == 0,
             dword_at(KEY, "EnglishSpellingDisabled")?.unwrap_or(0) == 0,
@@ -561,7 +561,7 @@ pub fn worker(
     let busy = Arc::new(AtomicBool::new(false));
     let worker_busy = Arc::clone(&busy);
     std::thread::spawn(move || {
-        let root = local_root().unwrap_or_else(|_| std::env::temp_dir().join("retype"));
+        let root = local_root().unwrap_or_else(|_| std::env::temp_dir().join("EnglishAssist"));
         let mut statistics = statistics::Store::new(root.join("statistics"));
         let emit = |event| {
             let _ = sender.send(event);

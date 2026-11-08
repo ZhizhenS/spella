@@ -16,19 +16,6 @@ thread_local! {
 unsafe extern "system" fn window_proc(hwnd: HWND, msg: u32, wp: WPARAM, lp: LPARAM) -> LRESULT {
     // SAFETY: Standard Win32 window procedure; the child is identified by its control ID.
     unsafe {
-        if msg == WM_COMMAND {
-            let command = wp.0 as u32 & 0xffff;
-            if (101..=103).contains(&command) {
-                let item = MODE_ITEM.with(|i| i.borrow().clone());
-                if let Some(item) = item {
-                    let _ = item.OnMenuSelect(command - 100);
-                }
-                if let Ok(edit) = GetDlgItem(Some(hwnd), 1) {
-                    let _ = windows::Win32::UI::Input::KeyboardAndMouse::SetFocus(Some(edit));
-                }
-                return LRESULT(0);
-            }
-        }
         if msg == WM_TIMER {
             let item = MODE_ITEM.with(|i| i.borrow().clone());
             if let Some(item) = item {
@@ -46,7 +33,7 @@ unsafe extern "system" fn window_proc(hwnd: HWND, msg: u32, wp: WPARAM, lp: LPAR
                 });
                 if changed {
                     let title: Vec<u16> = format!(
-                        "retype M1 — isolated RichEdit test | {}",
+                        "English Assist P0 — RichEdit input test | {}",
                         label.lines().next().unwrap_or("")
                     )
                     .encode_utf16()
@@ -111,14 +98,14 @@ fn main() -> Result<()> {
         let class = WNDCLASSW {
             lpfnWndProc: Some(window_proc),
             hInstance: module.into(),
-            lpszClassName: w!("RetypeM1Host"),
+            lpszClassName: w!("EnglishAssistP0Host"),
             ..Default::default()
         };
         RegisterClassW(&class);
         let window = CreateWindowExW(
             WINDOW_EX_STYLE::default(),
-            w!("RetypeM1Host"),
-            w!("retype M1 — isolated RichEdit test"),
+            w!("EnglishAssistP0Host"),
+            w!("English Assist P0 — RichEdit input test"),
             WS_OVERLAPPEDWINDOW,
             150,
             150,
@@ -154,20 +141,15 @@ fn main() -> Result<()> {
             CoCreateInstance(&CLSID_TF_InputProcessorProfiles, None, CLSCTX_INPROC_SERVER)?;
         profiles.ActivateProfile(
             TF_PROFILETYPE_INPUTPROCESSOR,
-            retype_ime::ids::LANGID_ZH_CN,
+            retype_ime::ids::LANGID_EN_US,
             &retype_ime::ids::CLSID_RETYPE_TIP,
-            &retype_ime::ids::GUID_PROFILE_RETYPE,
+            &retype_ime::ids::GUID_PROFILE_ENGLISH,
             windows::Win32::UI::Input::KeyboardAndMouse::HKL::default(),
             TF_IPPMF_FORPROCESS,
         )?;
         let items: ITfLangBarItemMgr = manager.cast()?;
         let item: ITfLangBarItemButton = items.GetItem(&GUID_LBI_INPUTMODE)?.cast()?;
         MODE_ITEM.with(|value| *value.borrow_mut() = Some(item));
-        let menu = CreateMenu()?;
-        AppendMenuW(menu, MF_STRING, 101, w!("中 / 英"))?;
-        AppendMenuW(menu, MF_STRING, 102, w!("全拼"))?;
-        AppendMenuW(menu, MF_STRING, 103, w!("小鹤双拼"))?;
-        SetMenu(window, Some(menu))?;
         SetTimer(Some(window), 1, 250, None);
         let _ = ShowWindow(window, SW_SHOW);
         let _ = windows::Win32::UI::Input::KeyboardAndMouse::SetFocus(Some(edit));
@@ -175,7 +157,7 @@ fn main() -> Result<()> {
         let keys: ITfKeystrokeMgr = manager.cast()?;
         while GetMessageW(&mut message, None, 0, 0).as_bool() {
             // TSF-aware hosts route queued keys through the keystroke manager before
-            // TranslateMessage (including preserved Ctrl+Space). RichEdit handles text storage.
+            // TranslateMessage. RichEdit handles text storage.
             let eaten = if message.message == WM_KEYDOWN {
                 keys.TestKeyDown(message.wParam, message.lParam)
                     .unwrap_or_default()

@@ -57,11 +57,9 @@ impl Kernel {
         let text = index
             .and_then(|i| self.candidates.get(i))
             .map_or_else(|| self.buffer.clone(), |c| c.text.clone());
-        if retype_english::valid_word(&text) && text.len() >= 2 {
-            actions.push(KernelAction::Side(SideEffect::Learn(
-                LearningEvent::EnglishWord { text: text.clone() },
-            )));
-        }
+        // English Assist uses the read-only base vocabulary. Successful typing
+        // must not silently create a personal word history; optional learning
+        // can be added only alongside an explicit user preference.
         self.reset_composition();
         self.bump_gen();
         actions.push(KernelAction::Commit(CommitRequest::ReplaceComposition {
@@ -93,19 +91,17 @@ impl Kernel {
                 self.refresh_english(actions);
             }
             Key::Escape if self.has_composition() => self.commit_english(None, "", actions),
-            Key::Char(d @ '1'..='8')
-                if (d as usize - '1' as usize) < self.current_page_size()
-                    && self.page_start + (d as usize - '1' as usize) < self.candidates.len() =>
-            {
-                let index = self.page_start + (d as usize - '1' as usize);
-                self.commit_english(Some(index), " ", actions);
-            }
             Key::Tab if !mods.contains(Modifiers::SHIFT) && !self.candidates.is_empty() => {
-                self.commit_english(Some(self.selected), " ", actions)
+                self.commit_english(Some(self.selected), "", actions)
             }
             Key::Space if self.has_composition() => {
                 let index = self.english_selected.then_some(self.selected);
                 self.commit_english(index, " ", actions);
+            }
+            // Explicit candidate confirmation must not also submit a chat or
+            // search field. A second Enter, after composition ends, is native.
+            Key::Enter if self.english_selected && self.has_composition() => {
+                self.commit_english(Some(self.selected), "", actions);
             }
             Key::Up | Key::Down if !self.candidates.is_empty() => {
                 self.selected = if !self.english_selected {
@@ -133,12 +129,9 @@ impl Kernel {
                 self.page(if key == Key::PageUp { -1 } else { 1 }, actions)
             }
             _ => {
-                let index = if self.english_selected && key == Key::Enter {
-                    Some(self.selected)
-                } else {
-                    None
-                };
-                self.commit_english(index, "", actions);
+                // Digits and punctuation finish the literal spelling. They are
+                // never candidate shortcuts, even after explicit navigation.
+                self.commit_english(None, "", actions);
                 actions.push(KernelAction::PassThrough);
             }
         }

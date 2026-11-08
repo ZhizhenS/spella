@@ -75,6 +75,7 @@ const WIDTH_CACHE_BYTES: usize = 128 * 1024;
 struct PaintKey {
     texts: Vec<String>,
     selected: Option<usize>,
+    numbered: bool,
     widths: Vec<i32>,
     gap: i32,
     viewport: i32,
@@ -101,6 +102,7 @@ impl PaintKey {
         scale: f32,
     ) -> bool {
         self.selected == painted_selection(state)
+            && self.numbered == state.status.contains(retype_types::StatusFlags::CHINESE)
             && self.widths == widths
             && self.gap == gap
             && self.viewport == viewport
@@ -237,6 +239,8 @@ impl Surface {
             self.width_scale = scale.to_bits();
         }
         self.initialize(scale);
+        let chinese = state.status.contains(retype_types::StatusFlags::CHINESE);
+        let text_padding = if chinese { 21.0 } else { 12.0 };
         self.context.fonts_mut(|fonts| {
             state
                 .candidates
@@ -280,7 +284,7 @@ impl Surface {
                         width
                     };
                     // Round upwards: pagination must never underestimate the painted width.
-                    ((width + 22.0) * scale)
+                    ((width + text_padding + 1.0) * scale)
                         .ceil()
                         .max(36.0 * scale)
                         .min(available as f32) as i32
@@ -305,9 +309,10 @@ impl Surface {
         self.initialize(scale);
         let pad = (4.0 * scale).round();
         let chinese = state.status.contains(retype_types::StatusFlags::CHINESE);
-        // Both modes show candidate numbers. Match measure(), retaining one
-        // point of rounding slack between measured and available widths.
-        let text_padding = 21.0;
+        // English digits are literal input, so only Chinese candidates advertise
+        // numeric shortcuts. Match measure(), retaining one point of slack.
+        let text_padding = if chinese { 21.0 } else { 12.0 };
+        let text_left = if chinese { 17.0 } else { 6.0 };
         let layout_galleys = |context: &egui::Context| {
             context.fonts_mut(|fonts| {
                 state
@@ -377,15 +382,17 @@ impl Surface {
                 if selected {
                     painter.rect_filled(cell, 4, ACCENT);
                 }
-                painter.text(
-                    Pos2::new(cell.left() + 4.0, cell.center().y),
-                    egui::Align2::LEFT_CENTER,
-                    (i + 1).to_string(),
-                    FontId::proportional(11.0),
-                    if selected { Color32::WHITE } else { MUTED },
-                );
+                if chinese {
+                    painter.text(
+                        Pos2::new(cell.left() + 4.0, cell.center().y),
+                        egui::Align2::LEFT_CENTER,
+                        (i + 1).to_string(),
+                        FontId::proportional(11.0),
+                        if selected { Color32::WHITE } else { MUTED },
+                    );
+                }
                 painter.galley_with_override_text_color(
-                    Pos2::new(cell.left() + 17.0, cell.top() + 5.0),
+                    Pos2::new(cell.left() + text_left, cell.top() + 5.0),
                     Arc::clone(galley),
                     if selected { Color32::WHITE } else { INK },
                 );
@@ -417,6 +424,7 @@ impl Surface {
             PaintKey {
                 texts: state.visible().iter().map(|c| c.text.clone()).collect(),
                 selected: painted_selection(state),
+                numbered: chinese,
                 widths: widths.to_vec(),
                 gap,
                 viewport,
@@ -856,11 +864,62 @@ mod tests {
             let expected_height = single_line_height + 2.0 * (4.0 * scale).round();
             assert_eq!(bitmap.geometry.height, expected_height as usize);
             for (i, cell) in bitmap.geometry.cells.iter().enumerate() {
+                let text_width = surface.context.fonts_mut(|fonts| {
+                    fonts
+                        .layout_no_wrap(
+                            state.candidates[i].text.clone(),
+                            FontId::proportional(CANDIDATE_FONT_SIZE),
+                            INK,
+                        )
+                        .size()
+                        .x
+                });
+                assert!(text_width <= cell.width() / scale - 12.0);
                 assert_eq!(
                     bitmap.geometry.hit_test(cell.center().x, cell.center().y),
                     Some(i)
                 );
             }
+        }
+    }
+
+    #[test]
+    fn english_has_no_numeric_shortcut_glyphs_and_mode_changes_invalidate_bitmap() {
+        let mut surface = Surface::default();
+        // Empty text isolates the shortcut glyph from the candidate's own text.
+        // No selection is painted in either mode, so the mode is the only
+        // visual input that changes while the measured geometry stays equal.
+        let mut current = state(&[""]);
+        current.selected = usize::MAX;
+        current.status = retype_types::StatusFlags::EMPTY;
+        let widths = surface.measure(&current, 472, 1.0);
+        let english = surface.render(&current, &widths, 2, 480, 1.0);
+        let cell = english.geometry.cells[0];
+        let interior = |bitmap: &Bitmap| {
+            (cell.top() as usize + 2..cell.bottom() as usize - 2)
+                .flat_map(|y| {
+                    (cell.left() as usize + 2..cell.right() as usize - 2)
+                        .map(move |x| bitmap.pixels[y * bitmap.geometry.width + x])
+                })
+                .collect::<Vec<_>>()
+        };
+        assert!(interior(&english).iter().all(|&pixel| pixel == 0x00fcfcfd));
+        current.status = retype_types::StatusFlags::CHINESE;
+        let chinese = surface.render(&current, &widths, 2, 480, 1.0);
+        assert!(!Arc::ptr_eq(&english, &chinese));
+        assert!(interior(&chinese).iter().any(|&pixel| pixel != 0x00fcfcfd));
+    }
+
+    #[test]
+    fn english_words_do_not_reserve_the_chinese_number_gutter() {
+        let mut surface = Surface::default();
+        let mut current = state(&["environmental"]);
+        for scale in [1.0, 1.25, 1.5, 1.75, 2.0] {
+            current.status = retype_types::StatusFlags::CHINESE;
+            let chinese = surface.measure(&current, (472.0 * scale) as i32, scale);
+            current.status = retype_types::StatusFlags::EMPTY;
+            let english = surface.measure(&current, (472.0 * scale) as i32, scale);
+            assert!(english[0] < chinese[0]);
         }
     }
 

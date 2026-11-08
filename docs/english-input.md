@@ -1,76 +1,115 @@
-# English input
+# English Assist 英文输入
 
-This first stage adds local word completion, one-edit spelling suggestions and personal vocabulary to English mode. Phrase prediction, next-word prediction, grammar correction and AI writing are not included yet.
+This Windows development branch provides an independent English Assist TSF entry.
+The source changes cover local word completion, spelling suggestions and keyboard
+selection. This branch has not yet been compiled, installed or tested in a real
+application; source-level behavior below is the implementation target, not a
+completed compatibility claim. See [P0 validation](english-assist/INPUT_VALIDATION.md).
 
-## System entries
+## System entry
 
-Windows, macOS and Android expose **retype 中文** and **retype English** separately.
-Choose the English entry in the system input picker to use retype completion,
-spelling suggestions and personal vocabulary. Switching back to a retype entry
-starts in its own language. The English entry stays English and has no Chinese/English
-mode button or switching shortcut. In the Chinese entry, Shift and the mode button
-change only the internal Chinese/ASCII mode; they never select another system entry. Its
-English mode is immediate text input with no marked text or candidates. English
-completion and spelling suggestions in English mode require selecting the
-independent **retype English** entry in the system picker.
+The installer registers only **English Assist 英文助手**, under English (United
+States), language ID 0409. Choose it with Win+Space. Windows Settings exposes it
+under Time & language → Language & region → English (United States) → Language
+options → Add a keyboard. The installer preserves existing keyboard entries and
+does not set a new default keyboard.
 
-Settings → Input groups completion and spelling under **English input method**.
-On Windows, use Win+Space to select retype English. To add it from Settings, open
-Time & language → Language & region → English (United States) → Language options
-→ Add a keyboard. The Chinese language's keyboard list only shows retype 中文.
+The entry stays English. This product does not install the upstream Chinese
+profile. A delayed active-profile response during activation defaults to English.
+Actual first-focus behavior and language-list enrollment still need P0 testing.
 
-Windows setup adds both profiles while preserving the default keyboard. macOS
-installation registers and enables both input modes. On Android, open Settings
-→ Input → Manage Chinese and English entries and enable both languages if the
-system picker only lists the current device language. Email/URL and secure
-fields retain their field-specific input behavior.
+## Keyboard interaction
 
-## Interaction
+| Action | Behavior |
+| --- | --- |
+| Type letters | Show local prefix candidates; preserve capitals and internal apostrophes. |
+| Type 0–9 | Keep the digit as literal input, including python3 and win11. Digits never select English candidates. |
+| Tab with a candidate | Accept the highlighted candidate without inserting a trailing space. |
+| Click a candidate | Accept it without inserting a trailing space, matching Tab. |
+| Up / Down | Explicitly select a candidate. |
+| Space | Commit the original spelling plus a space unless a candidate was explicitly selected; then commit that candidate plus a space. |
+| Enter without explicit selection | Commit the original spelling and let the application handle Enter. |
+| Enter after explicit selection | Accept only the candidate, without a trailing space or host Enter. A second Enter goes to the application. |
+| Escape | Keep the typed spelling and dismiss completion. |
+| Shift+Tab | Commit the original spelling and preserve the application's reverse focus navigation. |
+| Tab without a candidate | Preserve the application's Tab action. |
+| Left / Right / Home / End | Finish the original word and retain native caret navigation. |
+| Punctuation and ordinary shortcuts | Preserve literal punctuation and native application actions. |
 
-- Type letters to preview prefix matches, ordered by word frequency and personal usage. Initial capitals and all-caps input retain their casing; internal apostrophes are supported.
-- Space commits the original word unless you explicitly selected a candidate. No automatic spelling replacement occurs.
-- Tab or clicking a candidate accepts it and inserts one trailing space. Up/Down explicitly selects a candidate; Space then accepts it and inserts a space. Enter accepts an explicitly selected candidate without a trailing space and retains the application's Enter action.
-- Enter commits the word and reaches the application normally, allowing search submission and newlines. Escape keeps the typed word and dismisses completion.
-- Candidates show numbered labels. Press `1–8` to accept the corresponding candidate on the current page and insert one trailing space. Digits with no matching visible candidate remain literal input; `0` and `9` always remain literal.
-- To type a word containing digits, such as `python3`, press Escape after `python` to keep the original text and dismiss completion, then type `3`. Punctuation, `-` and `=` remain literal input. Ctrl/Alt/Windows shortcuts first finish the word and then reach the application.
-- Disable English completion or spelling suggestions under Settings > Input.
+English candidates do not display numeric shortcut labels. A visual highlight
+alone does not count as explicit selection: Space must not silently correct text.
+For example, a spelling suggestion for teh can offer the, but Space retains teh
+unless the user has deliberately selected the suggestion.
 
-Spelling suggestions cover one insertion, deletion, substitution or adjacent transposition, such as `hellp → hello` and `teh → the`. They arrive asynchronously after prefix matches; existing candidates retain their positions while typing. Suggestions never replace your text without selection.
+Spelling suggestions cover a bounded insertion, deletion, substitution or adjacent
+transposition. They arrive after prefix candidates; they do not automatically
+replace typed text.
 
-## English candidates in Chinese mode
+## Offline vocabulary and learning
 
-Full Pinyin and Xiaohe Shuangpin also offer up to two English candidates from the original typed letters. Complete Chinese dictionary words keep priority; an exact English spelling takes priority over a partial Chinese match or an assembled phrase. Prefix completions follow the leading Chinese candidates. Chinese and English frequency scores are not compared directly.
+The English-specific build compiles the pinned frequency data and packages the
+validated RTENGL01 image beside the installed components, in dictionaries/.
+The installer publishes that immutable location to the current user's profile,
+so first-use completion does not require an online dictionary download.
 
-Number keys, Space and clicking select these candidates using the usual Chinese-mode interaction, without adding a trailing space. Capitalization is preserved. English completion can be disabled under Settings > Input; spelling correction remains exclusive to English mode. Selected English words use separate English learning and statistics on both Windows and Android.
+Source data and attribution:
 
-## Data and privacy
+- data/dict/raw/english/frequency.txt
+- data/dict/raw/english/SOURCE.txt
+- data/dict/raw/english/LICENSE-SymSpell
+- data/dict/raw/english/LICENSE-SCOWL
+- data/dict/raw/english/LICENSE-Google-Ngram
 
-The base English vocabulary is downloaded separately from the application and
-read from a validated, read-only mapping. Install it once in Settings → Dictionary;
-subsequent completion is offline. See [base resources](base-resources.md).
+This uses the upstream word-frequency data; the current spelling algorithm is
+Retype's bounded search, rather than the SymSpell algorithm.
 
-The bundled vocabulary is derived from SymSpell's 82,765-entry frequency file, pinned in `data/dict/raw/english/SOURCE.txt`. The index is compiled into shared, read-only module data, with no runtime vocabulary download or heap-sized dictionary construction. This uses the upstream frequency data, not the SymSpell correction algorithm. Notices and licenses are included in the installer.
+**Automatic English word learning is disabled in this branch.** Committing a
+word or accepting a candidate does not emit a learning event. The current product
+uses the read-only base vocabulary; manual personal-word management and an
+optional learning preference are future work. Existing upstream learning
+infrastructure remains in the source for helper and compatibility functions,
+which must not be confused with automatic English word collection.
 
-Successfully committed English words accumulate local usage counts separately from Chinese learning. A word becomes a personal suggestion after at least two observations; one-off input is not immediately promoted. Personal vocabulary is bounded to 10,000 words and persists through the existing learning broker. Existing WebDAV sync also carries English usage and input preferences; repeated synchronization merges per-device counts without double counting.
+Password, hidden and explicitly private input scopes are excluded by the existing
+input-scope checks. Custom controls and unknown hosts still need real testing;
+do not assume arbitrary controls expose reliable security or editing metadata.
+Normal English completion does not call a cloud model. AI grammar/sentence editing
+is a separate explicit operation under development, with its own range and
+preview validation.
 
-Password, hidden and private input scopes do not produce suggestions or learning. Unknown input scopes also disable learning. No input is sent to an AI provider by English completion.
+## Validation commands
 
-## Validation
+Run these only after configuring Rust MSVC, Visual C++ tools and the Windows SDK:
 
-```powershell
-cargo test --workspace --features retype-learning/broker,retype-ai/service
-cargo clippy --workspace --all-targets --features retype-learning/broker,retype-ai/service -- -D warnings
-cargo run -p retype-diag --release -- --english --bench --no-cloud
-```
+~~~powershell
+cargo fmt --all -- --check
+cargo test --locked -p retype-engine --test english
+cargo test --locked -p retype-candidate-ui --features egui --lib
+cargo test --locked -p retype-tsf
+cargo test --locked --target i686-pc-windows-msvc -p retype-tsf
+.\platforms\windows\installer\build-english-assist.ps1 -Installer
+~~~
 
-The first-pass benchmark excludes asynchronous spelling work and native popup rendering. Application compatibility still needs desktop testing beyond the real TSF test host.
+These are proposed commands, not a record that tests passed. Native activation,
+text submission, focus changes, application shortcuts and clean uninstall require
+the real-application checks in [INPUT_VALIDATION.md](english-assist/INPUT_VALIDATION.md).
+The original upstream validation record does not establish this branch's behavior.
 
-## 中文说明
+## 中文操作说明
 
-第一阶段支持离线单词补全、单次编辑纠错建议、大小写和单词内撇号，以及独立的个人英文词汇学习；暂未加入短语补全、下一个词预测、语法纠正和 AI 写作。
+本分支的系统入口是 **English Assist 英文助手**，绑定英语（美国），通过
+Win+Space 选择。源码已经改为英文专用入口，但尚未完成编译、安装和真实应用验收。
 
-全拼和小鹤双拼模式也支持英文混合候选：按原始字母匹配，每次最多加入两个英文候选，完整中文词条优先；没有完整中文词条时，完整英文拼写优先于中文片段或拼接词，英文补全放在前两个中文候选之后。数字键、空格或点击选词沿用中文交互，不额外补空格，并保留大小写；英文学习和统计独立归类。关闭英文补全也会关闭混合候选；中文模式暂不加入英文拼写纠错。
+- 输入英文得到本地单词补全，数字 0–9 按原样输入，不用先按 Esc。
+- Tab 或点击接受候选，默认不补空格；上下键进入显式选词。
+- 空格默认保留原词并加空格；显式选词后才接受候选并加空格。
+- 未显式选词时，Enter 保留原词并执行应用的回车行为。
+- 显式选词后的第一次 Enter 只选词，第二次 Enter 才交给应用。
+- Esc 保留原输入并关闭候选；无候选的 Tab、Shift+Tab 和光标移动保留应用用途。
+- 英文候选不显示数字选词编号，也不会自动把拼写建议替换进正文。
+- 英文专用安装包设计为内置离线词库；当前尚无已构建安装包可供验证。
+- 本版不自动学习输入词汇，手动个人词库与可选学习开关尚未实现。
+- AI 语法修正和补句为独立的主动操作；不能把协议或服务代码已加入视为端到端功能已验收。
 
-空格默认上屏原文，Tab 或鼠标选词后自动补一个空格；上下键显式选中后，空格接受候选并添加空格。Enter 选词不补空格，并保留应用原有行为；Escape 保留输入并结束补全。候选显示编号，按 1–8 选用当前页对应候选并补一个空格；没有对应可见候选时数字正常输入，0 和 9 始终直接输入。输入 python3 等字母数字组合时，先在 python 后按 Escape 保留原文并结束补全，再输入 3。标点和快捷键保持原有用途。
-
-成功上屏的英文单词保存在本机；至少使用两次才作为个人候选，最多保留 10,000 个词，并沿用现有云同步机制。密码、隐藏与隐私输入范围不提供建议，也不学习；未知输入范围不学习。英文补全不调用 AI 模型。
+本分支不安装中文 Profile。源码保留的上游中文及其他平台模块属于继承代码，
+其旧使用方式不代表英文助手当前产品入口。

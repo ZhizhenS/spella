@@ -108,7 +108,7 @@ pub fn run() -> Result<()> {
     let root = std::path::PathBuf::from(
         std::env::var_os("LOCALAPPDATA").ok_or("LOCALAPPDATA is missing")?,
     )
-    .join("retype/updates");
+    .join("EnglishAssist/updates");
     fs::create_dir_all(&root)?;
     let directory = installation::active_directory()?;
     let current = installation::installed("Version")?;

@@ -78,6 +78,13 @@ fn updated_flags(old: &RenderState, new: &RenderState, selection: Option<(u64, u
     {
         flags |= TF_CLUIE_STRING;
     }
+    if old.status.contains(retype_types::StatusFlags::CHINESE)
+        != new.status.contains(retype_types::StatusFlags::CHINESE)
+    {
+        // UI-less hosts must refresh numeric shortcut presentation on a mode
+        // change even when the candidate strings and selected index match.
+        flags |= TF_CLUIE_STRING;
+    }
     if selected(old, selection) != selected(new, selection) {
         flags |= TF_CLUIE_SELECTION;
     }
@@ -527,7 +534,11 @@ impl ITfIntegratableCandidateListUIElement_Impl for Candidates_Impl {
     }
 
     fn ShowCandidateNumbers(&self) -> Result<BOOL> {
-        Ok(BOOL(1))
+        Ok(self
+            .state()
+            .status
+            .contains(retype_types::StatusFlags::CHINESE)
+            .into())
     }
 
     fn FinalizeExactCompositionString(&self) -> Result<()> {
@@ -559,6 +570,9 @@ mod tests {
         new.candidates[0].score = 1.0;
         new.candidates[0].consumed = 2;
         assert_eq!(updated_flags(&old, &new, None), 0);
+        new.status = retype_types::StatusFlags::CHINESE;
+        assert_eq!(updated_flags(&old, &new, None), TF_CLUIE_STRING);
+        new.status = old.status;
         new.candidates[19].text = "changed".into();
         assert_eq!(updated_flags(&old, &new, None), TF_CLUIE_STRING);
         new = old.clone();

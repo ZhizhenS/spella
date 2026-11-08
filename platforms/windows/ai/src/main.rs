@@ -110,7 +110,7 @@ fn serve() -> Result<(), Box<dyn std::error::Error>> {
                         if let Some((_, response)) = map.get(&id) {
                             return Ok(response.clone());
                         }
-                        if map.len() >= 16 || active.load(Ordering::SeqCst) >= 4 {
+                        if map.len() >= 16 || active.load(Ordering::SeqCst) >= 1 {
                             return Err("请求过多，请稍后重试".into());
                         }
                         map.insert(id.clone(), (Instant::now(), Response::Pending));
@@ -122,7 +122,7 @@ fn serve() -> Result<(), Box<dyn std::error::Error>> {
                             .spawn(move || {
                                 let response =
                                     std::panic::catch_unwind(|| service::perform(operation))
-                                        .unwrap_or_else(|_| Err("翻译服务异常".into()))
+                                        .unwrap_or_else(|_| Err("AI 服务异常".into()))
                                         .unwrap_or_else(Response::Error);
                                 task_active.fetch_sub(1, Ordering::SeqCst);
                                 if let Ok(mut map) = jobs.lock() {
@@ -134,7 +134,7 @@ fn serve() -> Result<(), Box<dyn std::error::Error>> {
                             .is_err()
                         {
                             active.fetch_sub(1, Ordering::SeqCst);
-                            return Err("无法创建翻译任务".into());
+                            return Err("无法创建 AI 任务".into());
                         }
                         Ok(Response::Pending)
                     }
@@ -142,7 +142,7 @@ fn serve() -> Result<(), Box<dyn std::error::Error>> {
                         let response = map
                             .get(&id)
                             .map(|(_, r)| r.clone())
-                            .ok_or("翻译任务已失效")?;
+                            .ok_or("AI 任务已失效")?;
                         if !matches!(response, Response::Pending) {
                             map.remove(&id);
                         }

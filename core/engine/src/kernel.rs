@@ -348,7 +348,7 @@ impl Kernel {
             InputEvent::Voice(v) => self.on_voice(v, &mut actions),
             InputEvent::CandidateChosen { index } => {
                 if !self.is_chinese() {
-                    self.commit_english(Some(index), " ", &mut actions);
+                    self.commit_english(Some(index), "", &mut actions);
                 } else {
                     self.choose(index, &mut actions);
                 }

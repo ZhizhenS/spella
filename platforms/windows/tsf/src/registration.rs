@@ -203,11 +203,11 @@ mod tests {
                 profiles
                     .IsEnabledLanguageProfile(
                         &CLSID_RETYPE_TIP,
-                        LANGID_ZH_CN,
-                        &GUID_PROFILE_RETYPE
+                        LANGID_EN_US,
+                        &GUID_PROFILE_ENGLISH
                     )?
                     .as_bool(),
-                "installed retype profile must be enabled before activation"
+                "installed English Assist profile must be enabled before activation"
             );
             let _tip: ITfTextInputProcessorEx =
                 CoCreateInstance(&CLSID_RETYPE_TIP, None, CLSCTX_INPROC_SERVER)

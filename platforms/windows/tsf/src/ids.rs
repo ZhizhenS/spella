@@ -4,13 +4,8 @@
 use windows_core::GUID;
 
 /// TIP 的 CLSID。注册表 `HK*\SOFTWARE\Microsoft\CTF\TIP\{CLSID}` 用它做键名。
-pub const CLSID_RETYPE_TIP: GUID = GUID::from_values(
-    0x7E4C_9A21,
-    0x5B38,
-    0x4D2E,
-    [0x9F, 0x6A, 0x1C, 0x0D, 0x8E, 0x7B, 0x4A, 0x52],
-);
-pub const CLSID_RETYPE_TIP_STR: &str = "{7E4C9A21-5B38-4D2E-9F6A-1C0D8E7B4A52}";
+pub const CLSID_RETYPE_TIP: GUID = GUID::from_u128(0x9257dce8_ec1b_4d4a_8ea0_8795a9fd881d);
+pub const CLSID_RETYPE_TIP_STR: &str = "{9257DCE8-EC1B-4D4A-8EA0-8795A9FD881D}";
 
 /// 语言配置档 GUID（`LanguageProfile` 子键）。
 pub const GUID_PROFILE_RETYPE: GUID = GUID::from_values(
@@ -25,15 +20,14 @@ pub const GUID_PROFILE_RETYPE_STR: &str = "{A3F1C6D9-2E47-4B8A-9C51-6D0E8F2A3B74
 pub const LANGID_ZH_CN: u16 = 0x0804;
 
 /// 显示名称（M1 应改为资源 DLL 里的字符串 ID，才能本地化）。
-pub const DISPLAY_NAME: &str = "retype 中文";
+pub const DISPLAY_NAME: &str = "English Assist 英文助手";
 pub const LANGID_EN_US: u16 = 0x0409;
-pub const GUID_PROFILE_ENGLISH: GUID = GUID::from_u128(0x8e082735_45e3_4d99_8bca_a5cd3591c4e6);
-pub const GUID_PROFILE_ENGLISH_STR: &str = "{8E082735-45E3-4D99-8BCA-A5CD3591C4E6}";
-pub const INPUT_PROFILES: &[(u16, GUID, &str)] = &[
-    (LANGID_ZH_CN, GUID_PROFILE_RETYPE, DISPLAY_NAME),
-    (LANGID_EN_US, GUID_PROFILE_ENGLISH, "retype English"),
-];
-pub const DISPLAY_DESC: &str = "retype 拼音输入法（本地首刷 + 云端二刷）";
+pub const GUID_PROFILE_ENGLISH: GUID = GUID::from_u128(0xf395a724_dc88_4e75_b3d4_9063a552b8f4);
+pub const GUID_PROFILE_ENGLISH_STR: &str = "{F395A724-DC88-4E75-B3D4-9063A552B8F4}";
+// The Chinese constant remains for internal engine tests, but is never registered.
+pub const INPUT_PROFILES: &[(u16, GUID, &str)] =
+    &[(LANGID_EN_US, GUID_PROFILE_ENGLISH, DISPLAY_NAME)];
+pub const DISPLAY_DESC: &str = "English Assist 英文补词与拼写助手";
 
 /// 注册表键名用的 `{...}` 形式。
 ///
@@ -63,5 +57,22 @@ mod tests {
         assert_eq!(GUID::try_from(bare).unwrap(), CLSID_RETYPE_TIP);
         let bare = &GUID_PROFILE_RETYPE_STR[1..GUID_PROFILE_RETYPE_STR.len() - 1];
         assert_eq!(GUID::try_from(bare).unwrap(), GUID_PROFILE_RETYPE);
+    }
+
+    #[test]
+    fn only_the_independent_english_entry_is_registered() {
+        assert_eq!(INPUT_PROFILES.len(), 1);
+        assert_eq!(
+            INPUT_PROFILES[0],
+            (LANGID_EN_US, GUID_PROFILE_ENGLISH, DISPLAY_NAME)
+        );
+        assert_ne!(
+            CLSID_RETYPE_TIP_STR,
+            "{7E4C9A21-5B38-4D2E-9F6A-1C0D8E7B4A52}"
+        );
+        assert_ne!(
+            GUID_PROFILE_ENGLISH_STR,
+            "{8E082735-45E3-4D99-8BCA-A5CD3591C4E6}"
+        );
     }
 }

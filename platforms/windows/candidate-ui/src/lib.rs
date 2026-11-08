@@ -75,7 +75,7 @@ pub fn format_status(s: StatusFlags) -> String {
     if s.contains(StatusFlags::VOICE_OPTIMIZING) {
         parts.push("识别优化中");
     }
-    if s.contains(StatusFlags::DEGRADED) {
+    if s.contains(StatusFlags::CHINESE) && s.contains(StatusFlags::DEGRADED) {
         parts.push("降级");
     }
     parts.join(" · ")
@@ -217,7 +217,8 @@ mod tests {
                 .contains("云端处理中")
         );
         assert!(format_status(StatusFlags::VOICE_OPTIMIZING).contains("识别优化中"));
-        assert!(format_status(StatusFlags::DEGRADED).contains("降级"));
+        assert!(format_status(StatusFlags::CHINESE.union(StatusFlags::DEGRADED)).contains("降级"));
+        assert!(!format_status(StatusFlags::DEGRADED).contains("降级"));
         assert!(format_status(StatusFlags::EMPTY).starts_with("英"));
     }
 

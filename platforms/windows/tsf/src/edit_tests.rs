@@ -920,6 +920,8 @@ fn run_host() -> Result<()> {
             .as_ref()
             .and_then(crate::candidate::CandidateWindow::element_for_test)
             .ok_or(E_FAIL)?;
+        let integrated: ITfIntegratableCandidateListUIElement = candidate_list.cast()?;
+        assert!(integrated.ShowCandidateNumbers()?.as_bool());
         candidate_list.SetSelection(0)?;
         // Finalize synchronously edits and replaces candidate data. Getter
         // read locks must have been released before this host reentry.
@@ -1058,13 +1060,55 @@ fn run_host() -> Result<()> {
         let first = session
             .backend
             .with_kernel(|k| k.render_state().candidates[0].text.clone());
+        let english_list = lock(&state.window)
+            .as_ref()
+            .and_then(crate::candidate::CandidateWindow::element_for_test)
+            .ok_or(E_FAIL)?;
+        let integrated: ITfIntegratableCandidateListUIElement = english_list.cast()?;
+        assert!(!integrated.ShowCandidateNumbers()?.as_bool());
         request(&state, &context, Work::Key(Key::Tab, Modifiers::NONE))?;
-        assert!(String::from_utf16_lossy(&lock(&data).text).ends_with(&format!("{first} ")));
+        assert!(String::from_utf16_lossy(&lock(&data).text).ends_with(&first));
         assert_eq!(
             stats::take_test_words(),
             1,
-            "candidate's trailing space must not duplicate a word"
+            "accepting a candidate without a trailing space counts one word"
         );
+        // Printable digits must survive the complete TSF edit transaction,
+        // even while a visible candidate could previously consume 1-8.
+        for digit in '0'..='9' {
+            for ch in "python".chars() {
+                request(&state, &context, Work::Key(Key::Char(ch), Modifiers::NONE))?;
+            }
+            request(
+                &state,
+                &context,
+                Work::Key(Key::Char(digit), Modifiers::NONE),
+            )?;
+            assert!(
+                String::from_utf16_lossy(&lock(&data).text).ends_with(&format!("python{digit}"))
+            );
+            request(&state, &context, Work::Key(Key::Space, Modifiers::NONE))?;
+        }
+        let _ = stats::take_test_words();
+        let before = String::from_utf16_lossy(&lock(&data).text);
+        for ch in "hel".chars() {
+            request(&state, &context, Work::Key(Key::Char(ch), Modifiers::NONE))?;
+        }
+        assert!(!state.wants(Key::Enter, Modifiers::NONE));
+        request(&state, &context, Work::Key(Key::Down, Modifiers::NONE))?;
+        let first = session
+            .backend
+            .with_kernel(|k| k.render_state().candidates[0].text.clone());
+        assert!(state.wants(Key::Enter, Modifiers::NONE));
+        request(&state, &context, Work::Key(Key::Enter, Modifiers::NONE))?;
+        assert_eq!(
+            String::from_utf16_lossy(&lock(&data).text),
+            format!("{before}{first}"),
+            "explicit Enter accepts the word without inserting a newline"
+        );
+        assert!(!state.wants(Key::Enter, Modifiers::NONE));
+        assert!(lock(&state.composition).is_none());
+        let _ = stats::take_test_words();
         lock(&seen_candidates).clear();
         for ch in "hellp".chars() {
             request(&state, &context, Work::Key(Key::Char(ch), Modifiers::NONE))?;
@@ -1620,6 +1664,138 @@ fn check_candidate_getters(
     }
     window.hide();
     Ok(())
+}
+
+#[derive(Clone, Copy)]
+enum AssistProbeWork {
+    Capture,
+    Mutate(&'static str),
+    Apply,
+}
+#[implement(ITfEditSession)]
+struct AssistSelectionProbe {
+    context: ITfContext,
+    saved: Arc<Mutex<Option<crate::translation::SelectedText>>>,
+    work: AssistProbeWork,
+    applied: Arc<Mutex<Option<bool>>>,
+}
+impl ITfEditSession_Impl for AssistSelectionProbe_Impl {
+    fn DoEditSession(&self, ec: u32) -> Result<()> {
+        match self.work {
+            AssistProbeWork::Capture => {
+                *lock(&self.saved) = Some(
+                    crate::translation::SelectedText::capture(&self.context, ec)
+                        .map_err(|_| E_FAIL)?,
+                );
+            }
+            AssistProbeWork::Mutate(text) => unsafe {
+                let mut selections = [TF_SELECTION::default()];
+                let mut count = 0;
+                self.context
+                    .GetSelection(ec, TF_DEFAULT_SELECTION, &mut selections, &mut count)?;
+                let range = ManuallyDrop::take(&mut selections[0].range).ok_or(E_FAIL)?;
+                range.SetText(ec, 0, &text.encode_utf16().collect::<Vec<_>>())?;
+                let selected = TF_SELECTION {
+                    range: ManuallyDrop::new(Some(range)),
+                    style: TF_SELECTIONSTYLE {
+                        ase: TF_AE_NONE,
+                        fInterimChar: false.into(),
+                    },
+                };
+                self.context
+                    .SetSelection(ec, std::slice::from_ref(&selected))?;
+                let _ = ManuallyDrop::into_inner(selected.range);
+            },
+            AssistProbeWork::Apply => {
+                let snapshot = lock(&self.saved).clone().ok_or(E_FAIL)?;
+                *lock(&self.applied) = Some(snapshot.replace(&self.context, ec, "FIX").is_ok());
+            }
+        }
+        Ok(())
+    }
+}
+#[test]
+fn assistance_selection_refuses_change_then_undo_and_keeps_neighbor_text() -> Result<()> {
+    std::thread::spawn(|| -> Result<()> {
+        unsafe {
+            CoInitializeEx(None, COINIT_APARTMENTTHREADED).ok()?;
+            let result = (|| -> Result<()> {
+                let manager: ITfThreadMgr =
+                    CoCreateInstance(&CLSID_TF_ThreadMgr, None, CLSCTX_INPROC_SERVER)?;
+                let tid = manager.Activate()?;
+                let document = manager.CreateDocumentMgr()?;
+                let original: Vec<u16> = "prefix OLD suffix".encode_utf16().collect();
+                let data = Arc::new(Mutex::new(Data {
+                    text: original.clone(),
+                    start: 7,
+                    end: 10,
+                    input_scope: Some(IS_DEFAULT),
+                    ..Default::default()
+                }));
+                let store: ITextStoreACP = Store {
+                    data: Arc::clone(&data),
+                }
+                .into();
+                let mut context = None;
+                let mut cookie = 0;
+                document.CreateContext(tid, 0, &store, &mut context, &mut cookie)?;
+                let context = context.ok_or(E_FAIL)?;
+                document.Push(&context)?;
+                let saved = Arc::new(Mutex::new(None));
+                let applied = Arc::new(Mutex::new(None));
+                let run = |work| -> Result<()> {
+                    let session: ITfEditSession = AssistSelectionProbe {
+                        context: context.clone(),
+                        saved: Arc::clone(&saved),
+                        work,
+                        applied: Arc::clone(&applied),
+                    }
+                    .into();
+                    context
+                        .RequestEditSession(tid, &session, TF_ES_SYNC | TF_ES_READWRITE)?
+                        .ok()
+                };
+                for scope in [
+                    None,
+                    Some(IS_PASSWORD),
+                    Some(IS_PRIVATE),
+                    Some(IS_NUMERIC_PIN),
+                ] {
+                    lock(&data).input_scope = scope;
+                    assert!(run(AssistProbeWork::Capture).is_err());
+                    assert_eq!(lock(&data).text, original);
+                }
+                lock(&data).input_scope = Some(IS_DEFAULT);
+                run(AssistProbeWork::Capture)?;
+                assert!(lock(&saved).as_ref().is_some_and(|s| s.current()));
+                run(AssistProbeWork::Mutate("NEW"))?;
+                run(AssistProbeWork::Mutate("OLD"))?;
+                assert_eq!(lock(&data).text, original);
+                assert!(
+                    !lock(&saved).as_ref().is_some_and(|s| s.current()),
+                    "undo must not revive an old AI request"
+                );
+                run(AssistProbeWork::Apply)?;
+                assert_eq!(lock(&applied).take(), Some(false));
+                assert_eq!(lock(&data).text, original);
+                run(AssistProbeWork::Capture)?;
+                run(AssistProbeWork::Apply)?;
+                assert_eq!(lock(&applied).take(), Some(true));
+                assert_eq!(
+                    String::from_utf16_lossy(&lock(&data).text),
+                    "prefix FIX suffix"
+                );
+                lock(&saved).take();
+                document.Pop(TF_POPF_ALL)?;
+                manager.Deactivate()?;
+                Ok(())
+            })();
+            CoUninitialize();
+            result
+        }
+    })
+    .join()
+    .map_err(|_| E_FAIL)?
 }
 
 type VoiceSelection = Arc<Mutex<Option<(ITfRange, Vec<u16>)>>>;

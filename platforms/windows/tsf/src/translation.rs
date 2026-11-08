@@ -1,6 +1,8 @@
-//! Full-context translation. COM objects stay on the host's TSF apartment.
+//! Explicit selection editing. COM objects stay on the host's TSF apartment.
 use crate::tip::{guarded, lock, TipState};
-use retype_ai::protocol::{Operation, Response, MAX_TEXT};
+#[cfg(test)]
+use retype_ai::protocol::MAX_TEXT;
+use retype_ai::protocol::{AssistTask, Operation, Response, MAX_ASSIST_TEXT};
 use std::{
     mem::ManuallyDrop,
     sync::{
@@ -14,7 +16,7 @@ use windows::{
     Win32::{
         Foundation::*,
         Graphics::Gdi::*,
-        System::{DataExchange::*, LibraryLoader::*, Memory::*, Ole::CF_UNICODETEXT},
+        System::LibraryLoader::*,
         UI::{HiDpi::GetDpiForWindow, TextServices::*, WindowsAndMessaging::*},
     },
 };
@@ -23,11 +25,208 @@ const STATUS_WIDTH: i32 = 360;
 const STATUS_HEIGHT: i32 = 30;
 const PREVIEW_HEIGHT: i32 = 208;
 const ERROR_NOTICE_DURATION: Duration = Duration::from_secs(3);
+
+#[derive(Clone)]
+pub(crate) struct SelectedText {
+    range: ITfRange,
+    original: Vec<u16>,
+    guard: Arc<EditGuard>,
+}
+struct EditGuard {
+    source: ITfSource,
+    cookie: u32,
+    changed: Arc<AtomicBool>,
+}
+impl Drop for EditGuard {
+    fn drop(&mut self) {
+        // SAFETY: guard and source stay on the TSF apartment.
+        let _ = unsafe { self.source.UnadviseSink(self.cookie) };
+    }
+}
+#[implement(ITfTextEditSink)]
+struct SelectedTextObserver {
+    changed: Arc<AtomicBool>,
+}
+impl ITfTextEditSink_Impl for SelectedTextObserver_Impl {
+    fn OnEndEdit(
+        &self,
+        _context: windows_core::Ref<'_, ITfContext>,
+        _ec: u32,
+        record: windows_core::Ref<'_, ITfEditRecord>,
+    ) -> Result<()> {
+        guarded(|| {
+            // SAFETY: TSF supplies an apartment-owned edit record. Any change,
+            // including change-then-undo to the same text, permanently invalidates this request.
+            let changed = unsafe {
+                (|| -> Result<bool> {
+                    let record = record.ok()?;
+                    if record.GetSelectionStatus()?.as_bool() {
+                        return Ok(true);
+                    }
+                    let ranges = record.GetTextAndPropertyUpdates(TF_GTP_INCL_TEXT, &[])?;
+                    let mut values = [None];
+                    let mut count = 0;
+                    ranges.Next(&mut values, &mut count)?;
+                    Ok(count != 0)
+                })()
+            };
+            if changed.unwrap_or(true) {
+                self.changed.store(true, Ordering::Release);
+            }
+            Ok(())
+        })
+    }
+}
+impl SelectedText {
+    pub(crate) fn capture(context: &ITfContext, ec: u32) -> std::result::Result<Self, String> {
+        // SAFETY: caller holds a read/write cookie, interfaces remain on this apartment.
+        unsafe {
+            if context
+                .GetStatus()
+                .map_err(|_| "无法读取输入框状态")?
+                .dwDynamicFlags
+                & TS_SD_READONLY
+                != 0
+            {
+                return Err("输入框为只读".into());
+            }
+            let mut selected = [TF_SELECTION::default()];
+            let mut count = 0;
+            context
+                .GetSelection(ec, TF_DEFAULT_SELECTION, &mut selected, &mut count)
+                .map_err(|_| "此输入框不支持读取选区")?;
+            let range = ManuallyDrop::take(&mut selected[0].range).ok_or("请先选中英文句子")?;
+            if count != 1 || !explicit_public_scope(context, ec, &range) {
+                return Err("此输入框的隐私属性不允许 AI 编辑".into());
+            }
+            let original = read_selected(&range, ec)
+                .map_err(|_| "选区过长或无法读取，请选中 2048 个字符以内的英文句子")?;
+            if original.is_empty() {
+                return Err("请先选中要处理的英文句子".into());
+            }
+            validate_text(&original)?;
+            let source: ITfSource = context.cast().map_err(|_| "此应用不支持安全编辑观察")?;
+            let changed = Arc::new(AtomicBool::new(false));
+            let observer: ITfTextEditSink = SelectedTextObserver {
+                changed: Arc::clone(&changed),
+            }
+            .into();
+            let cookie = source
+                .AdviseSink(&ITfTextEditSink::IID, &observer)
+                .map_err(|_| "此应用不支持安全编辑观察")?;
+            Ok(Self {
+                range,
+                original,
+                guard: Arc::new(EditGuard {
+                    source,
+                    cookie,
+                    changed,
+                }),
+            })
+        }
+    }
+    pub(crate) fn current(&self) -> bool {
+        !self.guard.changed.load(Ordering::Acquire)
+    }
+    pub(crate) fn replace(&self, context: &ITfContext, ec: u32, text: &str) -> Result<()> {
+        let units: Vec<u16> = text.encode_utf16().collect();
+        if !self.current() || units.len() > 6_144 || validate_text(&units).is_err() {
+            return Err(E_ABORT.into());
+        }
+        // SAFETY: verify selection, privacy, original content and the independent
+        // revision guard while holding the write cookie, then perform one range write.
+        unsafe {
+            let mut selected = [TF_SELECTION::default()];
+            let mut count = 0;
+            context.GetSelection(ec, TF_DEFAULT_SELECTION, &mut selected, &mut count)?;
+            let current = ManuallyDrop::take(&mut selected[0].range).ok_or(E_FAIL)?;
+            if count != 1
+                || current.CompareStart(ec, &self.range, TF_ANCHOR_START)? != 0
+                || current.CompareEnd(ec, &self.range, TF_ANCHOR_END)? != 0
+                || read_selected(&self.range, ec)? != self.original
+                || !explicit_public_scope(context, ec, &self.range)
+                || context.GetStatus()?.dwDynamicFlags & TS_SD_READONLY != 0
+                || !self.current()
+            {
+                return Err(E_ABORT.into());
+            }
+            self.range.SetText(ec, 0, &units)?;
+            // Text is already committed; a host rejecting caret movement must not
+            // cause us to report that the original text was left unchanged.
+            if let Ok(caret) = self.range.Clone() {
+                if caret.Collapse(ec, TF_ANCHOR_END).is_ok() {
+                    let selection = TF_SELECTION {
+                        range: ManuallyDrop::new(Some(caret)),
+                        style: TF_SELECTIONSTYLE {
+                            ase: TF_AE_NONE,
+                            fInterimChar: false.into(),
+                        },
+                    };
+                    let _ = context.SetSelection(ec, std::slice::from_ref(&selection));
+                    let _ = ManuallyDrop::into_inner(selection.range);
+                }
+            }
+            Ok(())
+        }
+    }
+}
+fn explicit_public_scope(context: &ITfContext, ec: u32, range: &ITfRange) -> bool {
+    // SAFETY: only an explicitly declared ordinary text scope permits cloud editing.
+    // Missing/empty properties, malformed metadata and private fields fail closed.
+    unsafe {
+        let Ok(property) = context.GetAppProperty(&GUID_PROP_INPUTSCOPE) else {
+            return false;
+        };
+        let Ok(value) = property.GetValue(ec, range) else {
+            return false;
+        };
+        let Ok(unknown) = windows_core::IUnknown::try_from(&value) else {
+            return false;
+        };
+        let Ok(scope) = unknown.cast::<ITfInputScope>() else {
+            return false;
+        };
+        let mut scopes = std::ptr::null_mut();
+        let mut count = 0;
+        let result = scope.GetInputScopes(&mut scopes, &mut count);
+        let allowed = result.is_ok()
+            && (1..=64).contains(&count)
+            && !scopes.is_null()
+            && std::slice::from_raw_parts(scopes, count as usize)
+                .iter()
+                .all(|scope| matches!(*scope, IS_DEFAULT | IS_TEXT));
+        windows::Win32::System::Com::CoTaskMemFree(Some(scopes.cast()));
+        allowed
+    }
+}
+fn read_selected(range: &ITfRange, ec: u32) -> Result<Vec<u16>> {
+    // SAFETY: bounded clone-based range read; the original anchors are never moved.
+    unsafe {
+        let cursor = range.Clone()?;
+        let mut text = Vec::new();
+        loop {
+            let mut buffer = [0u16; 512];
+            let mut count = 0;
+            cursor.GetText(ec, TF_TF_MOVESTART, &mut buffer, &mut count)?;
+            if count == 0 {
+                break;
+            }
+            if count as usize > buffer.len() || text.len() + count as usize > MAX_ASSIST_TEXT {
+                return Err(E_INVALIDARG.into());
+            }
+            text.extend_from_slice(&buffer[..count as usize]);
+        }
+        Ok(text)
+    }
+}
+
 struct Frame {
     state: Weak<TipState>,
     context: ITfContext,
     epoch: u32,
     original: Vec<u16>,
+    selected: Option<SelectedText>,
+    task: AssistTask,
     response: Option<mpsc::Receiver<std::result::Result<Response, String>>>,
     cancelled: Arc<AtomicBool>,
     translation: Option<String>,
@@ -59,13 +258,16 @@ pub(crate) fn dismiss(state: &TipState) {
 pub(crate) fn capture(state: &Arc<TipState>, context: &ITfContext, ec: u32) -> Result<()> {
     dismiss(state);
     let snapshot = if state.session().is_some_and(|session| session.shadow) {
-        Err("此输入框暂不支持全文翻译".into())
+        Err("此输入框暂不支持 AI 选区编辑".into())
     } else {
-        read(context, ec)
+        SelectedText::capture(context, ec)
     };
-    let (original, message) = match snapshot {
-        Ok(text) => (text, "翻译中…".to_owned()),
-        Err(e) => (Vec::new(), e),
+    let (selected, original, message) = match snapshot {
+        Ok(selected) => {
+            let original = selected.original.clone();
+            (Some(selected), original, "正在修正语法…".to_owned())
+        }
+        Err(e) => (None, Vec::new(), e),
     };
     let owner = unsafe { context.GetActiveView().and_then(|v| v.GetWnd()) }.unwrap_or_default();
     let cancelled = Arc::new(AtomicBool::new(false));
@@ -74,6 +276,8 @@ pub(crate) fn capture(state: &Arc<TipState>, context: &ITfContext, ec: u32) -> R
         context: context.clone(),
         epoch: state.epoch.load(Ordering::SeqCst),
         original: original.clone(),
+        selected,
+        task: AssistTask::GrammarCorrect,
         response: None,
         cancelled: Arc::clone(&cancelled),
         translation: None,
@@ -91,27 +295,98 @@ pub(crate) fn capture(state: &Arc<TipState>, context: &ITfContext, ec: u32) -> R
     let hwnd = create(data, context, ec)?;
     *lock(&state.translation_window) = Some(hwnd.0 as usize);
     if !original.is_empty() {
-        let text = String::from_utf16(&original).map_err(|_| E_FAIL)?;
-        let (tx, rx) = mpsc::channel();
-        // SAFETY: the frame is owned by hwnd on this thread; worker receives only text/cancel flag.
-        unsafe {
-            if let Some(frame) = frame(hwnd) {
-                frame.response = Some(rx);
-            }
-        }
-        if std::thread::Builder::new()
-            .name("retype-translate".into())
-            .spawn(move || {
-                let result = retype_ai::client::run(Operation::Translate { text }, &cancelled);
-                let _ = tx.send(result);
-            })
-            .is_err()
-        {
-            status(hwnd, "无法创建翻译任务");
-        }
+        start_task(hwnd, AssistTask::GrammarCorrect);
     }
     Ok(())
 }
+fn start_task(hwnd: HWND, task: AssistTask) {
+    let data = unsafe { frame(hwnd) }.and_then(|f| {
+        Some((
+            f.state.upgrade()?,
+            f.context.clone(),
+            f.epoch,
+            f.owner,
+            f.selected.clone()?,
+        ))
+    });
+    let Some((state, context, epoch, owner, selected)) = data else {
+        return;
+    };
+    if !selected.current() || !same_target(&state, &context, epoch, owner) {
+        status(hwnd, "选区已变化，请重新选中后重试");
+        return;
+    }
+    let Ok(text) = String::from_utf16(&selected.original) else {
+        return;
+    };
+    let cancelled = Arc::new(AtomicBool::new(false));
+    let (tx, rx) = mpsc::channel();
+    unsafe {
+        let Some(f) = frame(hwnd) else { return };
+        f.cancelled.store(true, Ordering::Release);
+        f.cancelled = Arc::clone(&cancelled);
+        f.response = Some(rx);
+        f.translation = None;
+        f.preview = false;
+        f.busy = true;
+        f.task = task;
+        f.scroll = 0;
+        f.message = match task {
+            AssistTask::GrammarCorrect => "正在修正语法…",
+            AssistTask::CompleteSentence => "正在补完所选句子…",
+        }
+        .into();
+        f.hide_at = None;
+    }
+    resize_notice(hwnd, false);
+    if std::thread::Builder::new()
+        .name("english-assist-edit".into())
+        .spawn(move || {
+            let operation = match task {
+                AssistTask::GrammarCorrect => Operation::GrammarCorrect { text },
+                AssistTask::CompleteSentence => Operation::CompleteSentence { text },
+            };
+            let result = retype_ai::client::run(operation, &cancelled);
+            let _ = tx.send(result);
+        })
+        .is_err()
+    {
+        status(hwnd, "无法创建 AI 编辑任务");
+    }
+}
+
+/// Only consume preview controls while a live editing preview owns them.
+pub(crate) fn handle_key(state: &TipState, vk: usize, modifiers: u8, test: bool) -> bool {
+    let window = *lock(&state.translation_window);
+    let Some(window) = window else { return false };
+    let hwnd = HWND(window as *mut _);
+    let is_escape = vk == 0x1b && modifiers == 0;
+    let target = unsafe { frame(hwnd) }.and_then(|f| {
+        (f.preview && !f.busy && !f.applying && !f.applied)
+            .then(|| (f.context.clone(), f.epoch, f.owner, f.selected.clone()))
+    });
+    let can_apply = target.is_some_and(|(context, epoch, owner, selected)| {
+        selected.as_ref().is_some_and(SelectedText::current)
+            && same_target(state, &context, epoch, owner)
+    });
+    if is_escape {
+        if !test {
+            unsafe {
+                let _ = DestroyWindow(hwnd);
+            }
+        }
+        return true;
+    }
+    if vk == 0x0d && modifiers == 1 && can_apply {
+        if !test {
+            request_apply(hwnd);
+        }
+        return true;
+    }
+    false
+}
+
+#[cfg(test)]
 /// Read to both context anchors in bounded chunks; never use IGNOREEND or a truncated prefix.
 pub(crate) fn read(context: &ITfContext, ec: u32) -> std::result::Result<Vec<u16>, String> {
     let status = unsafe { context.GetStatus() };
@@ -204,6 +479,7 @@ pub(crate) fn replace_verified(
 ) -> std::result::Result<(), String> {
     replace_checked(context, ec, original, text, || true)
 }
+#[cfg(test)]
 fn replace_checked(
     context: &ITfContext,
     ec: u32,
@@ -288,24 +564,24 @@ fn request_apply(hwnd: HWND) {
         Some((
             state,
             f.context.clone(),
-            f.original.clone(),
+            f.selected.clone()?,
             text,
             f.epoch,
             f.owner,
             Arc::clone(&f.cancelled),
         ))
     });
-    let Some((state, context, original, text, epoch, owner, cancelled)) = data else {
+    let Some((state, context, selected, text, epoch, owner, cancelled)) = data else {
         return;
     };
-    if !same_target(&state, &context, epoch, owner) {
+    if !selected.current() || !same_target(&state, &context, epoch, owner) {
         status(hwnd, "输入框已切换或正在输入，原文保持不变");
         return;
     }
     let session: ITfEditSession = Apply {
         state: Arc::downgrade(&state),
         context: context.clone(),
-        original,
+        selected,
         text,
         epoch,
         owner,
@@ -333,14 +609,14 @@ fn request_apply(hwnd: HWND) {
             0,
             format!("stage={stage} hresult={code:08x}"),
         );
-        copy_fallback(hwnd);
+        status(hwnd, "应用拒绝修改，原文保持不变");
     }
 }
 #[implement(ITfEditSession)]
 struct Apply {
     state: Weak<TipState>,
     context: ITfContext,
-    original: Vec<u16>,
+    selected: SelectedText,
     text: String,
     epoch: u32,
     owner: HWND,
@@ -361,85 +637,15 @@ impl ITfEditSession_Impl for Apply_Impl {
                 status(hwnd, "输入框已切换，原文保持不变");
                 return Ok(());
             }
-            let result = replace_checked(&self.context, ec, &self.original, &self.text, || {
-                !self.cancelled.load(Ordering::Relaxed)
-                    && same_target(&state, &self.context, self.epoch, self.owner)
-            });
+            let result = self.selected.replace(&self.context, ec, &self.text);
             if result.is_ok() {
-                status(hwnd, "翻译完成");
+                status(hwnd, "修改完成");
             } else if result.is_err() {
-                copy_fallback(hwnd);
+                status(hwnd, "原文已变化或应用拒绝修改，请重新选中后重试");
             }
             // Translation is not typing activity and does not enter personal word learning.
             Ok(())
         })
-    }
-}
-fn copy_fallback(hwnd: HWND) {
-    copy_fallback_with(hwnd, copy_translation);
-}
-fn copy_fallback_with(hwnd: HWND, copy: impl FnOnce(HWND, &str) -> Result<()>) {
-    // Copy only an already validated, completed translation from a live request.
-    let text = unsafe { frame(hwnd) }.and_then(|f| {
-        if f.cancelled.load(Ordering::Relaxed) || f.applied {
-            return None;
-        }
-        f.preview = false;
-        f.translation.clone()
-    });
-    let Some(text) = text else { return };
-    let result = copy(hwnd, &text);
-    crate::settings_log::event(
-        "launcher",
-        "translation_clipboard_fallback",
-        0,
-        format!(
-            "success={} hresult={:08x}",
-            result.is_ok(),
-            result.as_ref().err().map_or(0, |e| e.code().0)
-        ),
-    );
-    status(
-        hwnd,
-        if result.is_ok() {
-            "译文已复制"
-        } else {
-            "替换失败，无法复制译文"
-        },
-    );
-}
-
-fn copy_translation(hwnd: HWND, text: &str) -> Result<()> {
-    let mut units: Vec<u16> = text.encode_utf16().collect();
-    validate_text(&units).map_err(|_| E_INVALIDARG)?;
-    if units.len() > MAX_TEXT {
-        return Err(E_INVALIDARG.into());
-    }
-    units.push(0);
-    // SAFETY: Allocate movable clipboard storage, copy its bounded UTF-16 data,
-    // and transfer ownership only after SetClipboardData succeeds. Always close
-    // the clipboard and free memory on failures. No clipboard contents are read.
-    unsafe {
-        let memory = GlobalAlloc(GMEM_MOVEABLE, units.len() * std::mem::size_of::<u16>())?;
-        let pointer = GlobalLock(memory);
-        if pointer.is_null() {
-            let error = windows::core::Error::from_thread();
-            let _ = GlobalFree(Some(memory));
-            return Err(error);
-        }
-        std::ptr::copy_nonoverlapping(units.as_ptr(), pointer.cast::<u16>(), units.len());
-        let _ = GlobalUnlock(memory);
-        if let Err(error) = OpenClipboard(Some(hwnd)) {
-            let _ = GlobalFree(Some(memory));
-            return Err(error);
-        }
-        let result = EmptyClipboard()
-            .and_then(|_| SetClipboardData(CF_UNICODETEXT.0 as u32, Some(HANDLE(memory.0))));
-        let _ = CloseClipboard();
-        if result.is_err() {
-            let _ = GlobalFree(Some(memory));
-        }
-        result.map(|_| ())
     }
 }
 unsafe fn frame<'a>(hwnd: HWND) -> Option<&'a mut Frame> {
@@ -454,7 +660,7 @@ fn status(hwnd: HWND, message: &str) {
             f.message = message.into();
             f.applying = false;
             f.busy = false;
-            if message == "翻译完成" || message == "译文已复制" {
+            if message == "修改完成" {
                 f.applied = true;
             }
             let _ = InvalidateRect(Some(hwnd), None, false);
@@ -464,7 +670,7 @@ fn status(hwnd: HWND, message: &str) {
             } else {
                 Some(
                     Instant::now()
-                        + if message == "翻译完成" {
+                        + if message == "修改完成" {
                             Duration::from_millis(1400)
                         } else {
                             ERROR_NOTICE_DURATION
@@ -600,7 +806,7 @@ fn create(mut data: Frame, context: &ITfContext, ec: u32) -> Result<HWND> {
         let hwnd = CreateWindowExW(
             WS_EX_NOACTIVATE | WS_EX_TOOLWINDOW | WS_EX_TOPMOST,
             w!("Retype.Translation.1"),
-            w!("retype 翻译"),
+            w!("English Assist 句子编辑"),
             WS_POPUP,
             0,
             0,
@@ -756,12 +962,17 @@ unsafe fn paint(hwnd: HWND) {
                 right: rect.right - pad,
                 bottom: i32::MAX / 4,
             };
-            let mut text: Vec<u16> = f
+            let preview_text = f
                 .translation
-                .as_deref()
-                .unwrap_or("")
-                .encode_utf16()
-                .collect();
+                .as_ref()
+                .map(|text| {
+                    format!(
+                        "原文\n{}\n\n修改\n{text}",
+                        String::from_utf16_lossy(&f.original)
+                    )
+                })
+                .unwrap_or_default();
+            let mut text: Vec<u16> = preview_text.encode_utf16().collect();
             let mut measured = RECT {
                 left: pad,
                 top: 0,
@@ -784,18 +995,24 @@ unsafe fn paint(hwnd: HWND) {
             }
             let _ = RestoreDC(dc, saved);
             if f.preview && !f.applied && !f.applying {
-                let mut button = RECT {
-                    left: rect.right - 84 * dpi / 96,
-                    top: bottom,
-                    right: rect.right - pad,
-                    bottom: rect.bottom - 8 * dpi / 96,
-                };
-                DrawTextW(
-                    dc,
-                    &mut "替换".encode_utf16().collect::<Vec<_>>(),
-                    &mut button,
-                    DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX,
-                );
+                for (left, right, label) in [
+                    (12, 112, "修正语法"),
+                    (116, 222, "补完此句"),
+                    (242, 348, "应用修改"),
+                ] {
+                    let mut button = RECT {
+                        left: left * dpi / 96,
+                        right: right * dpi / 96,
+                        top: bottom,
+                        bottom: rect.bottom - 8 * dpi / 96,
+                    };
+                    DrawTextW(
+                        dc,
+                        &mut label.encode_utf16().collect::<Vec<_>>(),
+                        &mut button,
+                        DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX,
+                    );
+                }
             }
         }
         SelectObject(dc, old);
@@ -895,6 +1112,8 @@ pub(crate) fn paint_status_window_states(context: &ITfContext) -> Result<()> {
             context: context.clone(),
             epoch: 0,
             original: Vec::new(),
+            selected: None,
+            task: AssistTask::GrammarCorrect,
             response: None,
             cancelled: Arc::new(AtomicBool::new(false)),
             translation: None,
@@ -957,43 +1176,6 @@ pub(crate) fn paint_status_window_states(context: &ITfContext) -> Result<()> {
                     }
                 }
             }
-            // Exercise fallback state transitions without changing the user's
-            // real clipboard. Only the clipboard API boundary is substituted.
-            {
-                let data = frame(hwnd).ok_or(E_FAIL)?;
-                data.translation = Some("完整译文\n第二段😀".into());
-                data.applied = false;
-                data.preview = true;
-            }
-            copy_fallback_with(hwnd, |_, text| {
-                assert_eq!(text, "完整译文\n第二段😀");
-                Err(E_ACCESSDENIED.into())
-            });
-            assert_eq!(frame(hwnd).ok_or(E_FAIL)?.message, "替换失败，无法复制译文");
-            assert!(!frame(hwnd).ok_or(E_FAIL)?.applied);
-            copy_fallback_with(hwnd, |_, text| {
-                assert_eq!(text, "完整译文\n第二段😀");
-                Ok(())
-            });
-            assert_eq!(frame(hwnd).ok_or(E_FAIL)?.message, "译文已复制");
-            assert!(frame(hwnd).ok_or(E_FAIL)?.applied);
-            assert!(!frame(hwnd).ok_or(E_FAIL)?.preview);
-            let copied_again = std::cell::Cell::new(false);
-            copy_fallback_with(hwnd, |_, _| {
-                copied_again.set(true);
-                Ok(())
-            });
-            assert!(!copied_again.get());
-            frame(hwnd).ok_or(E_FAIL)?.applied = false;
-            frame(hwnd)
-                .ok_or(E_FAIL)?
-                .cancelled
-                .store(true, Ordering::Relaxed);
-            copy_fallback_with(hwnd, |_, _| {
-                copied_again.set(true);
-                Ok(())
-            });
-            assert!(!copied_again.get());
             // A stopped/error notice expires even when no worker response will
             // ever arrive (for example an empty field rejected during capture).
             {
@@ -1053,22 +1235,48 @@ unsafe extern "system" fn window_proc(hwnd: HWND, msg: u32, wp: WPARAM, lp: LPAR
                         let spinner = spinner_dirty_rect(dpi);
                         let _ = InvalidateRect(Some(hwnd), Some(&spinner), false);
                     }
+                    let target = frame(hwnd).and_then(|f| {
+                        if f.applied {
+                            return None;
+                        }
+                        Some((
+                            f.state.upgrade()?,
+                            f.context.clone(),
+                            f.epoch,
+                            f.owner,
+                            f.selected.clone()?,
+                        ))
+                    });
+                    if target.is_some_and(|(state, context, epoch, owner, selected)| {
+                        !selected.current() || !same_target(&state, &context, epoch, owner)
+                    }) {
+                        if let Some(f) = frame(hwnd) {
+                            f.cancelled.store(true, Ordering::Release);
+                            f.response = None;
+                            f.selected = None;
+                            f.preview = false;
+                        }
+                        status(hwnd, "选区已变化，请重新选中后重试");
+                    }
                     let response = frame(hwnd).and_then(|f| f.response.as_ref()?.try_recv().ok());
                     if let Some(response) = response {
                         let apply = if let Some(f) = frame(hwnd) {
                             f.response = None;
                             f.busy = false;
                             match response {
-                                Ok(Response::Translation { text, preview }) => {
+                                Ok(Response::Assistance { text }) => {
                                     f.translation = Some(text);
-                                    f.preview = preview;
-                                    f.message = if preview {
-                                        "译文预览"
-                                    } else {
-                                        "翻译完成，正在替换…"
+                                    f.preview = true;
+                                    f.message = match f.task {
+                                        AssistTask::GrammarCorrect => {
+                                            "语法预览 · Ctrl+Enter 应用 · Esc 取消"
+                                        }
+                                        AssistTask::CompleteSentence => {
+                                            "补句预览 · Ctrl+Enter 应用 · Esc 取消"
+                                        }
                                     }
                                     .into();
-                                    !preview
+                                    false
                                 }
                                 Err(e) => {
                                     f.message = e;
@@ -1117,11 +1325,20 @@ unsafe extern "system" fn window_proc(hwnd: HWND, msg: u32, wp: WPARAM, lp: LPAR
                         && frame(hwnd).is_some_and(|f| f.preview && !f.applied)
                     {
                         let _ = DestroyWindow(hwnd);
-                    } else if x >= rect.right - 84 * dpi / 96
+                    } else if x >= 242 * dpi / 96
                         && y >= rect.bottom - 40 * dpi / 96
                         && frame(hwnd).is_some_and(|f| f.preview && !f.applied && !f.applying)
                     {
                         request_apply(hwnd);
+                    } else if y >= rect.bottom - 40 * dpi / 96
+                        && frame(hwnd)
+                            .is_some_and(|f| f.preview && !f.applied && !f.applying && !f.busy)
+                    {
+                        if (12 * dpi / 96..112 * dpi / 96).contains(&x) {
+                            start_task(hwnd, AssistTask::GrammarCorrect);
+                        } else if (116 * dpi / 96..222 * dpi / 96).contains(&x) {
+                            start_task(hwnd, AssistTask::CompleteSentence);
+                        }
                     }
                     LRESULT(0)
                 }

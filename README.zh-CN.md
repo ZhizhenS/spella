@@ -1,74 +1,65 @@
-<p align="center"><img src="assets/logo.svg" width="88" height="88" alt="retype 标志"></p>
+# English Assist 英文助手（开发分支）
 
-# retype
+本项目基于 [Retype 固定版本 902e35e](https://github.com/L-Chris/retype/tree/902e35e06ee4f744320cf995c39b1f64693034cf)
+开发 Windows 英文输入法，目标是在英语键盘列表中提供本地单词补全、拼写建议，
+以及主动触发的 AI 语法修正和句子补全。
 
-本项目由 Qwen3.8 Max 开发。
+[English](README.md) · [英文输入操作](docs/english-input.md) ·
+[P0 验证记录](docs/english-assist/INPUT_VALIDATION.md)
 
-基于共享 Rust 输入内核的中文输入法，支持 Windows 和 [Android](docs/android.md)。
+**当前状态：源码实现中，尚未完成本分支的编译、安装和真实应用验收。**
+上游安装包、历史测试报告不等于英文助手的交付或验收结果。
 
-新增开发中的 [macOS 原生预览版](docs/macos.md)，提供 AppKit 候选窗和设置页面、AI 翻译与语音输入、统计、云同步及局域网文字粘贴，尚待 Mac 真机验收。
+## 已修改源码，等待验证
 
-[English](README.md) · [最新版本](https://github.com/L-Chris/retype/releases/latest) · [路线图](docs/roadmap.md)
+- 独立的 English Assist 英文助手系统入口，绑定英语（美国）。
+- 本地前缀补词、拼写建议和大小写保留。
+- 数字 0–9 正常输入，英文候选不显示数字选词编号。
+- Tab 和鼠标选词默认不加空格。
+- 空格保留原词；只有显式选中候选后，空格才接受该候选并加空格。
+- 显式选择后的第一次 Enter 只选词，第二次 Enter 才执行应用的回车行为。
+- 英文离线词库随专用安装包分发；产品标识、用户数据路径与上游隔离。
+- 本版关闭自动英文词汇学习。
+- 中文设置与显式 AI 编辑的协议、服务及交互正在开发。
 
-## 当前功能
+主题完善、手动个人词库、可选下一词预测和完整 AI 编辑验收仍属后续工作。
 
-- Windows 与 Android [语音输入](docs/voice-input.md)，支持录音预览、音频模型和独立语音数量统计。
-- 支持 Windows 64 位和 32 位桌面应用的 TSF 输入法。
-- Android 键盘支持离线输入、个人学习、可选词库、打字统计、AI 翻译和 WebDAV 云同步；见 [Android 文档](docs/android.md)。
-- 全拼和小鹤双拼，可在语言栏切换；双拼未完成的音节也会预览匹配的字词。
-- 万象 Base 词库使用逐词注音和词组权重，在线安装后可完全离线输入。
-- 紧凑横排候选窗，支持键盘和鼠标选词。
-- 点击语言栏图标切换中文和英文。
-- 离线英文单词补全与拼写建议，保留大小写并持久保存个人词汇，详见[英文输入](docs/english-input.md)。
-- 可配置 AI 提供商和模型，通过快捷键翻译受支持输入框的全文，支持自动替换或先预览译文。
-- 选词学习保存在本机并跨应用、全拼和小鹤双拼共享；根据使用次数与逐渐衰减的近期偏好调整排序。
-- 设置中可查看中文、英文分别统计的输入量、速度和最近 7 天趋势；不会保存输入内容。
-- 设置的「关于」页支持每日检查、跳过版本、校验下载，以及用户确认后安装。
-- 支持通过 [WebDAV 云同步](docs/cloud-sync.md)，在多台电脑间同步设置、个人词库与学习记录、打字统计。
-- 支持电脑与手机之间的 [局域网文字剪贴板同步](docs/lan-clipboard.md)，手机键盘可点击预览快速粘贴。
+## 构建与安装状态
 
-M1 桌面预览已通过独立 RichEdit 输入测试。常用应用及现代 Windows 应用环境的兼容性仍在验收，详见 [验证记录](docs/m1-validation.md)。
+需要 Rust MSVC 工具链、Visual C++ 构建工具、Windows SDK 和
+i686-pc-windows-msvc 目标。生成安装包还需要 Inno Setup 6。
 
-## 安装与使用
+~~~powershell
+.\platforms\windows\installer\build-english-assist.ps1 -Installer
+~~~
 
-首次使用请在「设置 → 词库」下载中英文基础词库。词库不再随安装包分发，升级会复用兼容的本地词库，也支持[本地导入](docs/base-resources.md)。
+英文专用脚本构建 x64/x86 输入组件、设置程序、后台组件和固定版本英文词库，
+并执行其配置的检查；该脚本本身不安装产品，也不修改系统键盘列表。
 
-从 [最新发布页面](https://github.com/L-Chris/retype/releases/latest)下载安装包，内含 64 位和 32 位输入组件。如果旧安装器留下待重启操作，请先完成重启再升级。
+成功构建后预期安装包为 dist/english-assist-0.1.0-windows-x64-setup.exe。
+目前尚无成功构建结果。不要使用继承的 Retype 安装器、register.ps1
+或上游发布页安装包来替代本项目构建。
 
-Android 用户可从同一页面下载 APK，并在系统键盘设置中启用 retype。正式 APK 与开发测试版签名不同，从测试版切换到正式版前需要卸载测试版。
+安装后的验收目标是在“设置 → 时间和语言 → 语言和区域 → 英语（美国）
+→ 语言选项 → 键盘”中看到本项目，用 Win+Space 选择，且保留原默认键盘。
+这些仍需按 P0 真实验证。
 
-按 `Win+Space` 选择 **retype**。全拼输入 `nihao`，或用小鹤双拼输入 `nihc`，再按空格上屏“你好”。单按 Shift，或点击品牌图标左侧的模式图标，可切换中英文；组字时按 `-`、`=` 翻候选页，按 `1`–`8` 选择当前页候选。右键模式图标选择“设置”，即可切换拼音方案、查看输入统计或检查更新。更新后重新打开正在使用输入法的应用，即可加载新版组件。
+## 键盘操作
 
-英文模式下，空格上屏原文，Tab 或鼠标选词后自动补一个空格；上下键显式选中后，空格接受候选并添加空格。候选显示编号，按 1–8 选词并补空格；没有对应可见候选时数字正常输入。输入 python3 等组合时，先按 Esc 保留原文，再输入数字。标点按原样输入，可在「设置 → 输入」调整英文补全和拼写建议。
+直接输入 python3 即可。Tab 接受候选且不补空格；上下键显式选中后，
+空格接受候选并加空格。未显式选择时，空格保留原词。
 
-## 从源码构建
+显式选词后的 Enter 只确认候选，避免同时发送聊天或提交搜索；再次 Enter
+才交给应用。未显式选词的 Enter 保留应用原有行为，Esc 保留原输入。
 
-Windows 开发需要 Rust stable、MSVC C++ 构建工具和 `i686-pc-windows-msvc` 目标；生成安装包还需要 Inno Setup。
+完整语义和未通过的验收项目见 [英文输入](docs/english-input.md)
+和 [P0 验证记录](docs/english-assist/INPUT_VALIDATION.md)。
 
-```powershell
-cargo test --workspace --features retype-learning/broker,retype-ai/service
-.\platforms\windows\installer\build.ps1
-.\platforms\windows\installer\build.ps1 -Installer -SkipDict -NoTest
-```
+## 许可与来源
 
-终端调试方法与构建踩坑见 [开发笔记](docs/development-notes.md)。Rust 内核、TSF 适配层、词库、输入统计和更新流程分别见 [架构文档](ARCHITECTURE.md)、[Windows TSF](docs/windows-tsf.md)、[词库](docs/dict.md)、[输入统计](docs/typing-statistics.md) 和 [自动更新](docs/auto-update.md)。
+继承的代码使用 MIT，保留 LICENSE 和 NOTICE.txt。
+英文数据另有 SymSpell、SCOWL 和 Google Ngram 的许可及署名，
+位于 data/dict/raw/english/，不能把词库统一当成 MIT。
 
-学习数据的保存、共享与恢复边界见 [用户学习](docs/user-learning.md)。
-提供商配置、翻译快捷键和编辑器兼容性边界见 [AI 翻译](docs/ai-translation.md)。
-
-## 里程碑
-
-| 阶段 | 目标 | 状态 |
-| --- | --- | --- |
-| M0 | 共享内核、词库、TSF 基础和调试台 | 已完成 |
-| M1 | 在 Windows 应用中输入中文 | 桌面预览可用，应用兼容性验收中 |
-| M2 | 上下文和个人词库 | 已实现持久化与共享学习，上下文学习仍在规划中 |
-| M3 | 云端辅助候选优化 | 计划中 |
-| M4 | 流式语音输入 | 计划中 |
-| M5 | 产品完善与 Android 输入法 | 进行中；Windows 安装发布和 Android 键盘预览已可用 |
-
-详细验收标准和未完成项见 [路线图](docs/roadmap.md)，历史测量数据见 [性能记录](docs/performance.md)。
-
-## 许可
-
-代码采用 MIT 许可；随附的万象 Base 词库采用 CC BY 4.0。来源与署名见 [NOTICE.txt](NOTICE.txt) 和 [词库许可](data/dict/raw/wanxiang-base/LICENSE)。
+源码目录保留上游中文、其他平台与同步模块，用于后续整理和必要兼容；
+这不代表英文专用产品会安装或提供这些功能。

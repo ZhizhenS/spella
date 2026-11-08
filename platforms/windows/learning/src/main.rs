@@ -45,7 +45,7 @@ fn serve() -> Result<(), Box<dyn std::error::Error>> {
         if !root.is_absolute() {
             return Err("LOCALAPPDATA must be absolute".into());
         }
-        root.join("retype/learning/user.db")
+        root.join("EnglishAssist/learning/user.db")
     };
     if let Some(parent) = db_path.parent() {
         if custom_db.is_none() {

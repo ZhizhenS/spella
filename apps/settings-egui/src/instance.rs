@@ -33,7 +33,10 @@ pub fn acquire(updates: bool, request: u32) -> Result<Option<Guard>> {
     let path = std::env::current_exe()?;
     let mut hash = std::collections::hash_map::DefaultHasher::new();
     path.to_string_lossy().to_lowercase().hash(&mut hash);
-    let name = wide(&format!("Local\\Retype.Settings.{:016x}", hash.finish()));
+    let name = wide(&format!(
+        "Local\\EnglishAssist.Settings.{:016x}",
+        hash.finish()
+    ));
     // SAFETY: Null-terminated mutex name. Only our owned handle is closed.
     unsafe {
         let mutex = CreateMutexW(None, false, PCWSTR(name.as_ptr()))?;
@@ -54,8 +57,8 @@ pub fn acquire(updates: bool, request: u32) -> Result<Option<Guard>> {
             while let Ok(window) = FindWindowExW(
                 None,
                 previous,
-                w!("Retype.Settings.Command"),
-                w!("retype 设置"),
+                w!("EnglishAssist.Settings.Command"),
+                w!("English Assist 英文助手设置"),
             ) {
                 previous = Some(window);
                 let mut pid = 0;
@@ -157,13 +160,13 @@ impl Window {
             RegisterClassW(&WNDCLASSW {
                 lpfnWndProc: Some(proc),
                 hInstance: module.into(),
-                lpszClassName: w!("Retype.Settings.Command"),
+                lpszClassName: w!("EnglishAssist.Settings.Command"),
                 ..Default::default()
             });
             let handle = CreateWindowExW(
                 WS_EX_TOOLWINDOW,
-                w!("Retype.Settings.Command"),
-                w!("retype 设置"),
+                w!("EnglishAssist.Settings.Command"),
+                w!("English Assist 英文助手设置"),
                 WS_POPUP,
                 0,
                 0,

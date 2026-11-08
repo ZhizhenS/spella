@@ -33,7 +33,6 @@ pub struct AiPages {
     capture: Option<u8>,
     tap: u16,
     error: Option<String>,
-    languages: String,
     test_text: String,
     test_output: String,
     voice_test: Option<crate::voice::Test>,
@@ -100,7 +99,6 @@ impl AiPages {
             capture: None,
             tap: 0,
             error,
-            languages: String::new(),
             test_text: String::new(),
             test_output: String::new(),
             voice_test: None,
@@ -141,7 +139,7 @@ impl AiPages {
                         Ok(Response::Tested) => {
                             self.messages.insert(job.id, "连接成功".into());
                         }
-                        Ok(Response::Translation { text, .. }) => {
+                        Ok(Response::Translation { text, .. } | Response::Assistance { text }) => {
                             self.test_output = text;
                             self.messages.remove(&job.id);
                         }
@@ -456,180 +454,91 @@ impl AiPages {
     pub fn translation(&mut self, ui: &mut egui::Ui) {
         super::app::card(ui, |ui| {
             configure_form(ui);
-            let field_width = (ui.available_width() - 96.0).clamp(120.0, 280.0);
-            egui::Grid::new("translation-settings")
-                .num_columns(2)
-                .min_row_height(FORM_HEIGHT)
-                .spacing([20.0, 12.0])
-                .show(ui, |ui| {
-                    provider_label(ui, "翻译模型");
-                    let selected = self
-                        .config
-                        .providers
-                        .iter()
-                        .find(|p| p.id == self.config.provider)
-                        .filter(|p| p.models.contains(&self.config.model))
-                        .map(|p| format!("{} / {}", p.name, self.config.model))
-                        .unwrap_or_else(|| "请选择模型".into());
-                    egui::ComboBox::from_id_salt("translation-model")
-                        .width(field_width)
-                        .truncate()
-                        .selected_text(selected)
-                        .show_ui(ui, |ui| {
-                            for p in &self.config.providers {
-                                for model in &p.models {
-                                    if ui
-                                        .selectable_label(
-                                            p.id == self.config.provider
-                                                && *model == self.config.model,
-                                            format!("{} / {model}", p.name),
-                                        )
-                                        .clicked()
-                                    {
-                                        self.config.provider = p.id.clone();
-                                        self.config.model = model.clone();
-                                        self.config.reasoning = "none".into();
-                                    }
-                                }
-                            }
-                        });
-                    ui.end_row();
-                    {
-                        provider_label(ui, "思考等级");
-                        egui::ComboBox::from_id_salt("reasoning")
-                            .width(field_width)
-                            .truncate()
-                            .selected_text(reasoning_label(&self.config.reasoning))
-                            .show_ui(ui, |ui| {
-                                for (value, label) in [
-                                    ("none", "不思考"),
-                                    ("default", "模型默认"),
-                                    ("minimal", "极低"),
-                                    ("low", "低"),
-                                    ("medium", "中"),
-                                    ("high", "高"),
-                                ] {
-                                    ui.selectable_value(
-                                        &mut self.config.reasoning,
-                                        value.into(),
-                                        label,
-                                    );
-                                }
-                            })
-                            .response
-                            .on_hover_text("默认不思考；模型不支持关闭时使用最低等级，仅支持开关的模型将极低、低、中、高视为开启。");
-                        ui.end_row();
-                    }
-                    provider_label(ui, "翻译为");
-                    egui::ComboBox::from_id_salt("translation-target")
-                        .width(field_width)
-                        .truncate()
-                        .selected_text(&self.config.target)
-                        .show_ui(ui, |ui| {
-                            ui.add(
-                                egui::TextEdit::singleline(&mut self.languages)
-                                    .hint_text("搜索语言"),
-                            );
-                            for language in [
-                                "English",
-                                "简体中文",
-                                "繁體中文",
-                                "日本語",
-                                "한국어",
-                                "Français",
-                                "Deutsch",
-                                "Español",
-                                "Português",
-                                "Italiano",
-                                "Русский",
-                                "العربية",
-                                "हिन्दी",
-                                "ไทย",
-                                "Tiếng Việt",
-                                "Bahasa Indonesia",
-                            ] {
-                                if language
-                                    .to_lowercase()
-                                    .contains(&self.languages.to_lowercase())
+            ui.label(format!(
+                "选中英文句子，按 {} 修正语法；确认预览后才应用修改。",
+                self.shortcuts.translate.label()
+            ));
+            ui.label("仅发送选中的文本，最多 2048 个 UTF-16 字符；普通打字和补词不联网。");
+            ui.add_space(12.0);
+            let selected = self
+                .config
+                .providers
+                .iter()
+                .find(|p| p.id == self.config.provider)
+                .filter(|p| p.models.contains(&self.config.model))
+                .map(|p| format!("{} / {}", p.name, self.config.model))
+                .unwrap_or_else(|| "请选择模型".into());
+            ui.horizontal(|ui| {
+                ui.label("AI 模型");
+                egui::ComboBox::from_id_salt("assist-model")
+                    .width((ui.available_width() - 16.0).clamp(120.0, 280.0))
+                    .truncate()
+                    .selected_text(selected)
+                    .show_ui(ui, |ui| {
+                        for p in &self.config.providers {
+                            for model in &p.models {
+                                if ui
+                                    .selectable_label(
+                                        p.id == self.config.provider && *model == self.config.model,
+                                        format!("{} / {model}", p.name),
+                                    )
+                                    .clicked()
                                 {
-                                    ui.selectable_value(
-                                        &mut self.config.target,
-                                        language.into(),
-                                        language,
-                                    );
+                                    self.config.provider = p.id.clone();
+                                    self.config.model = model.clone();
                                 }
                             }
-                        });
-                    ui.end_row();
-                    provider_label(ui, "结果处理");
-                    egui::ComboBox::from_id_salt("translation-output")
-                        .width(field_width)
-                        .truncate()
-                        .selected_text(if self.config.preview {
-                            "预览后替换"
-                        } else {
-                            "自动替换全文"
-                        })
-                        .show_ui(ui, |ui| {
-                            ui.selectable_value(&mut self.config.preview, false, "自动替换全文");
-                            ui.selectable_value(&mut self.config.preview, true, "预览后替换");
-                        });
-                    ui.end_row();
-                });
-            ui.add_space(8.0);
-            egui::CollapsingHeader::new("补充要求").show(ui, |ui| {
-                ui.add(
-                    egui::TextEdit::multiline(&mut self.config.instructions)
-                        .desired_width(f32::INFINITY)
-                        .desired_rows(3)
-                        .hint_text("语气、专业术语或其他翻译要求"),
-                );
-                ui.horizontal(|ui| {
-                    ui.label("超时（秒）");
-                    ui.add(egui::DragValue::new(&mut self.config.timeout_seconds).range(5..=180));
-                    if ui.button("恢复默认").clicked() {
-                        self.config.instructions.clear();
-                        self.config.timeout_seconds = 60;
-                        self.config.reasoning = "none".into();
-                    }
-                });
+                        }
+                    });
             });
+            ui.label("API Key 在「AI 提供商」中填写，保存在 Windows 凭据管理器。");
         });
         ui.add_space(12.0);
-        egui::CollapsingHeader::new("翻译测试").show(ui, |ui| {
+        super::app::card(ui, |ui| {
+            ui.label("试用 AI 编辑");
             ui.add(
                 egui::TextEdit::multiline(&mut self.test_text)
                     .desired_width(f32::INFINITY)
                     .desired_rows(3)
-                    .hint_text("输入要试译的文字"),
+                    .hint_text("例如 He go to school yesterday.；补句请输入未完成的句子"),
             );
-            let loading = self
-                .job
-                .as_ref()
-                .is_some_and(|j| j.id == "translation-test");
-            if ui
-                .add_enabled(
-                    !loading && !self.test_text.trim().is_empty() && self.config.selected().is_ok(),
-                    egui::Button::new("翻译"),
-                )
-                .clicked()
-            {
-                self.test_output.clear();
-                self.start(
-                    "translation-test".into(),
-                    Operation::Translate {
+            let loading = self.job.as_ref().is_some_and(|j| j.id == "assistance-test");
+            let valid = !loading
+                && !self.test_text.trim().is_empty()
+                && self.test_text.encode_utf16().count() <= 2048
+                && self.config.selected().is_ok();
+            let mut operation = None;
+            ui.horizontal(|ui| {
+                if ui
+                    .add_enabled(valid, egui::Button::new("修正语法"))
+                    .clicked()
+                {
+                    operation = Some(Operation::GrammarCorrect {
                         text: self.test_text.clone(),
-                    },
-                    ui.ctx(),
-                );
+                    });
+                }
+                if ui
+                    .add_enabled(valid, egui::Button::new("补完此句"))
+                    .clicked()
+                {
+                    operation = Some(Operation::CompleteSentence {
+                        text: self.test_text.clone(),
+                    });
+                }
+                if loading {
+                    ui.spinner();
+                }
+            });
+            if let Some(operation) = operation {
+                self.test_output.clear();
+                self.start("assistance-test".into(), operation, ui.ctx());
             }
-            if loading {
-                ui.spinner();
-            }
-            if let Some(message) = self.messages.get("translation-test") {
+            if let Some(message) = self.messages.get("assistance-test") {
                 ui.label(message);
             }
             if !self.test_output.is_empty() {
+                ui.add_space(8.0);
+                ui.label("结果预览（不会自动替换其他应用的文本）");
                 ui.label(&self.test_output);
             }
         });
@@ -875,11 +784,8 @@ impl AiPages {
                 .min_row_height(FORM_HEIGHT)
                 .spacing([20.0, 12.0])
                 .show(ui, |ui| {
-                    for (mode, label, binding) in [
-                        (0, "切换中英文", self.shortcuts.mode),
-                        (1, "翻译输入框全文", self.shortcuts.translate),
-                        (2, "按住语音输入", self.shortcuts.voice),
-                    ] {
+                    for (mode, label, binding) in [(1, "修正选中英文", self.shortcuts.translate)]
+                    {
                         form_label(ui, label, 144.0);
                         ui.horizontal(|ui| {
                             let capturing = self.capture == Some(mode);
@@ -1020,17 +926,6 @@ fn kind_name(kind: ApiKind) -> &'static str {
         ApiKind::Ollama => "Ollama",
     }
 }
-fn reasoning_label(value: &str) -> &str {
-    match value {
-        "none" => "不思考",
-        "minimal" => "极低",
-        "low" => "低",
-        "medium" => "中",
-        "high" => "高",
-        _ => "模型默认",
-    }
-}
-
 fn virtual_key(key: egui::Key) -> Option<u16> {
     if key == egui::Key::Space {
         return Some(0x20);

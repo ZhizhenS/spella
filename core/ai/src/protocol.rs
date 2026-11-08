@@ -1,7 +1,19 @@
 use serde::{Deserialize, Serialize};
 pub const MAX_TEXT: usize = 65_536;
+pub const MAX_ASSIST_TEXT: usize = 2_048;
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub enum AssistTask {
+    GrammarCorrect,
+    CompleteSentence,
+}
 #[derive(Clone, Serialize, Deserialize)]
 pub enum Operation {
+    GrammarCorrect {
+        text: String,
+    },
+    CompleteSentence {
+        text: String,
+    },
     Translate {
         text: String,
     },
@@ -25,6 +37,7 @@ pub enum Response {
     Voice(crate::voice::Snapshot),
     Pending,
     Translation { text: String, preview: bool },
+    Assistance { text: String },
     Models(Vec<String>),
     Tested,
     Error(String),
