@@ -37,7 +37,7 @@ I am robot
 I will do the same
 ```
 
-有效语言标签、Input Tips及默认覆盖值的前后快照相同。收据为 `work/research/v0.6.0-r1-notepad-live.json`、`v0.6.0-r1-notepad-module.json`、`v0.6.0-keyboard-preserved.json` 和 `work/build-logs/v0.6.0-r1-test-counts.json`。本版未验收全部应用、x86编辑器真实键入、AI联机/GUI、卸载或重启清理；最终源码ZIP尚待提交后复验，从ZIP完整原生重建未验证。候选排名仅为本次快照。
+有效语言标签、Input Tips及默认覆盖值的前后快照相同。收据为 `work/research/v0.6.0-r1-notepad-live.json`、`v0.6.0-r1-notepad-module.json`、`v0.6.0-keyboard-preserved.json` 和 `work/build-logs/v0.6.0-r1-test-counts.json`。本版未验收全部应用、x86编辑器真实键入、AI联机/GUI、卸载或重启清理。最终源码ZIP的检查结果见配套交付收据；未从ZIP完整原生重编。候选排名仅为本次快照。
 
 ## 沿用0.5的拼音关系与英文夹拼音
 

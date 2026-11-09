@@ -20,7 +20,7 @@
 
 真实记事本PID29288已确认加载最终R1 DLL。逐键输入并保存读回通过：IDK/IMO只提交缩写、rizz/RIZZ大小写、GOAT网络义与goat山羊普通义、LibreOffice前缀补全、候选导航/翻页后Enter原串、Shift组合翻页不切空格偏好、iamrobot空格分词，以及混合拼音完整提交 `I will do the same` 一次。自有文件精确匹配12行，无尾空格、无最后换行。kotlin未收录于本次审核目录，界面无候选，Enter保留原串成功；这是已知覆盖缺口，不能说已补全Kotlin。有效语言标签、Input Tips及默认覆盖值升级前后相同。收据：`work/research/v0.6.0-r1-notepad-live.json`、`v0.6.0-r1-notepad-module.json`、`v0.6.0-keyboard-preserved.json`、`work/build-logs/v0.6.0-r1-test-counts.json`。
 
-本次只验收有限记事本场景，未覆盖全部应用、x86编辑器真实键入、本版AI联机/GUI、卸载或重启清理。最终源码ZIP另待提交后复验，也未验证从ZIP完整重建原生产物；候选排名只是本次观察快照。
+本次只验收有限记事本场景，未覆盖全部应用、x86编辑器真实键入、本版AI联机/GUI、卸载或重启清理。最终源码ZIP的检查结果见配套交付收据；未从ZIP完整原生重编。候选排名只是本次观察快照。
 
 ## 沿用0.5的关系词库与历史验收
 

@@ -68,8 +68,8 @@ snapshots. Receipts: `work/research/v0.6.0-r1-notepad-live.json`,
 
 These are bounded Notepad checks. This version did not verify every application,
 real x86 editor typing, AI service/GUI, uninstall or reboot cleanup. Final source
-archive verification is separate and pending; a complete native rebuild from the
-source ZIP has not been verified. Candidate ranks are observed snapshots.
+ZIP check results are recorded in the accompanying delivery receipts; a complete
+native rebuild from the ZIP was not performed. Candidate ranks are observed snapshots.
 
 ## Inherited 0.5 dictionary and mixed input; historical checks
 

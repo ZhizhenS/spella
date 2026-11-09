@@ -39,7 +39,7 @@
 
 最终自有文件精确12行，无尾空格或最后换行；完整文字见 `docs/english-input.md` 或 `work/research/v0.6.0-r1-notepad-live.json`。模块收据 `v0.6.0-r1-notepad-module.json`；有效语言标签、Input Tips及默认覆盖值前后保持一致，收据 `work/research/v0.6.0-keyboard-preserved.json`。
 
-本版未验收全部应用、x86编辑器真实键入、AI服务/GUI、卸载或重启清理。最终源码ZIP尚待提交后复验，从ZIP完整原生重建未验证；候选排名只是本次观察快照，覆盖仍是有限目录。
+本版未验收全部应用、x86编辑器真实键入、AI服务/GUI、卸载或重启清理。最终源码ZIP的检查结果见配套交付收据；未从ZIP完整原生重编。候选排名只是本次观察快照，覆盖仍是有限目录。
 
 ## 沿用0.5的关系词库与历史检查点
 
