@@ -65,6 +65,50 @@ Windows 原生 TSF 英文输入法，登记在英语（美国）语言下。保�
 - 卸载移除本项目用户入口、COM/Profile、产品注册；保留用户选择的数据策略，不影响其他输入法。
 - 被运行中宿主占用的旧 DLL 可以等待重启删除，但必须列清路径，安全重装不得覆盖同目录。
 
+## 连写英文：调研结论与下一版设计
+
+状态：2026-11-09 完成资料与本地数据核查，以下为待实现设计；当前已安装的 0.2.0 不具备这项能力。本次调研不修改生产词库、输入设置或安装文件。
+
+### 成熟方案与可复用边界
+
+| 来源 | 可借鉴或复用的内容 | 取舍 |
+| --- | --- | --- |
+| [Gboard 官方解码说明](https://research.google/blog/the-machine-intelligence-behind-gboard/) | 词典 FST 允许省略词间空格，结合 n-gram 上下文与 beam search 保留并排序多条路径 | 采用其联合判断词界与单词的思路；不是简单最长匹配，也不保证短前缀唯一确定 |
+| [Gboard 2024 原始论文](https://aclanthology.org/2024.emnlp-industry.93/) | 将神经语言模型接入增量解码搜索空间 | 作为后续扩展参照；本次未找到完整生产引擎、模型权重与词库的开源发布包，不把论文当成可直接部署的软件 |
+| [AOSP LatinIME 解码源码](https://android.googlesource.com/platform/packages/inputmethods/LatinIME/+/refs/heads/main/native/jni/src/suggest/core/suggest.cpp) | 连续搜索、补全、漏空格成本、跨词边及单词/双词评分 | 优先参考算法与搜索状态，保留现有 Windows TSF 壳；Android/JNI 接口不能直接移植。其 [NOTICE](https://android.googlesource.com/platform/packages/inputmethods/LatinIME/+/refs/heads/main/NOTICE) 另列 Lexiteria 词典授权，英文数据不得仅按代码许可直接打包 |
+| [SymSpell](https://github.com/wolfgarbe/SymSpell) | WordSegmentation、LookupCompound，以及公开的 unigram/bigram 数据 | 复用现有单词频率索引，研究双词表与缺空格成本；整串分词 API 不能直接代替允许尾词尚未输完的增量输入法 |
+| [Mozc 产品与 OSS 差异](https://github.com/google/mozc/blob/master/docs/about_branding.md) | 日文输入法的候选状态与多路径设计 | 不是现成英文解码器；Google 内部系统词典、搭配和纠错数据不等同于 OSS 数据 |
+
+默认 Unicode 词界规则处理字符、标点等边界，不会单独解决 `iamt` 的意图判断；这里需要词典与语言概率模型。参见 [UAX #29](https://www.unicode.org/reports/tr29/)。
+
+### 数据基线
+
+当前已安装词库有单词频率和英汉注释，没有已安装的英文 bigram 模型。ECDICT 的多词词条可辅助释义，不能充当已经统计好的上下文概率。
+
+调研隔离目录已取得与现有频率词库同一 SymSpell 提交 `c239062ae02961df18ab7da1671d01b4388204e0` 的 [frequency_bigramdictionary_en_243_342.txt](https://github.com/wolfgarbe/SymSpell/blob/c239062ae02961df18ab7da1671d01b4388204e0/SymSpell/frequency_bigramdictionary_en_243_342.txt)：5,137,213 字节，SHA256 `fd892a160184101dd7ae807ac5a302d01fcea1c47304181a8ed7ed9c94545bcd`。实际记录数为 242,342，不按文件名推断数量。它覆盖 `i am`、`am trying`、`trying to`；`am` 后以 `t` 开头的高频结果中也有 `to`、`the` 等，因此不能声称仅凭 `iamt` 就唯一知道用户想输入 trying。
+
+单词表与双词表的原始计数不在同一标度，不能直接用双词计数除以当前单词计数当作条件概率；实现时需按同源双词行和归一化、平滑并回退到单词模型。
+
+固定提交的 [代码 LICENSE](https://github.com/wolfgarbe/SymSpell/blob/c239062ae02961df18ab7da1671d01b4388204e0/LICENSE) 为 MIT，未发现 NOTICE 文件；[README 来源说明](https://github.com/wolfgarbe/SymSpell/blob/c239062ae02961df18ab7da1671d01b4388204e0/README.md#frequency-dictionary) 的 Google Books 与 SCOWL 交集具体针对 unigram，未单列 bigram 的语料版本及生成链。因此该双词表现阶段用于隔离原型研究，不将其描述成已证实的 Google V3 或 SCOWL 生成物。正式引入时需补齐该数据文件的准确来源声明，或从明确许可的官方数据重生成；代码许可与数据许可分别保留。Google Books n-gram 官方 [下载与许可说明](https://storage.googleapis.com/books/ngrams/books/datasetsv3.html) 标注 CC BY 3.0，构建清单须保存精确来源、版本、哈希与对应声明。
+
+### 输入与候选规则
+
+1. 每次按键同时保留“完整单词/单词前缀”和“若干已识别词＋未完成尾词”等解释，用词频、相邻词概率、缺空格及纠错成本排序；禁止一遇到短词就固定切分。
+2. `ia` 可保留整体前缀与 `I` 加 `a…` 两条解释；继续输入 `iamt` 时，`I am` 加 `t…` 应成为可用路径，并可提供 trying、trying to 等候选，不承诺它们在任意上下文都排名第一。
+3. 同一组字内已识别的前缀暂不提前提交，整个原始按键串保留到确认；退格后重新解码，不能因过早写入 `I am` 而无法撤回词界判断。
+4. 候选主词仅显示当前待补部分。例如完整提交文字为 `I am trying to`，候选显示文字为 `trying to`；词性与中文注释对应当前候选。已在宿主组合范围外确认的文字不能再次包含在提交文字中。
+5. 数字、Tab、点击与 UI-less Finalize 统一使用完整提交文字替换当前组合一次；显示字段不参与正文提交。异步拼写建议也须补齐本组合的前缀，并按代次丢弃过期结果。
+6. 保留原样输入通道；普通单词、手动词条、大小写、缩写、撇号、代码及拼音查英不能因分词而失效。单字补全、连写分词、短语候选应有独立设置，未完成实现前不展示可操作开关。
+7. 本地有限搜索负责逐键候选，不逐键调用 DeepSeek，不记录自动输入历史。先对搜索路径、最大长度、延迟和内存设限，超限回退到既有单词候选。
+
+### 实现前与交付前的验收
+
+- 用不止 `iamt` 的样例覆盖 `howarey`、`thanky`、`wearet`、完整词如 `international`、未知专名、撇号、混合大小写、个人词条及拼音冲突；区分允许的多解与禁止的强拆。
+- 检查 `ia → iamt → iamtr` 的候选更新与连续退格；英文完整词的候选质量不得因增加分词明显退化。
+- 候选显示 `trying to` 时，1–5、Tab、点击和 UI-less 确认都只得到一次完整文本；Esc、焦点变化、空格和标点不丢失原始输入。
+- 独立测量真实词库上的候选覆盖、误切分、每键 p50/p95、最坏长度和内存；不把外部项目的性能数字当成本项目实测。
+- 按现有冻结产物流程重新构建 x64/x86、保留凭据升级、核对安装哈希并在真实宿主验收，不能用纯算法测试替代输入法上屏验证。
+
 ## 后续版本
 
 当前句自动识别、词级修改对照、本地下一词预测、短语快捷输入、更多主题和发布签名按独立验收项推进。未实现功能不以可操作开关展示。开发版验证结果不得替代全部宿主兼容或用户验收。
