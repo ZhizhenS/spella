@@ -11,6 +11,7 @@ platforms/macos/*.command text eol=lf
 /data/dict/raw/english-bigrams/frequency-bigrams.txt.gz -text
 
 # Source hashes and independent compiler receipts must survive Windows source archives.
+/data/dict/raw/english/frequency.txt -text
 /data/dict/raw/wanxiang-base/zi.dict.yaml -text
 /data/dict/raw/wanxiang-base/jichu.dict.yaml -text
 /data/dict/raw/wanxiang-base/LICENSE -text
