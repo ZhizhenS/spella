@@ -26,7 +26,7 @@
 | 原文回车与翻页 | tbh按Down选择其他义项后，Enter仍提交原始小写tbh且不附加换行；idk用Shift+equal从第1/2页至第2/2页、Shift+minus返回，再翻页后Enter仍raw idk。翻页组合键不切换自动空格，说明文字、全称和候选选择不改变原文Enter语义 |
 | 空格与混合尾词回归 | iamrobot按Space保存为I am robot，内部词界完整且无尾空格；iwilldotheyiyang显示英文前缀和拼音尾词，首项same/拼音·一样，按1完整提交I will do the same一次，无重复前缀或释义入文 |
 | 12行保存核对 | 自有文件`work/ui-tests/notepad-v060-4a05a854.txt`精确为`IDK\nIMO\nrizz\nRIZZ\nGOAT\ngoat\nkotlin\nLibreOffice\ntbh\nidk\nI am robot\nI will do the same`（文件使用CRLF），无最终换行/尾空格。95字节，SHA256=`cfaf6e5f909633c1a504050f3b7f0e2852945b3f59d4de79030de173884fae49`；逐阶段与最终核对见`work/research/v0.6.0-r1-notepad-live.json` |
-| 截图证据 | `work/research/`保存10张本轮裁剪PNG，包括`v0.6.0-r1-idk-live.png`、`v0.6.0-r1-imo-live.png`、`v0.6.0-r1-rizz-uppercase-live.png`、`v0.6.0-r1-goat-uppercase-live.png`、`v0.6.0-r1-libreoffice-live.png`、`v0.6.0-r1-idk-page2-live.png`和`v0.6.0-r1-mixed-yiyang-live.png`。截图结合保存文本和模块身份使用，不单凭截图证明提交成功 |
+| 截图证据 | `work/research/`保存10张本轮原始JPEG裁剪，包括`v0.6.0-r1-idk-live.jpg`、`v0.6.0-r1-imo-live.jpg`、`v0.6.0-r1-rizz-uppercase-live.jpg`、`v0.6.0-r1-goat-uppercase-live.jpg`、`v0.6.0-r1-libreoffice-live.jpg`、`v0.6.0-r1-idk-page2-live.jpg`和`v0.6.0-r1-mixed-yiyang-live.jpg`。初次误用PNG扩展名，归档前已修正为JPEG扩展名，原始字节未变，见`v0.6.0-screenshot-extension-repair.json`。截图结合保存文本和模块身份使用，不单凭截图证明提交成功 |
 | 有效键盘配置快照 | `v0.6.0-keyboard-before.json`与`v0.6.0-keyboard-after.json`均CapturedSuccessfully=true，实际包含zh-Hans-CN、en-US两个语言标签和非空InputMethodTips；en-US含美式键盘及本产品TIP。前后标签、各TIP列表相同，默认override均明确未设置；`work/research/v0.6.0-keyboard-preserved.json`确认有效快照及三项保持。此为0.6本轮真实证据，不借用0.5空快照 |
 | 本轮边界与源码交付 | 未重新验证全部应用、x86编辑器真实键入、AI联机/AI GUI、卸载/重启清理或全部现代词和长尾释义质量。老应用应完全退出后重开以加载新DLL。最终源码ZIP另见交付收据，未从ZIP整套原生重编；不提前把源码归档或原生重编写为通过 |
 
