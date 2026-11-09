@@ -4,6 +4,8 @@ use crate::statistics;
 mod base_resources;
 #[path = "../../../platforms/windows/common/manual_words.rs"]
 pub mod manual_words;
+#[path = "../../../platforms/windows/common/user_preferences.rs"]
+mod user_preferences;
 pub use manual_words::ManualWord;
 use std::os::windows::process::CommandExt;
 use std::{
@@ -73,6 +75,10 @@ pub fn choose_resource_bundle() -> Result<Option<PathBuf>> {
 
 #[allow(unsafe_code)]
 pub fn dword_at(key: &str, name: &str) -> Result<Option<u32>> {
+    if key == KEY {
+        let name = wide(name);
+        return Ok(user_preferences::read_dword(PCWSTR(name.as_ptr()))?);
+    }
     let key = wide(key);
     let name = wide(name);
     let mut value = 0u32;
@@ -97,6 +103,11 @@ pub fn dword_at(key: &str, name: &str) -> Result<Option<u32>> {
 }
 #[allow(unsafe_code)]
 pub fn set_at(key: &str, name: &str, value: u32) -> Result<()> {
+    if key == KEY {
+        let name = wide(name);
+        user_preferences::write_dword(PCWSTR(name.as_ptr()), value)?;
+        return Ok(());
+    }
     let key_name = wide(key);
     let name = wide(name);
     let mut key = HKEY::default();
@@ -166,12 +177,15 @@ pub struct Preferences {
     pub english_pinyin: bool,
     pub english_segmentation: bool,
     pub english_phrases: bool,
+    pub english_auto_space: bool,
+    pub statusbar: bool,
     pub appearance: retype_types::CandidateAppearance,
     pub pack_mask: u32,
     pub version: String,
     pub directory: PathBuf,
 }
 pub fn preferences() -> Result<Preferences> {
+    let (english_auto_space, statusbar) = input_status_at(KEY)?;
     let directory = installed("ActiveDir")?
         .map(PathBuf::from)
         .unwrap_or_else(|| {
@@ -196,11 +210,20 @@ pub fn preferences() -> Result<Preferences> {
         english_pinyin: dword_at(KEY, "EnglishPinyinDisabled")?.unwrap_or(0) == 0,
         english_segmentation: dword_at(KEY, "EnglishSegmentationDisabled")?.unwrap_or(0) == 0,
         english_phrases: dword_at(KEY, "EnglishPhrasesDisabled")?.unwrap_or(0) == 0,
+        english_auto_space,
+        statusbar,
         appearance: appearance_at(KEY)?,
         pack_mask: dword_at(KEY, "EnabledDictionaryPacks")?.unwrap_or(0) & 0x7f,
         version: installed("Version")?.unwrap_or_else(|| env!("CARGO_PKG_VERSION").into()),
         directory,
     })
+}
+
+fn input_status_at(key: &str) -> Result<(bool, bool)> {
+    Ok((
+        dword_at(key, "EnglishAutoSpaceDisabled")?.unwrap_or(0) == 0,
+        dword_at(key, "StatusBarDisabled")?.unwrap_or(0) == 0,
+    ))
 }
 
 pub fn appearance_at(key: &str) -> Result<retype_types::CandidateAppearance> {
@@ -285,32 +308,8 @@ pub fn system_dark() -> bool {
 
 #[allow(unsafe_code)]
 fn set_string(name: &str, value: &str) -> Result<()> {
-    let key_name = wide(KEY);
     let name = wide(name);
-    let bytes: Vec<_> = value
-        .encode_utf16()
-        .chain([0])
-        .flat_map(u16::to_le_bytes)
-        .collect();
-    let mut key = HKEY::default();
-    // SAFETY: Owned key, fixed product namespace, UTF-16 value including terminator.
-    unsafe {
-        RegCreateKeyExW(
-            HKEY_CURRENT_USER,
-            PCWSTR(key_name.as_ptr()),
-            None,
-            None,
-            REG_OPTION_NON_VOLATILE,
-            KEY_SET_VALUE,
-            None,
-            &mut key,
-            None,
-        )
-        .ok()?;
-        let result = RegSetValueExW(key, PCWSTR(name.as_ptr()), None, REG_SZ, Some(&bytes));
-        let _ = RegCloseKey(key);
-        result.ok()?;
-    }
+    user_preferences::write_string(PCWSTR(name.as_ptr()), value)?;
     Ok(())
 }
 
@@ -890,6 +889,37 @@ pub fn worker(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn input_status_flags_default_on_and_persist_independently() -> Result<()> {
+        struct TemporaryKey(String);
+        impl Drop for TemporaryKey {
+            fn drop(&mut self) {
+                let name = wide(&self.0);
+                // SAFETY: This uniquely named fixture has no child keys or production values.
+                unsafe {
+                    let _ = RegDeleteKeyW(HKEY_CURRENT_USER, PCWSTR(name.as_ptr()));
+                }
+            }
+        }
+        let key = TemporaryKey(format!(
+            "Software\\EnglishAssistSettingsTests\\InputStatus-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)?
+                .as_nanos()
+        ));
+        assert_eq!(input_status_at(&key.0)?, (true, true));
+        set_at(&key.0, "EnglishAutoSpaceDisabled", 1)?;
+        assert_eq!(input_status_at(&key.0)?, (false, true));
+        set_at(&key.0, "StatusBarDisabled", 1)?;
+        assert_eq!(input_status_at(&key.0)?, (false, false));
+        set_at(&key.0, "EnglishAutoSpaceDisabled", 0)?;
+        assert_eq!(input_status_at(&key.0)?, (true, false));
+        set_at(&key.0, "StatusBarDisabled", 0)?;
+        assert_eq!(input_status_at(&key.0)?, (true, true));
+        Ok(())
+    }
 
     struct TemporaryFiles(PathBuf);
     impl TemporaryFiles {

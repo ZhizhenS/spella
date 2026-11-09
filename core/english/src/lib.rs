@@ -76,6 +76,12 @@ impl Vocabulary {
     pub fn contains_word(&self, input: &str) -> bool {
         self.find(&input.to_ascii_lowercase()).is_some()
     }
+    /// Conservatively insert internal spaces between complete typed words.
+    /// None preserves the original spelling, including complete personal words.
+    /// This does not complete/correct letters, learn text, or perform filesystem IO.
+    pub fn segment_exact(&self, input: &str) -> Option<String> {
+        continuous::segment_exact(self, input, &lexicon::current(), &lexicon::manual())
+    }
     fn candidate(&self, id: usize, input: &str, lexicon: &lexicon::Lexicon) -> Candidate {
         let mut c = Candidate::new(casing(self.word(id), input), CandidateSource::Local);
         c.language = CandidateLanguage::English;

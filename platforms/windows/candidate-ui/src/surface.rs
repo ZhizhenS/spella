@@ -753,7 +753,7 @@ impl Surface {
                 painter.text(
                     Pos2::new(14.0, height as f32 / scale - 15.0),
                     egui::Align2::LEFT_CENTER,
-                    "1–5 选词   ·   Tab 首选   ·   − / + 翻页",
+                    "1–5 选词 · Tab 首选 · −/+ 翻页 · Enter 原样",
                     FontId::proportional(10.5),
                     muted,
                 );

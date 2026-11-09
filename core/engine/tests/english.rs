@@ -199,7 +199,7 @@ fn switching_to_chinese_commits_without_learning_the_english_word() {
     assert!(!k.has_composition());
 }
 #[test]
-fn explicit_selection_space_and_enter_confirmation_do_not_submit_the_host() {
+fn explicit_space_accepts_a_candidate_but_enter_always_commits_raw_without_submitting() {
     let mut k = kernel();
     type_word(&mut k, "hel");
     key(&mut k, Key::Down, Modifiers::NONE);
@@ -211,18 +211,123 @@ fn explicit_selection_space_and_enter_confirmation_do_not_submit_the_host() {
     type_word(&mut k, "hel");
     let actions = key(&mut k, Key::Enter, Modifiers::NONE);
     assert_eq!(commits(&actions), ["hel"]);
-    assert!(actions.contains(&KernelAction::PassThrough));
+    assert!(!actions.contains(&KernelAction::PassThrough));
     assert!(!actions
         .iter()
         .any(|action| matches!(action, KernelAction::Side(SideEffect::Learn(_)))));
     type_word(&mut k, "hel");
     key(&mut k, Key::Down, Modifiers::NONE);
     let actions = key(&mut k, Key::Enter, Modifiers::NONE);
-    assert_eq!(commits(&actions), [first]);
+    assert_eq!(commits(&actions), ["hel"]);
     assert!(!actions.contains(&KernelAction::PassThrough));
     let actions = key(&mut k, Key::Enter, Modifiers::NONE);
     assert!(commits(&actions).is_empty());
     assert!(actions.contains(&KernelAction::PassThrough));
+}
+
+#[test]
+fn auto_space_confirms_exact_boundaries_without_predicting_untyped_letters() {
+    for (input, expected) in [
+        ("iamrobot", "I am robot"),
+        ("iamrobotandilikeapples", "I am robot and I like apples"),
+        ("hel", "hel"),
+        ("iamt", "iamt"),
+        ("iambic", "iambic"),
+        ("zzzzzzzzzz", "zzzzzzzzzz"),
+    ] {
+        let mut k = kernel();
+        k.handle(InputEvent::SetEnglishAutoSpace(true));
+        type_word(&mut k, input);
+        let actions = key(&mut k, Key::Space, Modifiers::NONE);
+        assert_eq!(commits(&actions), [expected], "{input}");
+        assert!(!actions.contains(&KernelAction::PassThrough), "{input}");
+        assert!(!k.has_composition());
+        assert!(!actions
+            .iter()
+            .any(|action| matches!(action, KernelAction::Side(SideEffect::Learn(_)))));
+    }
+}
+
+#[test]
+fn toggling_auto_space_preserves_raw_input_and_keeps_manual_space_available() {
+    let mut k = kernel();
+    type_word(&mut k, "iamrobot");
+    let before = k.render_state();
+    let actions = k.handle(InputEvent::SetEnglishAutoSpace(true));
+    assert!(actions.is_empty());
+    assert_eq!(k.render_state(), before);
+    k.handle(InputEvent::SetEnglishAutoSpace(false));
+    assert_eq!(k.render_state(), before);
+    assert_eq!(
+        commits(&key(&mut k, Key::Space, Modifiers::NONE)),
+        ["iamrobot "]
+    );
+
+    k.handle(InputEvent::SetEnglishAutoSpace(true));
+    k.handle(InputEvent::SetEnglishContinuous {
+        segmentation: false,
+        phrases: false,
+    });
+    type_word(&mut k, "iamrobot");
+    assert_eq!(
+        commits(&key(&mut k, Key::Space, Modifiers::NONE)),
+        ["iamrobot"]
+    );
+    let empty = key(&mut k, Key::Space, Modifiers::NONE);
+    assert!(commits(&empty).is_empty());
+    assert!(empty.contains(&KernelAction::PassThrough));
+}
+
+#[test]
+fn raw_enter_overrides_candidate_selection_paging_and_auto_space_in_both_modes() {
+    for enabled in [false, true] {
+        for input in ["iamrobot", "IamRobot", "don't", "hel", "zzzzzzzzzz"] {
+            let mut k = kernel();
+            k.handle(InputEvent::SetEnglishAutoSpace(enabled));
+            type_word(&mut k, input);
+            if k.has_candidates() {
+                key(&mut k, Key::Down, Modifiers::NONE);
+                key(&mut k, Key::Char('+'), Modifiers::SHIFT);
+            }
+            let actions = key(&mut k, Key::Enter, Modifiers::NONE);
+            assert_eq!(commits(&actions), [input], "{enabled} {input}");
+            assert!(!actions.contains(&KernelAction::PassThrough));
+            assert!(!k.has_composition());
+            let second = key(&mut k, Key::Enter, Modifiers::NONE);
+            assert!(commits(&second).is_empty());
+            assert!(second.contains(&KernelAction::PassThrough));
+        }
+    }
+}
+
+#[test]
+fn modified_enter_preserves_raw_text_and_host_shortcuts() {
+    for enabled in [false, true] {
+        for mods in [Modifiers::SHIFT, Modifiers::CTRL, Modifiers::ALT] {
+            let mut k = kernel();
+            k.handle(InputEvent::SetEnglishAutoSpace(enabled));
+            type_word(&mut k, "iamrobot");
+            key(&mut k, Key::Down, Modifiers::NONE);
+            let actions = key(&mut k, Key::Enter, mods);
+            assert_eq!(commits(&actions), ["iamrobot"]);
+            assert!(actions.contains(&KernelAction::PassThrough));
+            assert!(!k.has_composition());
+        }
+    }
+}
+
+#[test]
+fn auto_space_explicit_candidate_acceptance_never_adds_a_trailing_space() {
+    for ending in [Key::Space, Key::Tab, Key::Char('1')] {
+        let mut k = kernel();
+        k.handle(InputEvent::SetEnglishAutoSpace(true));
+        type_word(&mut k, "hel");
+        key(&mut k, Key::Down, Modifiers::NONE);
+        let first = k.render_state().candidates[0].text.clone();
+        let actions = key(&mut k, ending, Modifiers::NONE);
+        assert_eq!(commits(&actions), [first]);
+        assert!(!actions.contains(&KernelAction::PassThrough));
+    }
 }
 
 #[test]

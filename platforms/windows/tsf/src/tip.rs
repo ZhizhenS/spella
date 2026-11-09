@@ -4,7 +4,9 @@ use crate::{candidate::CandidateWindow, display, edit, keymap, session::Session,
 use retype_types::{InputEvent, Key, Modifiers};
 use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard, Weak};
-use windows::Win32::Foundation::{E_INVALIDARG, E_POINTER, E_UNEXPECTED, LPARAM, WPARAM};
+use windows::Win32::Foundation::{
+    E_FAIL, E_INVALIDARG, E_POINTER, E_UNEXPECTED, HWND, LPARAM, WPARAM,
+};
 use windows::Win32::UI::TextServices::*;
 use windows_core::{implement, Interface, Ref, Result, BOOL, GUID};
 
@@ -141,6 +143,7 @@ pub struct TipState {
     pub(crate) symbol_pairs: Mutex<Vec<crate::symbols::OwnedPair>>,
     pub(crate) symbol_cursor_context: Mutex<Option<ITfContext>>,
     pub(crate) pending: AtomicU32,
+    pub(crate) preference_pending: AtomicU32,
     pub(crate) refresh_pending: Mutex<Option<(u32, u32)>>,
     pub(crate) epoch: AtomicU32,
     pub(crate) writing: AtomicBool,
@@ -151,7 +154,9 @@ pub struct TipState {
     pub(crate) voice_window: Mutex<Option<usize>>,
     voice_alt_down: AtomicBool,
     language_bar: Mutex<Option<crate::langbar::LanguageBar>>,
+    status_bar: Mutex<Option<crate::statusbar::StatusBar>>,
     shift_tap: Mutex<ShiftTap>,
+    shift_context: Mutex<Option<ITfContext>>,
     shortcuts: Mutex<(std::time::Instant, retype_ai::config::Shortcuts)>,
     #[cfg(test)]
     test_shortcuts: Mutex<Option<retype_ai::config::Shortcuts>>,
@@ -174,6 +179,7 @@ impl TipState {
             symbol_pairs: Mutex::new(Vec::new()),
             symbol_cursor_context: Mutex::new(None),
             pending: AtomicU32::new(0),
+            preference_pending: AtomicU32::new(0),
             refresh_pending: Mutex::new(None),
             epoch: AtomicU32::new(0),
             writing: AtomicBool::new(false),
@@ -184,7 +190,9 @@ impl TipState {
             voice_window: Mutex::new(None),
             voice_alt_down: AtomicBool::new(false),
             language_bar: Mutex::new(None),
+            status_bar: Mutex::new(None),
             shift_tap: Mutex::new(ShiftTap::default()),
+            shift_context: Mutex::new(None),
             shortcuts: Mutex::new((std::time::Instant::now(), retype_ai::secrets::shortcuts())),
             #[cfg(test)]
             test_shortcuts: Mutex::new(None),
@@ -247,6 +255,7 @@ impl TipState {
             }
         }
         self.activated.store(true, Ordering::SeqCst);
+        self.sync_scheme();
         let translation_binding = lock(&self.shortcuts).1.translate;
         self.sync_translation_key(translation_binding);
         let voice_binding = lock(&self.shortcuts).1.voice;
@@ -270,6 +279,7 @@ impl TipState {
                 tracing::warn!("TSF language bar is unavailable: {error}");
             }
         }
+        self.refresh_statusbar();
         Ok(())
     }
     pub fn deactivate(self: &Arc<Self>) -> Result<()> {
@@ -277,7 +287,9 @@ impl TipState {
         crate::voice::dismiss(self);
         self.voice_alt_down.store(false, Ordering::Release);
         self.activated.store(false, Ordering::SeqCst);
+        drop(lock(&self.status_bar).take());
         *lock(&self.shift_tap) = ShiftTap::default();
+        *lock(&self.shift_context) = None;
         lock(&self.stats_clock).reset();
         let entry = lock(&self.entry_bridge).take();
         drop(entry);
@@ -499,6 +511,26 @@ impl TipState {
         Ok(())
     }
     pub(crate) fn sync_scheme(&self) {
+        let _ = crate::user_preferences::initialize();
+        if self.preference_pending.load(Ordering::SeqCst) != 0 {
+            return;
+        }
+        // A standalone preference event preserves a live composition. Do not
+        // leapfrog already queued keys/toggles with a new registry snapshot.
+        if self.pending.load(Ordering::SeqCst) == 0
+            && self.preference_pending.load(Ordering::SeqCst) == 0
+        {
+            if let Some(session) = self.session() {
+                let enabled = crate::preferences::auto_space();
+                if session
+                    .backend
+                    .with_kernel(|k| k.config().english_auto_space)
+                    != enabled
+                {
+                    session.submit(InputEvent::SetEnglishAutoSpace(enabled));
+                }
+            }
+        }
         if lock(&self.composition).is_some() || self.pending.load(Ordering::SeqCst) != 0 {
             return;
         }
@@ -506,33 +538,47 @@ impl TipState {
             session.sync_packs();
             session.sync_manual_words();
             let scheme = crate::preferences::scheme();
-            let (enabled, spelling) = crate::preferences::english_options();
-            let pinyin = crate::preferences::english_pinyin();
-            let (segmentation, phrases) = crate::preferences::english_continuous();
-            if session
-                .backend
-                .with_kernel(|k| (k.config().english_segmentation, k.config().english_phrases))
-                != (segmentation, phrases)
-            {
-                session.submit(InputEvent::SetEnglishContinuous {
-                    segmentation,
-                    phrases,
-                });
-            }
-            if session.backend.with_kernel(|k| k.config().english_pinyin) != pinyin {
-                session.submit(InputEvent::SetEnglishPinyin(pinyin));
-            }
-            if session
-                .backend
-                .with_kernel(|k| (k.config().english_enabled, k.config().english_spelling))
-                != (enabled, spelling)
-            {
-                session.submit(InputEvent::SetEnglishOptions { enabled, spelling });
-            }
+            self.sync_english_completion_preferences();
             if session.backend.with_kernel(|k| k.config().pinyin_scheme) != scheme {
                 session.submit(InputEvent::SetPinyinScheme(scheme));
                 self.notify_language_bar();
             }
+        }
+    }
+    /// Called at a successful end-of-composition boundary. Only already mapped
+    /// completion flags are read; no resources, I/O retry, or spacing changes.
+    pub(crate) fn sync_english_completion_preferences(&self) {
+        let Some(session) = self.session() else {
+            return;
+        };
+        if session
+            .backend
+            .with_kernel(|kernel| kernel.has_composition())
+        {
+            return;
+        }
+        let (enabled, spelling) = crate::preferences::english_options();
+        let pinyin = crate::preferences::english_pinyin();
+        let (segmentation, phrases) = crate::preferences::english_continuous();
+        if session
+            .backend
+            .with_kernel(|k| (k.config().english_segmentation, k.config().english_phrases))
+            != (segmentation, phrases)
+        {
+            session.submit(InputEvent::SetEnglishContinuous {
+                segmentation,
+                phrases,
+            });
+        }
+        if session.backend.with_kernel(|k| k.config().english_pinyin) != pinyin {
+            session.submit(InputEvent::SetEnglishPinyin(pinyin));
+        }
+        if session
+            .backend
+            .with_kernel(|k| (k.config().english_enabled, k.config().english_spelling))
+            != (enabled, spelling)
+        {
+            session.submit(InputEvent::SetEnglishOptions { enabled, spelling });
         }
     }
     pub(crate) fn hide(&self) {
@@ -542,12 +588,68 @@ impl TipState {
             *lock(&self.window) = Some(window);
         }
     }
+    pub(crate) fn hide_statusbar(&self) {
+        if let Some(bar) = lock(&self.status_bar).as_ref() {
+            bar.hide();
+        }
+    }
+    pub(crate) fn show_statusbar(self: &Arc<Self>, focus: HWND) {
+        if !crate::preferences::statusbar_visible() {
+            self.hide_statusbar();
+            return;
+        }
+        let mut bar = lock(&self.status_bar).take();
+        if bar.is_none() {
+            bar = crate::statusbar::StatusBar::create(self).ok();
+        }
+        if let Some(bar) = bar.as_ref() {
+            bar.show(focus);
+        }
+        *lock(&self.status_bar) = bar;
+    }
+    pub(crate) fn refresh_statusbar(self: &Arc<Self>) {
+        if !self.is_activated() || !crate::preferences::statusbar_visible() {
+            self.hide_statusbar();
+            return;
+        }
+        let manager = lock(&self.thread_mgr).clone();
+        // SAFETY: query only this thread manager's focused context.
+        let context = manager.and_then(|m| unsafe { m.GetFocus().and_then(|d| d.GetTop()).ok() });
+        if let Some(context) = context {
+            let _ = edit::request(self, &context, edit::Work::Status);
+        } else {
+            self.hide_statusbar();
+        }
+    }
+    pub(crate) fn toggle_auto_space(self: &Arc<Self>) -> Result<()> {
+        let manager = lock(&self.thread_mgr).clone().ok_or(E_FAIL)?;
+        // SAFETY: actual toggle runs under a fresh read cookie after queued keys.
+        let context = unsafe { manager.GetFocus()?.GetTop()? };
+        edit::request(self, &context, edit::Work::ToggleAutoSpace)
+    }
+    pub(crate) fn apply_auto_space_toggle(&self) -> Result<()> {
+        let Some(session) = self.session() else {
+            return Ok(());
+        };
+        let enabled = !session
+            .backend
+            .with_kernel(|k| k.config().english_auto_space);
+        crate::preferences::set_auto_space(enabled)?;
+        session.submit(InputEvent::SetEnglishAutoSpace(enabled));
+        if let Some(bar) = lock(&self.status_bar).as_ref() {
+            bar.refresh();
+        }
+        Ok(())
+    }
     fn dismiss_assistance(&self) {
         // Cancel requests at the focus/context event itself. A timer may miss
         // A -> B -> A transitions, and there need not be an active composition.
         crate::translation::dismiss(self);
         crate::voice::dismiss(self);
         self.voice_alt_down.store(false, Ordering::Release);
+        *lock(&self.shift_tap) = ShiftTap::default();
+        *lock(&self.shift_context) = None;
+        self.hide_statusbar();
     }
     pub(crate) fn reset_kernel(&self) {
         if let Some(s) = self.session() {
@@ -585,16 +687,14 @@ impl TipState {
         if session.shadow {
             return false;
         }
-        let (chinese, composing, english, candidates, selected) =
-            session.backend.with_kernel(|k| {
-                (
-                    k.is_chinese(),
-                    k.has_composition(),
-                    k.english_prediction_enabled(),
-                    k.has_candidates(),
-                    k.english_candidate_selected(),
-                )
-            });
+        let (chinese, composing, english, candidates) = session.backend.with_kernel(|k| {
+            (
+                k.is_chinese(),
+                k.has_composition(),
+                k.english_prediction_enabled(),
+                k.has_candidates(),
+            )
+        });
         let composing = composing || self.pending.load(Ordering::SeqCst) > 0;
         if mods.is_plain()
             && (matches!(key, Key::Char(c) if { let r = retype_types::symbols::rules(c, chinese); r.opening.is_some() || r.closing.is_some() })
@@ -607,6 +707,9 @@ impl TipState {
             if !mods.is_plain() {
                 return false;
             }
+            if key == Key::Enter && mods.contains(Modifiers::SHIFT) {
+                return false;
+            }
             if matches!(
                 key,
                 Key::PageUp | Key::PageDown | Key::Char('-' | '_' | '=' | '+')
@@ -617,11 +720,10 @@ impl TipState {
                 || composing
                     && (matches!(
                         key,
-                        Key::Char(_) | Key::Space | Key::Escape | Key::Backspace
+                        Key::Char(_) | Key::Space | Key::Escape | Key::Backspace | Key::Enter
                     ) || candidates
                         && (matches!(key, Key::Up | Key::Down)
-                            || key == Key::Tab && !mods.contains(Modifiers::SHIFT))
-                        || selected && key == Key::Enter);
+                            || key == Key::Tab && !mods.contains(Modifiers::SHIFT)));
         }
         if chinese
             && english
@@ -1062,9 +1164,7 @@ impl ITfKeyEventSink_Impl for KeyEventSink_Impl {
             let Some(state) = self.state.upgrade() else {
                 return Ok(false.into());
             };
-            let binding = state.shortcuts().mode;
-            if state.can_toggle_mode() && binding.is_tap() && normalized_modifier(vk) == binding.vk
-            {
+            if normalized_modifier(vk) == 0x10 {
                 return Ok(state.is_activated().into());
             }
             lock(&state.shift_tap).other_key();
@@ -1082,13 +1182,12 @@ impl ITfKeyEventSink_Impl for KeyEventSink_Impl {
         }
         guarded(|| {
             if let Some(state) = self.state.upgrade() {
-                let binding = state.shortcuts().mode;
-                if state.can_toggle_mode()
-                    && binding.is_tap()
-                    && normalized_modifier(vk) == binding.vk
-                {
+                if normalized_modifier(vk) == 0x10 {
                     if state.is_activated() {
-                        lock(&state.shift_tap).press(tap_modifiers(binding.vk));
+                        if !lock(&state.shift_tap).pressed {
+                            *lock(&state.shift_context) = ctx.ok().ok().cloned();
+                        }
+                        lock(&state.shift_tap).press(tap_modifiers(0x10));
                     }
                     return Ok(false.into());
                 }
@@ -1107,10 +1206,7 @@ impl ITfKeyEventSink_Impl for KeyEventSink_Impl {
             if right_alt_event(vk, lp) && state.voice_alt_down.load(Ordering::Acquire) {
                 return true;
             }
-            let binding = state.shortcuts().mode;
-            state.can_toggle_mode()
-                && binding.is_tap()
-                && normalized_modifier(vk) == binding.vk
+            normalized_modifier(vk) == 0x10
                 && state.is_activated()
                 && lock(&state.shift_tap).pressed
         }))
@@ -1127,13 +1223,16 @@ impl ITfKeyEventSink_Impl for KeyEventSink_Impl {
                 crate::voice::release_hold(&state);
                 return Ok(true.into());
             }
-            let binding = state.shortcuts().mode;
-            if binding.is_tap() && normalized_modifier(vk) == binding.vk {
-                let toggle = lock(&state.shift_tap).release(tap_modifiers(binding.vk));
-                if toggle && state.is_activated() && state.can_toggle_mode() {
+            if normalized_modifier(vk) == 0x10 {
+                let toggle = lock(&state.shift_tap).release(tap_modifiers(0x10));
+                let pressed = lock(&state.shift_context).take();
+                let same_context = pressed
+                    .is_some_and(|pressed| ctx.ok().is_ok_and(|released| *released == pressed));
+                if toggle && same_context && state.is_activated() {
                     if let Ok(ctx) = ctx.ok() {
-                        if let Err(error) = edit::request(&state, ctx, edit::Work::Toggle) {
-                            tracing::warn!("Shift mode switch rejected: {error}");
+                        if let Err(error) = edit::request(&state, ctx, edit::Work::ToggleAutoSpace)
+                        {
+                            tracing::warn!("Shift spacing switch rejected: {error}");
                         }
                     }
                 }
@@ -1296,5 +1395,19 @@ mod tests {
         assert!(!shift.release(Modifiers::NONE));
         shift.press(Modifiers::SHIFT);
         assert!(!shift.release(Modifiers::CTRL));
+        // Either Shift's repeat/second-side press and any punctuation/navigation
+        // chord disarm the tap; an orphaned key-up cannot toggle a preference.
+        shift.press(Modifiers::NONE);
+        shift.press(Modifiers::NONE);
+        assert!(!shift.release(Modifiers::NONE));
+        assert!(!shift.release(Modifiers::NONE));
+        for _ in ['_', '+', 'A', '\t'] {
+            shift.press(Modifiers::NONE);
+            shift.other_key();
+            assert!(!shift.release(Modifiers::NONE));
+        }
+        shift.press(Modifiers::NONE);
+        shift = ShiftTap::default(); // focus/context cancellation
+        assert!(!shift.release(Modifiers::NONE));
     }
 }

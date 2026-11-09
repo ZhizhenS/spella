@@ -119,6 +119,8 @@ pub enum PinyinScheme {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum InputEvent {
+    /// Word-confirmation spacing, without changing the authoritative raw input.
+    SetEnglishAutoSpace(bool),
     /// Continuous English segmentation and phrase suggestions, refreshed on focus.
     SetEnglishContinuous {
         segmentation: bool,

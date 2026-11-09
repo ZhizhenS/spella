@@ -17,6 +17,11 @@ const CONTEXT_WEIGHT: f64 = 0.95;
 const PHRASE_CONFIDENCE: f64 = 0.7;
 const MIN_ANCHOR_PROBABILITY: f64 = 0.005;
 const BACKOFF_PREFIX_CANDIDATES: usize = BEAM * 2;
+const EXACT_MAX_INPUT: usize = 64;
+const EXACT_MAX_WORDS: usize = 16;
+const EXACT_BEAM: usize = 32;
+const EXACT_MIN_WORD_PROBABILITY: f64 = 0.000_001;
+const EXACT_MIN_LOG_GAP: f64 = std::f64::consts::LN_2 * 3.;
 const DATA: &[u8] = include_bytes!("../assets/bigrams.bin");
 
 #[derive(Clone, Copy)]
@@ -319,6 +324,135 @@ fn path_text(input: &str, parts: &[(usize, usize)]) -> String {
         .collect::<Vec<_>>()
         .join(" ")
 }
+
+#[derive(Clone)]
+struct ExactPath {
+    ends: Vec<usize>,
+    score: f64,
+    observed_edges: usize,
+}
+fn exact_order(left: &ExactPath, right: &ExactPath) -> std::cmp::Ordering {
+    right
+        .score
+        .total_cmp(&left.score)
+        .then_with(|| left.ends.len().cmp(&right.ends.len()))
+        .then_with(|| left.ends.cmp(&right.ends))
+}
+fn admit_exact(paths: &mut Vec<ExactPath>, path: ExactPath) {
+    let index = paths.partition_point(|old| exact_order(old, &path).is_le());
+    if index < EXACT_BEAM {
+        paths.insert(index, path);
+        paths.truncate(EXACT_BEAM);
+    }
+}
+
+/// Exact completed-word paths are independent of visible completion candidates.
+/// Only spaces (and the conventional uppercase standalone I) may be introduced.
+/// All snapshots are already in memory; this function never opens a resource.
+pub(super) fn segment_exact(
+    vocab: &Vocabulary,
+    input: &str,
+    metadata: &lexicon::Lexicon,
+    manual: &lexicon::ManualWords,
+) -> Option<String> {
+    if input.len() < 2 || input.len() > EXACT_MAX_INPUT || !super::valid_word(input) {
+        return None;
+    }
+    let key = input.to_ascii_lowercase();
+    // Protect a complete spelling before considering a decomposition. Manual
+    // entries can be codes/names and are intentionally not split or learned.
+    if vocab.find(&key).is_some()
+        || metadata.lookup(&key).is_some()
+        || manual
+            .complete(input, 1)
+            .first()
+            .is_some_and(|candidate| candidate.text.eq_ignore_ascii_case(input))
+    {
+        return None;
+    }
+    let model = model()?;
+    let mut paths: Vec<Vec<ExactPath>> = (0..=input.len()).map(|_| Vec::new()).collect();
+    paths[0].push(ExactPath {
+        ends: Vec::new(),
+        score: 0.,
+        observed_edges: 0,
+    });
+    for start in 0..input.len() {
+        if paths[start].is_empty() {
+            continue;
+        }
+        let previous_paths = paths[start].clone();
+        for end in start + 1..=input.len() {
+            let word = &key[start..end];
+            if !super::valid_word(word)
+                || (word.len() == 1 && !matches!(word, "a" | "i"))
+                || (word.len() > 1 && word.bytes().all(|value| value == word.as_bytes()[0]))
+                || vocab.find(word).is_none()
+            {
+                continue;
+            }
+            let prior = unigram(vocab, word);
+            for path in &previous_paths {
+                if path.ends.len() >= EXACT_MAX_WORDS {
+                    continue;
+                }
+                let probability = if path.ends.is_empty() {
+                    prior
+                } else {
+                    let previous_start = path.ends.iter().rev().nth(1).copied().unwrap_or(0);
+                    // A sparse table is not an exhaustive grammar. Missing
+                    // internal pairs use the same normalized unigram backoff;
+                    // no unfinished prefix or invented next word is admitted.
+                    model.conditional(&key[previous_start..start], word, prior)
+                };
+                let mut next = path.clone();
+                if !path.ends.is_empty() {
+                    let previous_start = path.ends.iter().rev().nth(1).copied().unwrap_or(0);
+                    if model.observed(&key[previous_start..start], word) {
+                        next.observed_edges += 1;
+                    }
+                }
+                next.ends.push(end);
+                next.score += probability.ln() - if start == 0 { 0. } else { SPLIT_COST };
+                admit_exact(&mut paths[end], next);
+            }
+        }
+    }
+    let complete = &paths[input.len()];
+    let best = complete.first()?;
+    if best.ends.len() < 2
+        // Dictionary abbreviations alone are not enough evidence for an
+        // automatic boundary (e.g. an unfinished "iamt" is not "I amt").
+        // One genuine context edge anchors a path; gaps after that may back off.
+        || best.observed_edges == 0
+        || best.score / (best.ends.len() as f64) < EXACT_MIN_WORD_PROBABILITY.ln()
+        || complete
+            .get(1)
+            .is_some_and(|runner| best.score - runner.score < EXACT_MIN_LOG_GAP)
+    {
+        return None;
+    }
+    let mut start = 0;
+    let words: Vec<_> = best
+        .ends
+        .iter()
+        .map(|end| {
+            let raw = &input[start..*end];
+            start = *end;
+            if raw == "i" {
+                "I"
+            } else {
+                raw
+            }
+        })
+        .collect();
+    let output = words.join(" ");
+    // Keep this invariant explicit even if scoring/casing changes in the future.
+    output
+        .replace(' ', "")
+        .eq_ignore_ascii_case(input)
+        .then_some(output)
+}
 fn admit_path(paths: &mut Vec<Path>, path: Path) {
     paths.push(path);
     paths.sort_by(|a, b| {
@@ -564,6 +698,16 @@ pub(super) fn complete(
 #[cfg(test)]
 mod tests {
     use super::*;
+    fn frozen_vocabulary() -> Vocabulary {
+        let source = std::fs::File::open(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../data/dict/raw/english/frequency.txt"
+        ))
+        .unwrap();
+        let mut bytes = Vec::new();
+        super::super::compile(std::io::BufReader::new(source), &mut bytes).unwrap();
+        Vocabulary::from_bytes(bytes).unwrap()
+    }
     fn vocabulary() -> Vocabulary {
         let source=b"a 9081174698\nam 576436203\nare 1000000000\napple 50551171\nhow 1000000000\ni 3086225277\niambic 110064\ni'm 1000000\nthe 20000000000\nthinking 20000000\ntalking 10000000\nthank 10000000\nto 12136980858\ntrying 57462639\nwe 1000000000\nyou 1000000000\nyour 1000000000\n";
         let mut bytes = Vec::new();
@@ -756,5 +900,116 @@ mod tests {
                 "unexpected split for {input}"
             );
         }
+    }
+    #[test]
+    fn exact_segmentation_keeps_every_typed_letter_with_sparse_internal_context() {
+        let vocab = frozen_vocabulary();
+        assert!(!model().unwrap().observed("am", "robot"));
+        for (input, expected) in [
+            ("iamrobot", "I am robot"),
+            ("iamrobotandilikeapples", "I am robot and I like apples"),
+            ("iamgood", "I am good"),
+            ("iamgay", "I am gay"),
+            ("helloworld", "hello world"),
+            ("iloveyou", "I love you"),
+        ] {
+            let result = vocab
+                .segment_exact(input)
+                .unwrap_or_else(|| panic!("no exact split for {input}"));
+            assert_eq!(result, expected);
+            assert!(result.replace(' ', "").eq_ignore_ascii_case(input));
+            assert!(!result.starts_with(' ') && !result.ends_with(' '));
+        }
+    }
+    #[test]
+    fn exact_segmentation_never_completes_corrects_transliterates_or_splits_complete_words() {
+        let vocab = frozen_vocabulary();
+        for input in [
+            "iamt",
+            "iamro",
+            "iamtr",
+            "iamq",
+            "abcxyz",
+            "hellp",
+            "jiqiren",
+            "pingguo",
+            "qzxvfixture",
+            "zzzga",
+            "zzzzzzzzzz",
+            "iamzzzzzz",
+            "iambic",
+            "international",
+            "HEL",
+            "apple",
+            "don't",
+            "somebody",
+            "nowhere",
+        ] {
+            assert!(
+                vocab.segment_exact(input).is_none(),
+                "unexpected exact split for {input}"
+            );
+        }
+    }
+    #[test]
+    fn exact_segmentation_preserves_typed_case_except_standalone_i() {
+        let vocab = frozen_vocabulary();
+        for (input, expected) in [
+            ("IAMROBOT", "I AM ROBOT"),
+            ("IamRobot", "I am Robot"),
+            ("iAmRobot", "I Am Robot"),
+        ] {
+            assert_eq!(vocab.segment_exact(input).as_deref(), Some(expected));
+        }
+    }
+    #[test]
+    fn exact_segmentation_declines_ambiguous_unknown_and_over_limit_input() {
+        let vocab = frozen_vocabulary();
+        for input in [
+            "",
+            "i am",
+            "iamrobot!",
+            "iamr0bot",
+            "iam机器人",
+            "iam'",
+            "godisnowhere",
+        ] {
+            assert!(
+                vocab.segment_exact(input).is_none(),
+                "unsafe exact split for {input}"
+            );
+        }
+        assert!(vocab
+            .segment_exact(&"i".repeat(EXACT_MAX_INPUT + 1))
+            .is_none());
+        assert!(vocab.segment_exact(&"iloveyou".repeat(6)).is_none());
+    }
+    #[test]
+    fn exact_segmentation_protects_complete_manual_and_metadata_words_without_io() {
+        let vocab = frozen_vocabulary();
+        let empty = lexicon::Lexicon::empty();
+        let manual =
+            lexicon::ManualWords::validate(vec![("IamRobot".into(), "explicit code".into())])
+                .unwrap();
+        assert!(segment_exact(&vocab, "iamrobot", &empty, &manual).is_none());
+        let no_manual = lexicon::ManualWords::default();
+        assert!(segment_exact(&vocab, "iamrobot", &empty, &no_manual).is_some());
+        let mut bytes = lexicon::MAGIC.to_vec();
+        for number in [1u32, 0, 0, 8, 0, 8, 8, 0, 8, 0, 8, 0, 1] {
+            bytes.extend_from_slice(&number.to_le_bytes());
+        }
+        bytes.extend_from_slice(b"iamrobot");
+        let metadata = lexicon::Lexicon::from_bytes(bytes).unwrap();
+        assert!(segment_exact(&vocab, "iamrobot", &metadata, &no_manual).is_none());
+    }
+    #[test]
+    fn exact_segmentation_is_separate_from_visible_completion_limits() {
+        let vocab = frozen_vocabulary();
+        let input = "iamrobotandilikeapples";
+        assert!(complete(&vocab, input, 0, true).is_empty());
+        assert_eq!(
+            vocab.segment_exact(input).as_deref(),
+            Some("I am robot and I like apples")
+        );
     }
 }

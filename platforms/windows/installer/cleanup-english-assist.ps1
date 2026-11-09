@@ -145,6 +145,9 @@ foreach ($taskView in @([Microsoft.Win32.RegistryView]::Registry64,[Microsoft.Wi
   } finally { $taskHive.Dispose() }
 }
 $taskOwnerSid = [Security.Principal.WindowsIdentity]::GetCurrent().User.Value
+$taskInputProfile = Resolve-EnglishAssistInputProfile $taskOwnerSid
+$taskInputPreferences = Get-EnglishAssistInputPreferenceLayout $taskInputProfile
+if ($taskInputPreferences.Exists) { $null = Read-EnglishAssistInputPreferenceImage $taskInputPreferences.File }
 $taskOwner = $null
 if (Test-Path -LiteralPath 'HKCU:\Software\EnglishAssist') {
   $taskOwner = Get-ItemProperty -LiteralPath 'HKCU:\Software\EnglishAssist' -ErrorAction Stop
@@ -157,7 +160,7 @@ if (Test-Path -LiteralPath $taskDataRoot) {
   }
 }
 $taskProfileState = & (Join-Path $PSScriptRoot 'user-profile.ps1') -InspectOnly
-$taskMode = Get-EnglishAssistCleanupMode -CurrentSid $taskOwnerSid -InstallRoot $taskInstallRoot -PayloadDirectory $taskActive -Machine $taskMachine -Owner $taskOwner -HasUserData (Test-Path -LiteralPath $taskDataRoot) -ProfileListed ([bool]$taskProfileState.Listed) -ProfileEnabled ([bool]$taskProfileState.Enabled)
+$taskMode = Get-EnglishAssistCleanupMode -CurrentSid $taskOwnerSid -InstallRoot $taskInstallRoot -PayloadDirectory $taskActive -Machine $taskMachine -Owner $taskOwner -HasUserData ((Test-Path -LiteralPath $taskDataRoot) -or $taskInputPreferences.DirectoryExists) -ProfileListed ([bool]$taskProfileState.Listed) -ProfileEnabled ([bool]$taskProfileState.Enabled)
 if ($taskMode -eq 'MachineOnly') {
   Write-Output 'No user enrollment or data exists for this failed first installation. User cleanup skipped; machine files and registration remain for the Inno uninstaller.'
   return
@@ -247,6 +250,7 @@ function Remove-OwnedData([string]$taskTarget) {
 }
 if ($DeletePersonalData) {
   Set-EnglishAssistCleanupPhase 'RemoveAllPersonalData'
+  Remove-EnglishAssistInputPreferences $taskInputProfile
   Remove-OwnedData $taskDataRoot
 } else {
   Set-EnglishAssistCleanupPhase 'RemoveRequestedProductData'

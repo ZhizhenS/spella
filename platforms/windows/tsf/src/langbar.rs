@@ -64,6 +64,9 @@ impl ITfCompartmentEventSink_Impl for ModeSink_Impl {
             if !open {
                 state.finish(false);
                 state.hide();
+                state.hide_statusbar();
+            } else {
+                state.refresh_statusbar();
             }
             Ok(())
         })
@@ -278,6 +281,28 @@ impl ITfLangBarItemButton_Impl for Button_Impl {
                     let menu = CreatePopupMenu()?;
                     let result = (|| -> Result<u32> {
                         AppendMenuW(menu, MF_STRING, 1, w!("设置"))?;
+                        AppendMenuW(
+                            menu,
+                            MF_STRING
+                                | if crate::preferences::auto_space() {
+                                    MF_CHECKED
+                                } else {
+                                    MF_UNCHECKED
+                                },
+                            2,
+                            w!("自动词前空格（Shift）"),
+                        )?;
+                        AppendMenuW(
+                            menu,
+                            MF_STRING
+                                | if crate::preferences::statusbar_visible() {
+                                    MF_CHECKED
+                                } else {
+                                    MF_UNCHECKED
+                                },
+                            3,
+                            w!("悬浮输入状态条"),
+                        )?;
                         SetLastError(ERROR_SUCCESS);
                         let id = TrackPopupMenu(
                             menu,
@@ -327,6 +352,30 @@ impl ITfLangBarItemButton_Impl for Button_Impl {
                 &"设置".encode_utf16().collect::<Vec<_>>(),
                 std::ptr::null_mut(),
             )?;
+            menu.ok()?.AddMenuItem(
+                2,
+                if crate::preferences::auto_space() {
+                    TF_LBMENUF_CHECKED
+                } else {
+                    0
+                },
+                HBITMAP::default(),
+                HBITMAP::default(),
+                &"自动词前空格（Shift）".encode_utf16().collect::<Vec<_>>(),
+                std::ptr::null_mut(),
+            )?;
+            menu.ok()?.AddMenuItem(
+                3,
+                if crate::preferences::statusbar_visible() {
+                    TF_LBMENUF_CHECKED
+                } else {
+                    0
+                },
+                HBITMAP::default(),
+                HBITMAP::default(),
+                &"悬浮输入状态条".encode_utf16().collect::<Vec<_>>(),
+                std::ptr::null_mut(),
+            )?;
         }
         Ok(())
     }
@@ -334,6 +383,17 @@ impl ITfLangBarItemButton_Impl for Button_Impl {
         crate::settings_log::event("launcher", "menu_selected", 0, format!("command={id}"));
         match id {
             1 => crate::preferences::open_settings(),
+            2 => self
+                .state
+                .upgrade()
+                .map_or(Ok(()), |state| state.toggle_auto_space()),
+            3 => {
+                crate::statusbar::set_visible(!crate::preferences::statusbar_visible())?;
+                if let Some(state) = self.state.upgrade() {
+                    state.refresh_statusbar();
+                }
+                Ok(())
+            }
             _ => Err(E_INVALIDARG.into()),
         }
     }

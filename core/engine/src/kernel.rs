@@ -56,6 +56,9 @@ pub struct KernelConfig {
     pub english_pinyin: bool,
     pub english_segmentation: bool,
     pub english_phrases: bool,
+    /// Frontends that insert word boundaries can opt into Space confirmation
+    /// without an automatic trailing space. Enter always retains raw spelling.
+    pub english_auto_space: bool,
     pub pinyin_scheme: retype_types::PinyinScheme,
     pub decode: DecodeOptions,
     /// 是否启用二刷（断网/未配置云端时应关掉，省掉无谓的等待与打点）
@@ -76,6 +79,7 @@ impl Default for KernelConfig {
             // Platform frontends opt in only after supporting independent labels.
             english_segmentation: false,
             english_phrases: false,
+            english_auto_space: false,
             pinyin_scheme: retype_types::PinyinScheme::Full,
             decode: DecodeOptions::default(),
             rerank_enabled: true,
@@ -302,6 +306,7 @@ impl Kernel {
     pub fn handle(&mut self, ev: InputEvent) -> Vec<KernelAction> {
         let mut actions: Vec<KernelAction> = Vec::with_capacity(4);
         match ev {
+            InputEvent::SetEnglishAutoSpace(enabled) => self.cfg.english_auto_space = enabled,
             InputEvent::SetEnglishPrediction(enabled) => self.english_prediction = enabled,
             InputEvent::SetEnglishPinyin(enabled) => {
                 if self.cfg.english_pinyin != enabled {

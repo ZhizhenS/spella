@@ -109,12 +109,26 @@ impl Kernel {
             }
             Key::Space if self.has_composition() => {
                 let index = self.english_selected.then_some(self.selected);
-                self.commit_english(index, " ", actions);
+                if self.cfg.english_auto_space {
+                    // A plain Space may add boundaries, never untyped letters.
+                    // Explicitly navigating to a candidate still accepts it.
+                    // This lookup is independent of the visible candidate cap.
+                    if index.is_none() && self.cfg.english_segmentation {
+                        if let Some(text) = self.english.segment_exact(&self.buffer) {
+                            self.buffer = text;
+                        }
+                    }
+                    self.commit_english(index, "", actions);
+                } else {
+                    // With automatic boundaries disabled, a physical Space
+                    // keeps its traditional manual-space meaning.
+                    self.commit_english(index, " ", actions);
+                }
             }
-            // Explicit candidate confirmation must not also submit a chat or
-            // search field. A second Enter, after composition ends, is native.
-            Key::Enter if self.english_selected && self.has_composition() => {
-                self.commit_english(Some(self.selected), "", actions);
+            // Enter is the literal escape even after candidate navigation.
+            // It ends only this composition; the next Enter reaches the host.
+            Key::Enter if self.has_composition() && !mods.contains(Modifiers::SHIFT) => {
+                self.commit_english(None, "", actions);
             }
             Key::Up | Key::Down if !self.candidates.is_empty() => {
                 self.selected = if !self.english_selected {

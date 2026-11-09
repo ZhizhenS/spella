@@ -1522,7 +1522,7 @@ impl SettingsApp {
                     }
                 }
                 ui.label(
-                    RichText::new("连写时识别已完成的单词，只显示当前词的候选。")
+                    RichText::new("识别连写候选；开启自动空格后，Space 可补齐已输入词的内部空格。")
                         .size(12.0)
                         .color(MUTED),
                 );
@@ -1555,6 +1555,41 @@ impl SettingsApp {
         });
         ui.add_space(14.0);
         card(ui, |ui| {
+            ui.label(RichText::new("输入状态与空格").size(15.0).strong());
+            ui.add_space(8.0);
+            if switch_row(ui, &mut self.preferences.english_auto_space, "自动词前空格") {
+                if let Err(error) = backend::set(
+                    "EnglishAutoSpaceDisabled",
+                    u32::from(!self.preferences.english_auto_space),
+                ) {
+                    self.preferences.english_auto_space = !self.preferences.english_auto_space;
+                    self.error = Some(format!("保存设置失败：{error}"));
+                }
+            }
+            ui.label(RichText::new("确认新词时按需补前面的空格，不添加尾空格；单按 Shift 切换。关闭后手动输入空格。").size(12.0).color(MUTED));
+            ui.separator();
+            if switch_row(ui, &mut self.preferences.statusbar, "显示悬浮输入状态条") {
+                if let Err(error) =
+                    backend::set("StatusBarDisabled", u32::from(!self.preferences.statusbar))
+                {
+                    self.preferences.statusbar = !self.preferences.statusbar;
+                    self.error = Some(format!("保存设置失败：{error}"));
+                }
+            }
+            ui.label(RichText::new("在英文输入框中显示大小写、空格和输入功能开关；点击不抢输入焦点，拖动底部可移动。").size(12.0).color(MUTED));
+            ui.label(
+                RichText::new("补词、拼音和连写开关从下次组字生效，保留当前输入。")
+                    .size(12.0)
+                    .color(MUTED),
+            );
+            if ui.button("恢复状态条默认位置").clicked() {
+                if let Err(error) = backend::set("StatusBarHasPosition", 0) {
+                    self.error = Some(format!("恢复位置失败：{error}"));
+                }
+            }
+        });
+        ui.add_space(14.0);
+        card(ui, |ui| {
             if switch_row(ui, &mut self.preferences.symbol_completion, "符号自动补全") {
                 if let Err(error) = backend::set(
                     "SymbolCompletionEnabled",
@@ -1569,10 +1604,11 @@ impl SettingsApp {
         card(ui, |ui| {
             ui.label(RichText::new("键盘操作").strong());
             ui.label("输入英文可看中文释义和词性；输入拼音可查找对应英文。");
-            ui.label("每页 5 个候选，1–5 直接选词；Tab 接受首选，不自动加空格。");
+            ui.label("每页 5 个候选，1–5 直接选词；Tab 接受首选，不添加尾空格。");
             ui.label("− / + 翻页（也支持 =、_ 和 PageUp / PageDown）；↑↓ 选择候选。");
-            ui.label("空格默认保留原词；明确选择后才接受候选。");
-            ui.label("明确选词后，Enter 只接受候选；再次 Enter 才换行或发送。");
+            ui.label("自动空格开启时，Space 确认并补词前空格；连写只补已输入词的内部空格。");
+            ui.label("单按 Shift 切换自动空格；关闭后使用 Space 手动隔词。");
+            ui.label("Enter 原样提交当前输入，不选候选、不补空格；再次 Enter 才交给应用。");
             ui.label("Esc 保留原词；没有候选时，数字和翻页符号按原样输入。");
         });
     }
@@ -2056,7 +2092,8 @@ impl eframe::App for SettingsApp {
                                         ui.label(RichText::new("候选键盘操作").strong());
                                         ui.label("1–5 选择当前页；Tab 接受首选或已选择项。");
                                         ui.label("− / _ 上一页；= / + 下一页；也支持 PageUp / PageDown。");
-                                        ui.label("↑↓ 移动选择；明确选词后 Enter 只确认；Esc 保留原词。");
+                                        ui.label("↑↓ 移动选择；Enter 原样提交当前输入；Esc 保留原词。");
+                                        ui.label("单按 Shift 切换自动词前空格；确认候选不添加尾空格。");
                                         ui.label(RichText::new("这些是固定候选操作，AI 触发键可在下方设置。").size(12.0).color(MUTED));
                                     });
                                     ui.add_space(14.0);

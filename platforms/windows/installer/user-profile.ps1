@@ -165,6 +165,9 @@ if (-not $Uninstall -and -not $Verify -and -not $InspectOnly) {
   Set-ItemProperty -LiteralPath $preferences -Name 'ProfileInstallRoot' -Value $layout.Root
   Set-ItemProperty -LiteralPath $preferences -Name 'ProfileInstallDir' -Value $layout.Payload
   Set-ItemProperty -LiteralPath $preferences -Name 'ProfileProductId' -Value $script:EnglishAssistProductId
+  Set-EnglishAssistEnrollmentPhase 'SharedInputPreferences'
+  $inputProfile=Resolve-EnglishAssistInputProfile ([Security.Principal.WindowsIdentity]::GetCurrent().User.Value)
+  $null=Initialize-EnglishAssistInputPreferences $inputProfile
 }
 $entries = @(
   @{ Language = [uint16]0x0409; Profile = 'F395A724-DC88-4E75-B3D4-9063A552B8F4'; Name = 'English Assist' }

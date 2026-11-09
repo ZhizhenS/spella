@@ -1,10 +1,38 @@
 # English Assist：交互与验证记录
 
-更新：2026-11-09。当前正式安装检查点：0.3.1。上游基线：Retype `902e35e06ee4f744320cf995c39b1f64693034cf`。
+更新：2026-11-09。0.4.0词前空格与原文回车已完成正式安装版的有限记事本检查。上游基线：Retype `902e35e06ee4f744320cf995c39b1f64693034cf`。
 
 本文区分本子任务执行的定向检查和根任务负责的最终集成、安装及真实宿主验收。产品范围见 [产品规格](../english-assist-product.md)，操作说明见 [英文输入](../english-input.md)。最终安装包与宿主兼容结论以根任务的版本化构建记录为准。
 
-## 0.3.1 最终构建、升级与真实记事本检查点
+## 0.4.0 词前空格、原文回车与状态条
+
+用户要求：确认新词时只补词前空格，不自动补尾空格；连写串如 `iamrobot` 按 Space 可补齐内部词界，单按 Shift 切换；回车始终原文上屏。关闭自动空格后，物理 Space 保留手动空格的传统语义。
+
+新版改动前的源码、已装产物、产品配置和Notepad LocalState已备份至 `work/backups/20261109-090521-before-0.4.0`；每次需要替换宿主进程前另备份Notepad LocalState。不复制或读取凭据管理器里的密钥，不打开恢复的其他标签页。
+
+| 0.4.0 项目 | 实际结果 / 验收边界 |
+| --- | --- |
+| 确认空格 | ON时仅在需要的相邻英文之间补词前空格，不加尾空格。ON的未导航Space先尝试完整原串分词；Tab/数字/点击/明确导航后Space仍可接受完整候选。OFF的Space保留传统物理手动空格，Tab/数字/点击不补前后空格 |
+| 精确原串分词 | 独立于候选预测的完整词路径，仅增加内部空格（独立i可规范为I），最多64 ASCII字符、16词、beam32，完整词/个人词保护、实际观察词对锚点与歧义拒绝。`iamt`不会因预测候选而自动补成`I am trying to`；不宣称任意连写串都能唯一或正确拆分 |
+| Shift与队列 | 单按Shift切换自动空格，组合键保持原义。异步偏好编辑排在先前文字之后，后续输入保持同队列；偏好与文字pending分计、一次释放，含持有完成COM对象及嵌套只读编辑锁回归 |
+| 回车 | 有组字时普通Enter精确原文上屏、吃键，不插词前/内部/尾空格，不接受候选、换行或发送。带修饰键的Enter保留宿主快捷键，空组字的下一次Enter交给宿主 |
+| 周边文字 | 只在显式确认时读取当前选区左侧一个UTF-16单元，先核验输入范围与邻区，原生兼容分支核对可编辑、非Hidden/Protected及最终焦点/选区。不保留跨输入框文字、不自动学习；AI发送非空选区门禁未放宽 |
+| 状态栏 | 大小写、空格、补词、拼音、连写和设置/隐藏入口。补词/拼音/连写切换在下次组字应用，当前输入保留；Caps按钮实际切换CapsLock。桌面状态条不会注册键盘钩子或后台预测服务 |
+| R4正式构建 | `work/build-logs/v0.4.0-r4-full-build.log`退出0；Rust396通过/0失败/6忽略（24汇总，含架构重复）、Python33、PowerShell602，合计1,031次通过，不是1,031个唯一用例。安装后4个探针另计 |
+| R4正式安装 | 升级退出0；ActiveDir=`0.4.0-20261109103215-913067`，24项文件及build.json与冻结清单一致。真实Notepad PID20416加载该DLL，SHA256=`1901a863e219b9597ea945d03327c9e572981c19f9fc89a6923213bbc4f72c20`。文件与模块收据分别为 `v0.4.0-r4-installed-hashes.json`、`v0.4.0-r4-notepad-module.json` |
+| R4真实输入 | 逐键`iamrobot Space`保存为`I am robot`；`i Space am Space jiqiren 1`保存为`i am robot`；`iamrobot Down Enter`保存为raw且无换行；Shift OFF的两次robot Tab连为robotrobot，手动Space保留；Shift ON的`iamrobotandilikeapples Space`精确为`I am robot and I like apples`。自动确认各行没有尾空格 |
+| R4状态栏实测 | 空格按钮切换后无需重新点击编辑框即可继续输入；Caps按钮上/下切换得到G、g，Shift+A得到A且自动空格保持ON；输入rob时关闭补词，当前robot Tab仍完成，下次hel无本输入法候选，重新打开后下一次hel恢复。Shift+equal/minus后Enter仍raw hel。设置入口启动R4设置；显示开关可隐藏并在重新启用、下一次字母输入时重现 |
+| R4保存核对 | 自有文件 `work/ui-tests/notepad-v04-final-20261109-103544.txt`；每个主要阶段Ctrl+S后读回核对，收据 `work/research/v0.4.0-r4-notepad-live.json`。鼠标拖动未移动且HasPosition缺失，不把这项标为R4通过，随后R5窄修鼠标捕获并重新正式构建 |
+| 最终R5正式构建 | 只修正状态栏鼠标捕获的重复/重入及取消处理后重新完整编译、冻结和打包；`work/build-logs/v0.4.0-r5-full-build.log`退出0。24条Rust汇总396通过/0失败/6忽略，Python33、PowerShell602，正式合计1,031次通过；`v0.4.0-r5-test-counts.json`。安装后x64/x86各2通过、ActivateProfile均S_OK，4项另计，不等于x86编辑器键入 |
+| 最终R5安装 | 升级退出0；ActiveDir=`C:\Program Files\EnglishAssist\versions\0.4.0-20261109110234-275066`，24项及build.json匹配；已映射偏好文件File ID和全部槽值保持。冷启动Notepad PID57228实际加载R5 DLL，SHA256=`dddf592c331706fbacea9bb802ca14aa10673ada24ca450732143abdf646778c`。收据 `v0.4.0-r5-installed-hashes.json`、`v0.4.0-r5-notepad-module.json` |
+| 最终R5拖动/恢复 | 底部拖动使屏幕x从7092变为6867、y1965，独立映射读取保存坐标一致且HasPosition=1；Hide按钮确实隐藏、Disabled=1。R5设置“显示悬浮输入状态条”重新开启，恢复默认位置将HasPosition清0，回编辑框后下一次字母输入重新显示。不是只凭源代码或单元测试声称拖动有效 |
+| 最终R5输入回归 | 再次逐键检查连写Space、英文加拼音1选词、Down后原文Enter，Ctrl+S保存文件精确为 `I am robot\ni am robot\niamrobot`，自动确认两行无尾空格、raw行无附加换行。Shift OFF后独立读取1、ON后读取0；最后自动空格/补词/拼音/连写/状态栏ON、CapsLock OFF、默认位置。`work/research/v0.4.0-r5-notepad-live.json` |
+| 共享偏好失败与修正 | 初始R1/R2中Notepad的MSIX注册表COW使开关与独立设置不同步。R2每句柄DONT_VIRTUALIZE未解决MSIX，不声称有效；最终由安装器一次初始化用户Profile下固定288字节共享映射文件，23个已知DWORD槽，运行时不创建/替换文件、不读写混合JSON、不回退注册表。其他用户或数据目录不读取 |
+| R3双向同步证据 | R3 Notepad Shift OFF后，独立只读映射器读到1；新启动R3设置显示OFF，点ON后独立读取0；回原Notepad的`iamrobot Space`保存精确I am robot。`work/research/v0.4.0-r3-bidirectional-live.json`是R3证据；R4升级在旧进程仍映射时保留相同File ID及全部23槽值，不能冒充R4重新执行完整双向流程 |
+| 键盘配置 | `work/research/v0.4.0-keyboard-preserved.json`对比本轮前后LanguageTag、InputMethodTips与默认输入法override均相同。验收中的进程/会话选择不等于更改系统默认键盘 |
+| 本轮未声明通过 | 全部应用、x86编辑器真实键入、全部控件、端到端性能统计、AI联机/AI GUI重新验收、卸载循环及重启删除。0.3/0.2的AI与生命周期证据继续保留其版本边界；老应用必须完全退出后重开才能加载新DLL |
+
+## 历史 0.3.1 最终构建、升级与真实记事本检查点
 
 本次正式构建、升级、产物核对、双架构安装探针，以及冷启动真实记事本有限输入与保存文件核对已完成。下方0.3私有RichEdit、CLI AI与0.2 Notepad AI通过项仍属于其历史版本，不移作0.3.1重新联机、AI GUI或全部应用验收。
 

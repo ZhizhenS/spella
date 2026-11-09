@@ -61,21 +61,7 @@ pub fn candidate_appearance() -> retype_types::CandidateAppearance {
 }
 
 pub fn scheme() -> PinyinScheme {
-    let mut value = 0u32;
-    let mut size = 4;
-    // SAFETY: DWORD output buffer has the advertised size. Missing/invalid values use full pinyin.
-    let result = unsafe {
-        RegGetValueW(
-            HKEY_CURRENT_USER,
-            w!("Software\\EnglishAssist"),
-            w!("PinyinScheme"),
-            RRF_RT_REG_DWORD,
-            None,
-            Some((&mut value as *mut u32).cast()),
-            Some(&mut size),
-        )
-    };
-    if result.is_ok() && value == 1 {
+    if read_dword(w!("PinyinScheme")) == 1 {
         PinyinScheme::Flypy
     } else {
         PinyinScheme::Full
@@ -83,6 +69,10 @@ pub fn scheme() -> PinyinScheme {
 }
 
 pub fn english_options() -> (bool, bool) {
+    #[cfg(test)]
+    if let Some(value) = TEST_ENGLISH_COMPLETION.with(std::cell::Cell::get) {
+        return (value.0, value.1);
+    }
     // Disabled flags default to zero, so existing installations gain completion.
     (
         read_dword(w!("EnglishDisabled")) == 0,
@@ -90,15 +80,89 @@ pub fn english_options() -> (bool, bool) {
     )
 }
 
+pub fn auto_space() -> bool {
+    #[cfg(test)]
+    if let Some(value) = TEST_AUTO_SPACE.with(std::cell::Cell::get) {
+        return value;
+    }
+    read_dword(w!("EnglishAutoSpaceDisabled")) == 0
+}
+
+pub fn set_auto_space(enabled: bool) -> Result<()> {
+    #[cfg(test)]
+    if TEST_AUTO_SPACE.with(std::cell::Cell::get).is_some() {
+        TEST_AUTO_SPACE.with(|value| value.set(Some(enabled)));
+        return Ok(());
+    }
+    crate::user_preferences::write_dword(w!("EnglishAutoSpaceDisabled"), u32::from(!enabled))
+}
+
+pub fn statusbar_visible() -> bool {
+    read_dword(w!("StatusBarDisabled")) == 0
+}
+
+#[cfg(test)]
+thread_local! {
+    static TEST_AUTO_SPACE: std::cell::Cell<Option<bool>> = const { std::cell::Cell::new(None) };
+}
+#[cfg(test)]
+pub(crate) struct AutoSpaceForTest(Option<bool>);
+#[cfg(test)]
+impl Drop for AutoSpaceForTest {
+    fn drop(&mut self) {
+        TEST_AUTO_SPACE.with(|value| value.set(self.0));
+    }
+}
+#[cfg(test)]
+pub(crate) fn auto_space_for_test(enabled: bool) -> AutoSpaceForTest {
+    AutoSpaceForTest(TEST_AUTO_SPACE.with(|value| value.replace(Some(enabled))))
+}
+
 pub fn english_pinyin() -> bool {
+    #[cfg(test)]
+    if let Some(value) = TEST_ENGLISH_COMPLETION.with(std::cell::Cell::get) {
+        return value.2;
+    }
     read_dword(w!("EnglishPinyinDisabled")) == 0
 }
 
 pub fn english_continuous() -> (bool, bool) {
+    #[cfg(test)]
+    if let Some(value) = TEST_ENGLISH_COMPLETION.with(std::cell::Cell::get) {
+        return (value.3, value.4);
+    }
     (
         read_dword(w!("EnglishSegmentationDisabled")) == 0,
         read_dword(w!("EnglishPhrasesDisabled")) == 0,
     )
+}
+
+#[cfg(test)]
+type EnglishCompletionFlags = (bool, bool, bool, bool, bool);
+#[cfg(test)]
+thread_local! {
+    static TEST_ENGLISH_COMPLETION: std::cell::Cell<Option<EnglishCompletionFlags>> = const { std::cell::Cell::new(None) };
+}
+/// Isolated preference injection; never changes the shared production map.
+#[cfg(test)]
+pub(crate) struct EnglishCompletionForTest(Option<EnglishCompletionFlags>);
+#[cfg(test)]
+impl EnglishCompletionForTest {
+    pub fn set(&self, value: EnglishCompletionFlags) {
+        TEST_ENGLISH_COMPLETION.with(|cell| cell.set(Some(value)));
+    }
+}
+#[cfg(test)]
+impl Drop for EnglishCompletionForTest {
+    fn drop(&mut self) {
+        TEST_ENGLISH_COMPLETION.with(|cell| cell.set(self.0));
+    }
+}
+#[cfg(test)]
+pub(crate) fn english_completion_for_test(
+    value: EnglishCompletionFlags,
+) -> EnglishCompletionForTest {
+    EnglishCompletionForTest(TEST_ENGLISH_COMPLETION.with(|cell| cell.replace(Some(value))))
 }
 
 pub fn manual_words_generation() -> u32 {
@@ -106,25 +170,9 @@ pub fn manual_words_generation() -> u32 {
 }
 
 pub fn manual_words_path() -> Option<std::path::PathBuf> {
-    let mut buffer = [0u16; 32768];
-    let mut bytes = (buffer.len() * 2) as u32;
-    // SAFETY: Read only the current user's explicitly published dictionary path.
-    let result = unsafe {
-        RegGetValueW(
-            HKEY_CURRENT_USER,
-            w!("Software\\EnglishAssist"),
-            w!("ManualWordsPath"),
-            RRF_RT_REG_SZ,
-            None,
-            Some(buffer.as_mut_ptr().cast()),
-            Some(&mut bytes),
-        )
-    };
-    if result.is_err() || bytes < 2 || bytes as usize > buffer.len() * 2 {
-        return None;
-    }
-    let path =
-        std::path::PathBuf::from(String::from_utf16_lossy(&buffer[..bytes as usize / 2 - 1]));
+    let path = std::path::PathBuf::from(native_read(crate::user_preferences::read_string(w!(
+        "ManualWordsPath"
+    )))?);
     path.is_absolute().then_some(path)
 }
 
@@ -155,22 +203,24 @@ pub(crate) fn symbol_completion_for_test(enabled: bool) -> SymbolCompletionForTe
     SymbolCompletionForTest(TEST_SYMBOL_COMPLETION.with(|value| value.replace(Some(enabled))))
 }
 
-fn read_dword(name: windows_core::PCWSTR) -> u32 {
-    let mut value = 0u32;
-    let mut size = 4;
-    // SAFETY: The output buffer is a DWORD and failures leave the default zero.
-    unsafe {
-        let _ = RegGetValueW(
-            HKEY_CURRENT_USER,
-            w!("Software\\EnglishAssist"),
-            name,
-            RRF_RT_REG_DWORD,
-            None,
-            Some((&mut value as *mut u32).cast()),
-            Some(&mut size),
-        );
+fn native_read<T>(result: Result<Option<T>>) -> Option<T> {
+    match result {
+        Ok(value) => value,
+        Err(error) => {
+            static REPORTED: std::sync::atomic::AtomicBool =
+                std::sync::atomic::AtomicBool::new(false);
+            if !REPORTED.swap(true, std::sync::atomic::Ordering::Relaxed) {
+                tracing::warn!(
+                    hresult = error.code().0,
+                    "Nonvirtualized input preference read failed; package hive was not used"
+                );
+            }
+            None
+        }
     }
-    value
+}
+fn read_dword(name: windows_core::PCWSTR) -> u32 {
+    native_read(crate::user_preferences::read_dword(name)).unwrap_or(0)
 }
 
 pub fn pack_generation() -> u32 {
@@ -182,31 +232,9 @@ pub fn enabled_packs() -> u32 {
 }
 
 pub fn pack_root() -> Option<std::path::PathBuf> {
-    let mut buffer = [0u16; 32768];
-    let mut bytes = (buffer.len() * 2) as u32;
-    // SAFETY: Fixed UTF-16 output buffer, read-only HKCU value.
-    let result = unsafe {
-        RegGetValueW(
-            HKEY_CURRENT_USER,
-            w!("Software\\EnglishAssist"),
-            w!("DictionaryRoot"),
-            RRF_RT_REG_SZ,
-            None,
-            Some(buffer.as_mut_ptr().cast()),
-            Some(&mut bytes),
-        )
-    };
-    if result.is_err() {
-        return None;
-    }
-    let length = buffer.iter().position(|c| *c == 0).unwrap_or(buffer.len());
-    if length == 0 {
-        None
-    } else {
-        Some(std::path::PathBuf::from(String::from_utf16_lossy(
-            &buffer[..length],
-        )))
-    }
+    native_read(crate::user_preferences::read_string(w!("DictionaryRoot")))
+        .filter(|path| !path.is_empty())
+        .map(std::path::PathBuf::from)
 }
 /// Open the installed settings app without loading a UI runtime into the TSF host.
 pub fn open_settings() -> Result<()> {

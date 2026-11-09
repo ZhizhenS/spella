@@ -27,6 +27,7 @@ struct Data {
     no_text_extent: bool,
     text_read_stop: Option<usize>,
     truncated_reads: usize,
+    text_reads: usize,
     input_scope: Option<InputScope>,
     scope_segments: Vec<(i32, i32, Option<InputScope>)>,
     requested_scope_position: i32,
@@ -234,6 +235,7 @@ impl ITextStoreACP_Impl for Store_Impl {
         pacpnext: *mut i32,
     ) -> windows_core::Result<()> {
         let mut d = lock(&self.data);
+        d.text_reads += 1;
         let end = if acpend < 0 {
             d.text.len()
         } else {
@@ -908,6 +910,424 @@ fn english_key_sink_composes_in_rich_text_and_keeps_private_fields_literal() -> 
     .map_err(|_| E_FAIL)?
 }
 
+#[implement(ITfEditSession)]
+struct SpacingProbe {
+    state: Arc<TipState>,
+    context: ITfContext,
+    text: String,
+    output: Arc<Mutex<Option<String>>>,
+}
+
+fn drain_spacing_requests(state: &TipState) -> Result<()> {
+    let deadline = Instant::now() + std::time::Duration::from_secs(2);
+    while (state.preference_pending.load(Ordering::SeqCst) != 0
+        || state.pending.load(Ordering::SeqCst) != 0)
+        && Instant::now() < deadline
+    {
+        // SAFETY: Pump only this isolated test STA's queued TSF callbacks.
+        unsafe {
+            use windows::Win32::UI::WindowsAndMessaging::*;
+            let mut message = MSG::default();
+            while PeekMessageW(&mut message, None, 0, 0, PM_REMOVE).as_bool() {
+                DispatchMessageW(&message);
+            }
+        }
+        std::thread::sleep(std::time::Duration::from_millis(1));
+    }
+    assert_eq!(state.preference_pending.load(Ordering::SeqCst), 0);
+    Ok(())
+}
+
+#[implement(ITfEditSession)]
+struct QueueSpacingProbe {
+    state: Arc<TipState>,
+    context: ITfContext,
+    deferred: Arc<AtomicBool>,
+}
+impl ITfEditSession_Impl for QueueSpacingProbe_Impl {
+    fn DoEditSession(&self, _: u32) -> Result<()> {
+        // A write cannot run inside this read lock. In particular the preference
+        // toggle must not use an immediately grantable nested read session.
+        request(
+            &self.state,
+            &self.context,
+            Work::Key(Key::Space, Modifiers::NONE),
+        )?;
+        request(&self.state, &self.context, Work::ToggleAutoSpace)?;
+        for ch in "am".chars() {
+            request(
+                &self.state,
+                &self.context,
+                Work::Key(Key::Char(ch), Modifiers::NONE),
+            )?;
+        }
+        request(
+            &self.state,
+            &self.context,
+            Work::Key(Key::Space, Modifiers::NONE),
+        )?;
+        let unchanged = self.state.session().is_some_and(|session| {
+            session
+                .backend
+                .with_kernel(|k| k.config().english_auto_space && k.composition_text() == "hel")
+        });
+        self.deferred.store(
+            unchanged && self.state.preference_pending.load(Ordering::SeqCst) > 0,
+            Ordering::SeqCst,
+        );
+        self.state.sync_scheme();
+        Ok(())
+    }
+}
+impl ITfEditSession_Impl for SpacingProbe_Impl {
+    fn DoEditSession(&self, ec: u32) -> Result<()> {
+        let text = crate::spacing::decorate(&self.state, &self.context, ec, &self.text);
+        *lock(&self.output) = Some(text);
+        Ok(())
+    }
+}
+
+#[test]
+fn word_prefix_spacing_checks_current_ranges_and_never_reads_private_neighbors() -> Result<()> {
+    std::thread::spawn(|| -> Result<()> {
+        // SAFETY: Isolated in-memory TSF documents, no user preferences or UI.
+        unsafe {
+            CoInitializeEx(None, COINIT_APARTMENTTHREADED).ok()?;
+            let result = (|| -> Result<()> {
+                let manager: ITfThreadMgr =
+                    CoCreateInstance(&CLSID_TF_ThreadMgr, None, CLSCTX_INPROC_SERVER)?;
+                let tid = manager.Activate()?;
+                let state = TipState::new();
+                for (source, start, end, scope, expected) in [
+                    ("i", 1, 1, IS_DEFAULT, " am"),
+                    ("😊i", 3, 3, IS_DEFAULT, " am"),
+                    ("i ", 2, 2, IS_DEFAULT, "am"),
+                    ("i\n", 2, 2, IS_DEFAULT, "am"),
+                    ("(", 1, 1, IS_DEFAULT, "am"),
+                    ("don't", 4, 4, IS_DEFAULT, "am"),
+                    ("re-", 3, 3, IS_DEFAULT, "am"),
+                    ("iREPLACEright", 1, 8, IS_DEFAULT, " am"),
+                    ("right", 0, 0, IS_DEFAULT, "am"),
+                    ("private", 7, 7, IS_PASSWORD, "am"),
+                    ("private", 7, 7, IS_PRIVATE, "am"),
+                    ("private", 7, 7, IS_NUMERIC_PIN, "am"),
+                ] {
+                    let document = manager.CreateDocumentMgr()?;
+                    let data = Arc::new(Mutex::new(Data {
+                        text: source.encode_utf16().collect(),
+                        start,
+                        end,
+                        input_scope: Some(scope),
+                        ..Default::default()
+                    }));
+                    let store: ITextStoreACP = Store {
+                        data: Arc::clone(&data),
+                    }
+                    .into();
+                    let mut context = None;
+                    let mut cookie = 0;
+                    document.CreateContext(tid, 0, &store, &mut context, &mut cookie)?;
+                    let context = context.ok_or(E_FAIL)?;
+                    document.Push(&context)?;
+                    let original = lock(&data).text.clone();
+                    lock(&data).text_reads = 0;
+                    let output = Arc::new(Mutex::new(None));
+                    let probe: ITfEditSession = SpacingProbe {
+                        state: Arc::clone(&state),
+                        context: context.clone(),
+                        text: "am".into(),
+                        output: Arc::clone(&output),
+                    }
+                    .into();
+                    context
+                        .RequestEditSession(tid, &probe, TF_ES_SYNC | TF_ES_READ)?
+                        .ok()?;
+                    assert_eq!(
+                        lock(&output).as_deref(),
+                        Some(expected),
+                        "{source:?} {scope:?}"
+                    );
+                    assert_eq!(
+                        lock(&data).text,
+                        original,
+                        "spacing probe cannot change either neighbor"
+                    );
+                    if scope != IS_DEFAULT {
+                        assert_eq!(
+                            lock(&data).text_reads,
+                            0,
+                            "private fields have zero surrounding GetText calls"
+                        );
+                    }
+                    document.Pop(TF_POPF_ALL)?;
+                }
+                manager.Deactivate()?;
+                Ok(())
+            })();
+            CoUninitialize();
+            result
+        }
+    })
+    .join()
+    .expect("spacing fixture thread")
+}
+
+#[test]
+fn english_acceptance_spaces_before_words_and_enter_stays_exact_raw() -> Result<()> {
+    std::thread::spawn(|| -> Result<()> {
+        let _spacing = crate::preferences::auto_space_for_test(true);
+        let completion =
+            crate::preferences::english_completion_for_test((true, true, true, true, true));
+        // SAFETY: Isolated TSF text store, no registration, GUI or registry writes.
+        unsafe {
+            CoInitializeEx(None, COINIT_APARTMENTTHREADED).ok()?;
+            let result = (|| -> Result<()> {
+                let manager: ITfThreadMgr =
+                    CoCreateInstance(&CLSID_TF_ThreadMgr, None, CLSCTX_INPROC_SERVER)?;
+                let tid = manager.Activate()?;
+                let document = manager.CreateDocumentMgr()?;
+                let data = Arc::new(Mutex::new(Data {
+                    input_scope: Some(IS_DEFAULT),
+                    no_text_extent: true,
+                    ..Default::default()
+                }));
+                let store: ITextStoreACP = Store {
+                    data: Arc::clone(&data),
+                }
+                .into();
+                let mut context = None;
+                let mut cookie = 0;
+                document.CreateContext(tid, 0, &store, &mut context, &mut cookie)?;
+                let context = context.ok_or(E_FAIL)?;
+                document.Push(&context)?;
+                manager.SetFocus(&document)?;
+                let state = TipState::new();
+                state.tid.store(tid, Ordering::SeqCst);
+                state.activated.store(true, Ordering::SeqCst);
+                *lock(&state.thread_mgr) = Some(manager.clone());
+                let session = crate::session::Session::start_with("Z:/retype-test/no-dict".into());
+                *lock(&state.session) = Some(Arc::clone(&session));
+                crate::profiles::apply(&state, false)?;
+                session.submit(InputEvent::SetEnglishOptions {
+                    enabled: true,
+                    spelling: true,
+                });
+                session.submit(InputEvent::SetEnglishAutoSpace(true));
+                let type_raw = |raw: &str| -> Result<()> {
+                    for ch in raw.chars() {
+                        request(&state, &context, Work::Key(Key::Char(ch), Modifiers::NONE))?;
+                    }
+                    Ok(())
+                };
+                for word in ["i", "am", "robot"] {
+                    type_raw(word)?;
+                    request(&state, &context, Work::Key(Key::Space, Modifiers::NONE))?;
+                }
+                assert_eq!(String::from_utf16_lossy(&lock(&data).text), "i am robot");
+                {
+                    let current = lock(&data);
+                    assert_eq!(current.end as usize, current.text.len());
+                }
+                type_raw("hel")?;
+                request(&state, &context, Work::Key(Key::Down, Modifiers::NONE))?;
+                assert!(state.wants(Key::Enter, Modifiers::NONE));
+                assert!(!state.wants(Key::Enter, Modifiers::SHIFT));
+                request(&state, &context, Work::Key(Key::Enter, Modifiers::NONE))?;
+                assert_eq!(
+                    String::from_utf16_lossy(&lock(&data).text),
+                    "i am robothel",
+                    "raw Enter adds neither prefix nor newline and ignores highlight"
+                );
+                assert!(!state.wants(Key::Enter, Modifiers::NONE));
+                type_raw("hel")?;
+                let chosen = session
+                    .backend
+                    .with_kernel(|k| k.render_state().visible()[0].text.clone());
+                request(&state, &context, Work::Key(Key::Tab, Modifiers::NONE))?;
+                assert_eq!(
+                    String::from_utf16_lossy(&lock(&data).text),
+                    format!("i am robothel {chosen}")
+                );
+                let before = lock(&data).text.clone();
+                type_raw("hel")?;
+                let generation = session.backend.with_kernel(|k| k.generation());
+                lock(&data).input_scope = Some(IS_PRIVATE);
+                request(&state, &context, Work::Choose(0, generation))?;
+                assert_eq!(
+                    String::from_utf16_lossy(&lock(&data).text),
+                    format!("{}hel", String::from_utf16_lossy(&before)),
+                    "stale private-field click preserves raw composition"
+                );
+                lock(&data).input_scope = Some(IS_DEFAULT);
+                // Toggle is serialized between keys and changes only spacing.
+                type_raw("word")?;
+                let generation = session.backend.with_kernel(|k| k.generation());
+                request(&state, &context, Work::ToggleAutoSpace)?;
+                drain_spacing_requests(&state)?;
+                assert!(!session
+                    .backend
+                    .with_kernel(|k| k.config().english_auto_space));
+                assert_eq!(session.backend.with_kernel(|k| k.generation()), generation);
+                assert_eq!(
+                    session.backend.with_kernel(|k| k.composition_text()),
+                    "word"
+                );
+                request(&state, &context, Work::Key(Key::Space, Modifiers::NONE))?;
+                assert!(
+                    String::from_utf16_lossy(&lock(&data).text).ends_with("helword "),
+                    "OFF retains explicit physical Space"
+                );
+                // A pending toggle is not a pending text composition. Preference
+                // synchronization must not overtake it, and following acceptance
+                // joins its async queue instead of taking a synchronous fast path.
+                request(&state, &context, Work::ToggleAutoSpace)?;
+                assert!(!state.wants(Key::Enter, Modifiers::NONE));
+                let pending = state.preference_pending.load(Ordering::SeqCst);
+                if pending != 0 {
+                    crate::preferences::set_auto_space(true)?;
+                    state.sync_scheme();
+                    assert!(!session
+                        .backend
+                        .with_kernel(|k| k.config().english_auto_space));
+                }
+                drain_spacing_requests(&state)?;
+                assert!(session
+                    .backend
+                    .with_kernel(|k| k.config().english_auto_space));
+                type_raw("hel")?;
+                let deferred = Arc::new(AtomicBool::new(false));
+                let read_probe: ITfEditSession = QueueSpacingProbe {
+                    state: Arc::clone(&state),
+                    context: context.clone(),
+                    deferred: Arc::clone(&deferred),
+                }
+                .into();
+                context
+                    .RequestEditSession(tid, &read_probe, TF_ES_SYNC | TF_ES_READ)?
+                    .ok()?;
+                assert!(
+                    deferred.load(Ordering::SeqCst),
+                    "nested read lock must not run the queued spacing toggle early"
+                );
+                drain_spacing_requests(&state)?;
+                assert!(!session
+                    .backend
+                    .with_kernel(|k| k.config().english_auto_space));
+                assert!(
+                    String::from_utf16_lossy(&lock(&data).text).ends_with("helam "),
+                    "Space before toggle uses ON; later Space uses OFF"
+                );
+                assert_eq!(state.pending.load(Ordering::SeqCst), 0);
+                // A host may keep a completed ITfEditSession alive. Its COM
+                // lifetime must not keep a completed key counted as pending.
+                state.pending.fetch_add(1, Ordering::SeqCst);
+                let retained: ITfEditSession = Edit {
+                    state: Arc::clone(&state),
+                    context: context.clone(),
+                    work: Work::Key(Key::Escape, Modifiers::NONE),
+                    epoch: state.epoch.load(Ordering::SeqCst),
+                    finishing: None,
+                    cancelled: Arc::new(AtomicBool::new(false)),
+                    completed: Arc::new(AtomicBool::new(false)),
+                    pending_counted: AtomicBool::new(true),
+                    preference_counted: AtomicBool::new(false),
+                    synchronous: false,
+                    requested: Instant::now(),
+                    refresh_id: 0,
+                }
+                .into();
+                context
+                    .RequestEditSession(tid, &retained, TF_ES_SYNC | TF_ES_READWRITE)?
+                    .ok()?;
+                assert_eq!(
+                    state.pending.load(Ordering::SeqCst),
+                    0,
+                    "completed callback releases its pending token while COM is retained"
+                );
+                assert!(!state.wants(Key::Enter, Modifiers::NONE));
+                drop(retained);
+                assert_eq!(
+                    state.pending.load(Ordering::SeqCst),
+                    0,
+                    "Drop cannot release the token twice"
+                );
+                // Toolbar switches defer through the current raw composition,
+                // then apply before the next word without a focus change.
+                completion.set((true, true, true, true, true));
+                state.sync_english_completion_preferences();
+                type_raw("iamt")?;
+                let before = lock(&data).text.clone();
+                let generation = session.backend.with_kernel(|k| k.generation());
+                let spacing_before = session
+                    .backend
+                    .with_kernel(|k| k.config().english_auto_space);
+                completion.set((true, false, false, false, false));
+                state.sync_scheme();
+                assert_eq!(
+                    lock(&data).text,
+                    before,
+                    "changing completion options cannot replace the current word"
+                );
+                assert_eq!(session.backend.with_kernel(|k| k.generation()), generation);
+                assert!(session
+                    .backend
+                    .with_kernel(|k| k.config().english_pinyin && k.config().english_segmentation));
+                request(&state, &context, Work::Key(Key::Enter, Modifiers::NONE))?;
+                assert_eq!(
+                    lock(&data).text,
+                    before,
+                    "raw Enter is unchanged by deferred toolbar settings"
+                );
+                assert!(session.backend.with_kernel(|k| {
+                    let cfg = k.config();
+                    cfg.english_enabled
+                        && !cfg.english_spelling
+                        && !cfg.english_pinyin
+                        && !cfg.english_segmentation
+                        && !cfg.english_phrases
+                }));
+                assert_eq!(
+                    session
+                        .backend
+                        .with_kernel(|k| k.config().english_auto_space),
+                    spacing_before,
+                    "completion synchronization never touches queued spacing state"
+                );
+                type_raw("hel")?;
+                completion.set((false, false, false, false, false));
+                request(&state, &context, Work::Key(Key::Escape, Modifiers::NONE))?;
+                assert!(!session.backend.with_kernel(|k| k.config().english_enabled));
+                type_raw("x")?;
+                assert!(
+                    !session
+                        .backend
+                        .with_kernel(|k| k.has_composition() || k.has_candidates()),
+                    "the immediately next word observes completion OFF"
+                );
+                completion.set((true, true, true, true, true));
+                state.sync_english_completion_preferences();
+                type_raw("h")?;
+                completion.set((false, false, false, false, false));
+                request(&state, &context, Work::Key(Key::Backspace, Modifiers::NONE))?;
+                assert!(
+                    !session
+                        .backend
+                        .with_kernel(|k| k.has_composition() || k.config().english_enabled),
+                    "deleting the last letter also releases deferred options"
+                );
+                state.deactivate()?;
+                document.Pop(TF_POPF_ALL)?;
+                manager.Deactivate()?;
+                Ok(())
+            })();
+            CoUninitialize();
+            result
+        }
+    })
+    .join()
+    .expect("English spacing fixture thread")
+}
+
 type TranslationReadResult = std::result::Result<Vec<u16>, String>;
 #[implement(ITfEditSession)]
 struct TranslationProbe {
@@ -1009,6 +1429,9 @@ fn translation_reads_all_text_and_refuses_stale_or_rejected_replacements() -> Re
     thread.join().map_err(|_| E_FAIL)?
 }
 fn run_host() -> Result<()> {
+    let _spacing = crate::preferences::auto_space_for_test(false);
+    let _completion =
+        crate::preferences::english_completion_for_test((true, true, true, true, true));
     unsafe {
         let manager: ITfThreadMgr =
             CoCreateInstance(&CLSID_TF_ThreadMgr, None, CLSCTX_INPROC_SERVER)?;
@@ -1416,7 +1839,7 @@ fn run_host() -> Result<()> {
         for ch in "hel".chars() {
             request(&state, &context, Work::Key(Key::Char(ch), Modifiers::NONE))?;
         }
-        assert!(!state.wants(Key::Enter, Modifiers::NONE));
+        assert!(state.wants(Key::Enter, Modifiers::NONE));
         request(&state, &context, Work::Key(Key::Down, Modifiers::NONE))?;
         let first = session
             .backend
@@ -1425,8 +1848,8 @@ fn run_host() -> Result<()> {
         request(&state, &context, Work::Key(Key::Enter, Modifiers::NONE))?;
         assert_eq!(
             String::from_utf16_lossy(&lock(&data).text),
-            format!("{before}{first}"),
-            "explicit Enter accepts the word without inserting a newline"
+            format!("{before}hel"),
+            "Enter preserves raw letters even after an explicit highlight"
         );
         assert!(!state.wants(Key::Enter, Modifiers::NONE));
         assert!(lock(&state.composition).is_none());
@@ -1459,12 +1882,8 @@ fn run_host() -> Result<()> {
         for ch in "word".chars() {
             request(&state, &context, Work::Key(Key::Char(ch), Modifiers::NONE))?;
         }
-        assert!(!state.wants(Key::Enter, Modifiers::NONE));
-        request(
-            &state,
-            &context,
-            Work::Boundary(Key::Enter, Modifiers::NONE),
-        )?;
+        assert!(state.wants(Key::Enter, Modifiers::NONE));
+        request(&state, &context, Work::Key(Key::Enter, Modifiers::NONE))?;
         assert!(String::from_utf16_lossy(&lock(&data).text).ends_with("word"));
         assert!(lock(&state.composition).is_none());
         assert_eq!(
@@ -1493,35 +1912,13 @@ fn run_host() -> Result<()> {
             state: Arc::downgrade(&state),
         }
         .into();
-        let shift = WPARAM(0x10);
         let lp = LPARAM(0);
-        // The product leaves bare Shift to the host by default. This fixture
-        // must not inherit a user's saved binding or assume the upstream Shift
-        // default that the English-only product deliberately removed.
-        state.set_shortcuts_for_test(retype_ai::config::Shortcuts::default());
-        assert!(!keys.OnTestKeyDown(&context, shift, lp)?.as_bool());
-        assert!(!keys.OnKeyDown(&context, shift, lp)?.as_bool());
-        assert!(!keys.OnTestKeyUp(&context, shift, lp)?.as_bool());
-        assert!(!keys.OnKeyUp(&context, shift, lp)?.as_bool());
-        assert!(session.backend.with_kernel(|k| k.is_chinese()));
-        // Keep the legacy Chinese/ASCII routing covered as an explicitly
-        // configured fixture; it is never enabled by the production default.
-        state.set_shortcuts_for_test(retype_ai::config::Shortcuts {
-            mode: retype_ai::config::Shortcut::SHIFT,
-            ..Default::default()
-        });
-        let tap_shift = || -> Result<()> {
-            assert!(keys.OnTestKeyDown(&context, shift, lp)?.as_bool());
-            assert!(!keys.OnKeyDown(&context, shift, lp)?.as_bool());
-            assert!(keys.OnTestKeyUp(&context, shift, lp)?.as_bool());
-            assert!(!keys.OnKeyUp(&context, shift, lp)?.as_bool());
-            Ok(())
-        };
-        tap_shift()?;
-        assert!(!session.backend.with_kernel(|k| k.is_chinese()));
+        // Retain legacy Chinese/ASCII routing coverage through its explicit
+        // command. Bare Shift now belongs exclusively to word-prefix spacing.
+        request(&state, &context, Work::Toggle)?;
         assert!(!session
             .backend
-            .with_kernel(|k| k.english_prediction_enabled()));
+            .with_kernel(|k| k.is_chinese() || k.english_prediction_enabled()));
         let before = lock(&data).text.len();
         for ch in "HEL".chars() {
             assert!(keys.OnKeyDown(&context, WPARAM(ch as usize), lp)?.as_bool());
@@ -1529,25 +1926,11 @@ fn run_host() -> Result<()> {
                 .backend
                 .with_kernel(|k| k.has_composition() || k.has_candidates()));
         }
-        assert_eq!(
-            lock(&data).text.len(),
-            before + 3,
-            "Shift English inserts each letter without composing"
-        );
-        assert!(keys.OnTestKeyDown(&context, shift, lp)?.as_bool());
-        assert!(!keys.OnKeyDown(&context, shift, lp)?.as_bool());
-        let _ = keys.OnTestKeyDown(&context, WPARAM('A' as usize), lp)?;
-        assert!(keys.OnTestKeyUp(&context, shift, lp)?.as_bool());
-        assert!(!keys.OnKeyUp(&context, shift, lp)?.as_bool());
-        assert!(!session.backend.with_kernel(|k| k.is_chinese()));
-        tap_shift()?;
+        assert_eq!(lock(&data).text.len(), before + 3);
+        request(&state, &context, Work::Toggle)?;
         assert!(session.backend.with_kernel(|k| k.is_chinese()));
         // Only selecting the independent English profile enables prediction.
         crate::profiles::apply(&state, false)?;
-        assert!(!keys.OnTestKeyDown(&context, shift, lp)?.as_bool());
-        assert!(!keys.OnKeyDown(&context, shift, lp)?.as_bool());
-        assert!(!keys.OnTestKeyUp(&context, shift, lp)?.as_bool());
-        assert!(!keys.OnKeyUp(&context, shift, lp)?.as_bool());
         assert!(!session.backend.with_kernel(|k| k.is_chinese()));
         session.submit(InputEvent::SetEnglishOptions {
             enabled: true,
@@ -1563,8 +1946,6 @@ fn run_host() -> Result<()> {
             .any(|c| c.text == "hello")));
         let before_toggle = session.backend.with_kernel(|k| k.render_state());
         let text_before_toggle = lock(&data).text.clone();
-        assert!(!keys.OnKeyDown(&context, shift, lp)?.as_bool());
-        assert!(!keys.OnKeyUp(&context, shift, lp)?.as_bool());
         request(&state, &context, Work::Toggle)?;
         request(&state, &context, Work::SetChinese(true))?;
         assert!(!session.backend.with_kernel(|k| k.is_chinese()));
@@ -1577,7 +1958,7 @@ fn run_host() -> Result<()> {
         assert!(lock(&state.composition).is_some());
         crate::profiles::apply(&state, true)?;
         assert!(lock(&state.composition).is_none());
-        tap_shift()?;
+        request(&state, &context, Work::Toggle)?;
         assert!(!session
             .backend
             .with_kernel(|k| k.is_chinese() || k.english_prediction_enabled()));

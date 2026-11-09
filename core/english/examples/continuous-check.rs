@@ -29,6 +29,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "iamt",
         "iamtr",
         "iamtryingto",
+        "iamrobot",
+        "iamrobotandilikeapples",
+        "jiqiren",
         "howarey",
         "thanky",
         "wearet",
@@ -50,6 +53,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     for input in samples.iter().copied() {
         let hits = vocabulary.complete_input(input, &ReadOnly, 24, true, true, true);
         println!("sample={input}");
+        println!("segment_exact={:?}", vocabulary.segment_exact(input));
         for (index, candidate) in hits.iter().take(5).enumerate() {
             println!(
                 "{}\tdisplay={:?}\tcommit={:?}\tscore={:.4}",
@@ -84,6 +88,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         timings[timings.len() / 2],
         timings[timings.len() * 95 / 100],
         timings[timings.len() - 1]
+    );
+    let mut exact_timings = Vec::new();
+    for _ in 0..100 {
+        for input in samples.iter().copied() {
+            let start = Instant::now();
+            std::hint::black_box(vocabulary.segment_exact(input));
+            exact_timings.push(start.elapsed().as_secs_f64() * 1000.0);
+        }
+    }
+    exact_timings.sort_by(f64::total_cmp);
+    println!(
+        "exact_segmentation_samples={} p50_ms={:.4} p95_ms={:.4} max_ms={:.4}",
+        exact_timings.len(),
+        exact_timings[exact_timings.len() / 2],
+        exact_timings[exact_timings.len() * 95 / 100],
+        exact_timings[exact_timings.len() - 1]
     );
     Ok(())
 }

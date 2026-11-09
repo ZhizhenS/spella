@@ -1,6 +1,154 @@
 ﻿# Pure validation helpers shared by enrollment and cleanup. Importing has no side effects.
 [CmdletBinding()]
 param([switch]$CheckPendingRenames,[string]$PendingPolicyInstallRoot,[string]$PendingPolicyNewPayload)
+function Get-EnglishAssistInputPreferenceNames {
+  # EAINPF01 v1: these indices are shared with common/user_preferences.rs.
+  @('PinyinScheme','EnglishDisabled','EnglishSpellingDisabled','EnglishPinyinDisabled',
+    'EnglishSegmentationDisabled','EnglishPhrasesDisabled','EnglishAutoSpaceDisabled',
+    'StatusBarDisabled','StatusBarX','StatusBarY','StatusBarHasPosition','CandidateTheme',
+    'CandidateFontSize','CandidateWidth','CandidateCompact','CandidateHideMeanings',
+    'CandidateHidePartOfSpeech','CandidateShowPhonetics','CandidateHideKeyHints',
+    'SymbolCompletionEnabled','ManualWordsGeneration','DictionaryGeneration','EnabledDictionaryPacks')
+}
+
+function Resolve-EnglishAssistInputProfile([string]$OwnerSid, [scriptblock]$ReadProfile={
+  param($Sid)
+  $hive=[Microsoft.Win32.RegistryKey]::OpenBaseKey([Microsoft.Win32.RegistryHive]::LocalMachine,[Microsoft.Win32.RegistryView]::Registry64)
+  try {
+    $key=$hive.OpenSubKey('SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList\'+$Sid)
+    if (-not $key) { throw 'The desktop user profile registration is missing.' }
+    try { $key.GetValue('ProfileImagePath',$null,[Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames) }
+    finally { $key.Dispose() }
+  } finally { $hive.Dispose() }
+}) {
+  if ($OwnerSid -notmatch '^S-1-5-\d+(?:-\d+)+$') { throw 'Invalid desktop user SID.' }
+  $profile=& $ReadProfile $OwnerSid
+  if (-not ($profile -is [string]) -or -not $profile) { throw 'The desktop user profile path is missing.' }
+  [Environment]::ExpandEnvironmentVariables($profile)
+}
+
+function Get-EnglishAssistInputPreferenceAttributes([string]$Path) {
+  try { return [long][IO.File]::GetAttributes($Path) }
+  catch {
+    $exception=$_.Exception
+    while ($exception.InnerException) { $exception=$exception.InnerException }
+    if ($exception -is [IO.FileNotFoundException] -or $exception -is [IO.DirectoryNotFoundException]) { return -1 }
+    throw
+  }
+}
+
+function Get-EnglishAssistInputPreferenceLayout([string]$ProfileDirectory,
+  [scriptblock]$ReadAttributes={param($Path) Get-EnglishAssistInputPreferenceAttributes $Path}) {
+  if ($ProfileDirectory -notmatch '^[A-Za-z]:\\' -or $ProfileDirectory.Substring(2).Contains(':')) {
+    throw 'Shared input preferences require a local absolute desktop profile.'
+  }
+  $profile=[IO.Path]::GetFullPath($ProfileDirectory).TrimEnd('\')
+  if ($profile.Length -le 3 -or $profile -ine $ProfileDirectory.TrimEnd('\')) { throw 'Unexpected desktop profile path.' }
+  $cursor=$profile
+  while ($cursor) {
+    $attributes=& $ReadAttributes $cursor
+    if ($attributes -lt 0 -or ($attributes -band 0x10) -eq 0 -or ($attributes -band 0x400) -ne 0) {
+      throw 'Refusing shared input preferences through a missing, linked or non-directory profile.'
+    }
+    $cursor=[IO.Path]::GetDirectoryName($cursor)
+  }
+  $directory=[IO.Path]::Combine($profile,'.EnglishAssist')
+  $file=[IO.Path]::Combine($directory,'input-preferences-v1.bin')
+  $attributes=& $ReadAttributes $directory
+  if ($attributes -ge 0 -and (($attributes -band 0x10) -eq 0 -or ($attributes -band 0x400) -ne 0)) {
+    throw 'Refusing a redirected shared input preferences directory.'
+  }
+  $fileAttributes=& $ReadAttributes $file
+  if ($fileAttributes -ge 0 -and (($fileAttributes -band 0x410) -ne 0)) {
+    throw 'Refusing a linked or non-file shared input preferences store.'
+  }
+  [pscustomobject]@{Profile=$profile;Directory=$directory;File=$file;Exists=($fileAttributes -ge 0);DirectoryExists=($attributes -ge 0)}
+}
+
+function Assert-EnglishAssistInputPreferenceImage([byte[]]$Bytes) {
+  if ($Bytes.Length -ne 288 -or [Text.Encoding]::ASCII.GetString($Bytes,0,8) -cne 'EAINPF01' -or
+      [BitConverter]::ToUInt32($Bytes,8) -ne 1 -or [BitConverter]::ToUInt32($Bytes,12) -ne 32) {
+    throw 'The shared input preferences store has an invalid header or length; it was preserved.'
+  }
+  foreach ($index in 16..31) { if ($Bytes[$index] -ne 0) { throw 'Unexpected shared input preferences header flags.' } }
+  for ($index=0;$index -lt 32;$index++) {
+    $have=[BitConverter]::ToUInt32($Bytes,32+$index*8)
+    $value=[BitConverter]::ToUInt32($Bytes,36+$index*8)
+    # Known slots publish value before have=1. A concurrent snapshot may see
+    # have=0/nonzero value; that value is ignored until the atomic publish.
+    if ($have -gt 1 -or ($index -ge 23 -and ($have -ne 0 -or $value -ne 0))) {
+      throw 'The shared input preferences store has an invalid slot; it was preserved.'
+    }
+  }
+}
+
+function Read-EnglishAssistInputPreferenceImage([string]$Path) {
+  $stream=[IO.File]::Open($Path,[IO.FileMode]::Open,[IO.FileAccess]::Read,([IO.FileShare]::ReadWrite -bor [IO.FileShare]::Delete))
+  try {
+    if ($stream.Length -ne 288) { throw 'The shared input preferences store has an invalid length; it was preserved.' }
+    $bytes=New-Object byte[] 288
+    $offset=0
+    while ($offset -lt 288) {
+      $count=$stream.Read($bytes,$offset,288-$offset)
+      if ($count -eq 0) { throw 'The shared input preferences store could not be read completely.' }
+      $offset+=$count
+    }
+    Assert-EnglishAssistInputPreferenceImage $bytes
+    return ,$bytes
+  } finally { $stream.Dispose() }
+}
+
+function Initialize-EnglishAssistInputPreferences([string]$ProfileDirectory,
+  [scriptblock]$ReadDword={param($Name)
+    $key=[Microsoft.Win32.Registry]::CurrentUser.OpenSubKey('Software\EnglishAssist')
+    if (-not $key) { return $null }
+    try {
+      $value=$key.GetValue($Name,$null,[Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames)
+      if ($null -eq $value) { return $null }
+      if ($key.GetValueKind($Name) -ne [Microsoft.Win32.RegistryValueKind]::DWord) { throw 'A legacy input preference is not a DWORD.' }
+      # Registry DWORDs are returned as signed Int32; preserve every bit, even -1.
+      [BitConverter]::ToUInt32([BitConverter]::GetBytes([int32]$value),0)
+    } finally { $key.Dispose() }
+  }) {
+  $layout=Get-EnglishAssistInputPreferenceLayout $ProfileDirectory
+  if ($layout.Exists) { $null=Read-EnglishAssistInputPreferenceImage $layout.File; return $layout.File }
+  $bytes=New-Object byte[] 288
+  [Array]::Copy([Text.Encoding]::ASCII.GetBytes('EAINPF01'),0,$bytes,0,8)
+  [Array]::Copy([BitConverter]::GetBytes([uint32]1),0,$bytes,8,4)
+  [Array]::Copy([BitConverter]::GetBytes([uint32]32),0,$bytes,12,4)
+  $names=@(Get-EnglishAssistInputPreferenceNames)
+  for ($index=0;$index -lt $names.Count;$index++) {
+    $value=& $ReadDword $names[$index]
+    if ($null -ne $value) {
+      [Array]::Copy([BitConverter]::GetBytes([uint32]1),0,$bytes,32+$index*8,4)
+      [Array]::Copy([BitConverter]::GetBytes([uint32]$value),0,$bytes,36+$index*8,4)
+    }
+  }
+  Assert-EnglishAssistInputPreferenceImage $bytes
+  $null=[IO.Directory]::CreateDirectory($layout.Directory)
+  $layout=Get-EnglishAssistInputPreferenceLayout $ProfileDirectory
+  # Never replace/rename an existing store: older hosts may still map its file object.
+  if ($layout.Exists) { $null=Read-EnglishAssistInputPreferenceImage $layout.File; return $layout.File }
+  $stream=[IO.File]::Open($layout.File,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
+  try { $stream.Write($bytes,0,$bytes.Length); $stream.Flush($true) } finally { $stream.Dispose() }
+  $null=Read-EnglishAssistInputPreferenceImage $layout.File
+  $layout.File
+}
+
+function Remove-EnglishAssistInputPreferences([string]$ProfileDirectory) {
+  $layout=Get-EnglishAssistInputPreferenceLayout $ProfileDirectory
+  if ($layout.Exists) {
+    $null=Read-EnglishAssistInputPreferenceImage $layout.File
+    # A sharing error is a real failure. Never queue this fixed name for reboot:
+    # a later installation could otherwise lose its newly created preferences.
+    [IO.File]::Delete($layout.File)
+  }
+  $layout=Get-EnglishAssistInputPreferenceLayout $ProfileDirectory
+  if ($layout.DirectoryExists -and [IO.Directory]::GetFileSystemEntries($layout.Directory).Length -eq 0) {
+    [IO.Directory]::Delete($layout.Directory,$false)
+  }
+}
+
 if ($CheckPendingRenames) {
   . ([IO.Path]::Combine($PSScriptRoot, 'powershell-environment.ps1'))
   Initialize-EnglishAssistPowerShell

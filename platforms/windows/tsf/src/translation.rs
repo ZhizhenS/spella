@@ -201,7 +201,7 @@ fn explicit_public_scope(
     manager: Option<&ITfThreadMgr>,
 ) -> bool {
     let mut diagnostic = ScopeDiagnostic::default();
-    let allowed = inspect_public_scope(context, ec, range, manager, &mut diagnostic);
+    let allowed = inspect_public_scope(context, ec, range, manager, None, &mut diagnostic);
     // Fixed metadata only. Never include selected text, window names, paths or credentials.
     #[cfg(not(test))]
     crate::settings_log::event("launcher", "ai_scope_check", 0, format!(
@@ -212,6 +212,24 @@ fn explicit_public_scope(
         diagnostic.ranges, diagnostic.scopes,
     ));
     allowed
+}
+/// Local-only metadata gate: inspect the requested range's declared scopes, with
+/// native compatibility anchored to the *current* selection rather than nearby text.
+pub(crate) fn local_public_scope(
+    context: &ITfContext,
+    ec: u32,
+    range: &ITfRange,
+    selection: &ITfRange,
+    manager: Option<&ITfThreadMgr>,
+) -> bool {
+    inspect_public_scope(
+        context,
+        ec,
+        range,
+        manager,
+        Some(selection),
+        &mut ScopeDiagnostic::default(),
+    )
 }
 #[derive(Default)]
 struct ScopeDiagnostic {
@@ -301,6 +319,7 @@ fn inspect_public_scope(
     ec: u32,
     range: &ITfRange,
     manager: Option<&ITfThreadMgr>,
+    local_selection: Option<&ITfRange>,
     diagnostic: &mut ScopeDiagnostic,
 ) -> bool {
     // SAFETY: the caller holds a cookie for this context/range. Preserve raw
@@ -346,7 +365,11 @@ fn inspect_public_scope(
                     .zip(diagnostic.variant)
                     .is_some_and(|(hr, vt)| crate::native_scope::eligible(hr, vt))
                 {
-                    let allowed = crate::native_scope::verify(manager, context, ec, range);
+                    let allowed = if let Some(selection) = local_selection {
+                        crate::native_scope::verify_local(manager, context, ec, selection, range)
+                    } else {
+                        crate::native_scope::verify(manager, context, ec, range)
+                    };
                     diagnostic.stage = if allowed {
                         "native_plain_compat"
                     } else {

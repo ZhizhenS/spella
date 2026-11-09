@@ -1,4 +1,4 @@
-# English Assist — Windows development branch
+# English Assist 0.4.0 — Windows development branch
 
 English Assist is a Windows English input-method project derived from
 [Retype at 902e35e](https://github.com/L-Chris/retype/tree/902e35e06ee4f744320cf995c39b1f64693034cf).
@@ -8,7 +8,72 @@ AI grammar correction and sentence completion, through a real English TSF entry.
 [简体中文](README.zh-CN.md) · [English input](docs/english-input.md) ·
 [P0 validation](docs/english-assist/INPUT_VALIDATION.md)
 
-**0.3.1 final checkpoint:** the formal build exited 0 with 368 Rust passes,
+## 0.4.0 input status and spacing
+
+**Final R5 build and installation checkpoint:** the formal build completed with
+396 Rust passes, 0 failures and 6 ignored results across 24 suites (including
+repeated x86 runs), 33 Python passes and 602 PowerShell checks: 1,031 counted pass
+results. Installed x64/x86 probes each passed 2 checks with in-process activation
+S_OK; these 4 probe results are separate from the formal total. Upgrade exited 0
+to `C:\Program Files\EnglishAssist\versions\0.4.0-20261109110234-275066`;
+all 24 installed artifact hashes and build.json matched the frozen build.
+Counts: `work/build-logs/v0.4.0-r5-test-counts.json`.
+
+Fresh Notepad PID57228 was confirmed to load that final DLL. It independently
+passed `iamrobot` + Space → `I am robot` without a trailing space; separate
+`i` + Space, `am` + Space, `jiqiren` + 1 → `i am robot`; and `iamrobot` + Down +
+Enter → literal `iamrobot` without adding a newline. The saved file matched those
+three lines exactly. Shift changed the shared spacing flag off and back on.
+Dragging the status bar persisted its position; × hid it, and final settings
+restored its visibility and reset its saved position. These are bounded final
+Notepad/status-bar checks, not an every-application, AI, or uninstall pass.
+
+The 0.4 implementation adds a small, non-activating floating status bar for the
+active English input field, including when no candidate list is open. It shows
+live Caps Lock, automatic word spacing, word completion, pinyin lookup and
+continuous segmentation, with settings and hide buttons. Drag its lower area to
+move it; Input and lookup can restore its position or show it again. Feature
+switches preserve the current composition; they synchronize when it ends and
+apply to the next word without requiring another focus change. The caps
+button changes Caps Lock only while the original editable field still has focus
+and no modifier is held; Shift capitalization does not turn on its Caps indicator.
+
+Automatic spacing defaults on in Windows. Confirming separate words such as
+`i`, `am`, and `robot` inserts only needed spaces before each new word, leaving
+the caret directly after `robot`. It never adds an automatic trailing space;
+this also applies to pinyin selections. Plain Space with continuous segmentation
+on can restore the internal spaces in the letters already typed, for example
+`iamrobot` → `I am robot`, without completing an untyped word. A bare Shift tap
+toggles automatic spacing; Shift with letters, `_`, or `+` keeps its normal use.
+With spacing off, Space manually separates words. Enter submits the raw current
+composition without choosing a candidate or inserting spaces; another Enter with
+no composition retains the application's normal action. Escape preserves the raw
+composition. Local spacing does not invoke AI or add input-history learning.
+Exact spacing is conservative and limited to 64 typed characters; unfinished or
+uncertain strings stay literal. Use Tab, a number or an explicit candidate
+selection to accept a completion such as `trying` from `iamt`.
+
+Input DWORD preferences now share one persistent mapping backed by
+`%USERPROFILE%\.EnglishAssist\input-preferences-v1.bin`, so a packaged editor and
+the separate settings application use the same switches. It contains preference
+values only: no API key, input text or history. Installation migrates previous
+HKCU input DWORDs; strings such as the manual-dictionary path retain their registry
+representation. Invalid or unavailable shared data is rejected and settings
+reports the error, rather than saving into an isolated package view.
+
+**Historical 0.4 R3 synchronization checkpoint:** Notepad PID56416 loaded the R3
+DLL; tapping Shift changed the shared spacing flag to off and the settings GUI
+showed off. Switching it on in settings changed the same flag, and Notepad then
+saved `I am robot` from `iamrobot` + Space with no trailing space. Receipt:
+`work/research/v0.4.0-r3-bidirectional-live.json`. This is a bounded check of that
+packaged Notepad and settings pair, not a guarantee for every AppContainer.
+R4's longer-input, Caps Lock and feature-switch observations remain R4 evidence;
+they were not all repeated in R5. Final R5 checks are listed above. The source
+archive is not a native-runtime test, and earlier AI/lifecycle results remain
+version-specific.
+The older checkpoints below remain version-specific history.
+
+**Historical 0.3.1 final checkpoint:** the formal build exited 0 with 368 Rust passes,
 0 failures and 6 ignored results across 24 suites (including repeated x86 runs),
 33 Python passes and 508 PowerShell checks. Installed x64/x86 probes each passed
 2 checks with activation S_OK. Upgrade exited 0; payload
@@ -54,7 +119,7 @@ repeated. Detailed version-specific receipts are in the validation record.
 
 - Local decoding keeps ordinary whole-word prefixes alongside multiple word-boundary alternatives, with the final word allowed to remain unfinished.
 - `ia` can offer an `ia…` word and `I am`; for `iamt`, a row can show only `trying` or `trying to`, while confirmation replaces the owned composition once with `I am trying` or `I am trying to`.
-- An inferred prefix stays inside the current composition until explicit confirmation. Escape and an unselected Space preserve the original input; Space adds its normal space.
+- An inferred prefix stays inside the current composition until explicit confirmation. Escape preserves the raw input; 0.4 Space follows the automatic-spacing rules above.
 - Beyond 48 input characters, continuous search falls back to the ordinary word-completion path without truncating the original text.
 - Windows opts in by default through “连写智能分词” and “短语候选” in Input and lookup. The shared Kernel defaults both options off so another frontend must support independent display/commit text before opting in.
 
@@ -88,9 +153,9 @@ reboot deletion of queued old files is still unverified. See the
 - Five candidates per page, 1–5 selection and minus/plus paging; digits remain literal without candidates.
 - Chinese definitions, part of speech, optional phonetics and pinyin lookup.
 - Tab or mouse acceptance without an automatic trailing space.
-- Space preserves the original spelling unless a candidate was explicitly selected.
-- Enter after explicit candidate navigation confirms the candidate without also
-  submitting a chat, search or newline; a second Enter retains native behavior.
+- Automatic spacing adds only needed word boundaries and never a trailing space.
+- Enter submits the raw current composition even after candidate navigation;
+  with no composition, Enter retains native behavior.
 - Read-only offline English vocabulary packaging, separate product identity and
   user-data paths.
 - Automatic English word learning disabled; typing does not start a learning broker or add its login startup entry.
@@ -119,25 +184,29 @@ The English-specific script builds both TSF architectures, the settings/helper
 programs and the pinned English vocabulary, then runs its configured checks.
 It does not install the product or modify the system keyboard list.
 
-Built 0.3.1 installer:
-dist/english-assist-0.3.1-windows-x64-setup.exe. See the versioned build record for the delivered artifact.
+The 0.4 installer path is `dist/english-assist-0.4.0-windows-x64-setup.exe`.
+R5 was formally built, installed and checked in Notepad as recorded above; consult the versioned
+validation record for the exact delivered artifact and completed UI checks.
 Do not use the inherited Retype installer, register.ps1 or upstream release
 download links for this fork.
 
 A validated installation should appear under Windows Settings → Time & language
 → Language & region → English (United States) → Language options → Keyboards,
 and be selectable with Win+Space. It must preserve the existing default keyboard.
-See the validation record for the 0.3.1 upgrade and fresh Notepad input checks;
-earlier AI and r3 lifecycle results remain separate from outstanding application
-and reboot-deletion coverage.
+See the validation record for the 0.4 build and synchronization checkpoints;
+earlier Notepad, AI and lifecycle results remain separate from the current version
+and outstanding application/reboot-deletion coverage.
 
 ## Everyday keyboard behavior
 
-Use 1–5 to select a visible candidate, minus/plus to page, or Tab to accept without a space.
+Use 1–5 to select a visible candidate, minus/plus to page, or Tab to accept without a trailing space.
 To enter an original spelling with a digit, such as python3, press Esc before the digit when candidates are visible. Use
-Up/Down then Space to accept it with a space. Space alone keeps the spelling you
-typed. Explicitly selected candidates consume the first Enter; otherwise Enter
-retains the application's normal action. Esc keeps the original text.
+Up/Down then Space to accept a selected candidate. With automatic spacing on,
+Space confirms without a trailing space and restores only already-typed internal
+word boundaries when segmentation is on; with it off, Space inserts a manual
+space. Shift toggles that preference. Enter submits the current raw input and
+consumes that first Enter; a subsequent Enter has the application's normal action.
+Esc keeps the original text.
 
 See [English input](docs/english-input.md) for the full keyboard contract and
 [P0 validation](docs/english-assist/INPUT_VALIDATION.md) for actual test status.

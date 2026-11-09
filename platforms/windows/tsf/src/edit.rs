@@ -26,6 +26,12 @@ pub(crate) struct Composition {
     cookie: u32,
     layout_cookie: u32,
 }
+impl Composition {
+    pub(crate) fn range(&self) -> Result<ITfRange> {
+        // SAFETY: called only by this apartment while holding its edit cookie.
+        unsafe { self.object.GetRange() }
+    }
+}
 #[derive(Clone, Copy)]
 pub(crate) enum Work {
     Key(Key, Modifiers),
@@ -37,6 +43,8 @@ pub(crate) enum Work {
     Choose(usize, u64),
     Finish(bool),
     Refresh,
+    Status,
+    ToggleAutoSpace,
     Translate,
     Voice(bool),
 }
@@ -49,6 +57,8 @@ impl Work {
             Self::Key(Key::Char(_), _) => "typing",
             Self::Key(_, _) => "navigation",
             Self::Refresh => "layout_refresh",
+            Self::Status => "status_refresh",
+            Self::ToggleAutoSpace => "spacing_toggle",
             Self::Choose(..) => "choose",
             Self::Finish(_) => "finish",
             Self::Direct(_) | Self::Boundary(..) => "boundary",
@@ -61,6 +71,11 @@ impl Work {
 
 pub(crate) fn request(state: &Arc<TipState>, context: &ITfContext, work: Work) -> Result<()> {
     static REFRESH_SERIAL: AtomicU32 = AtomicU32::new(1);
+    // Explicit async requests stay FIFO. ASYNCDONTCARE may obtain a synchronous
+    // lock ahead of a queued toggle, so later input must join that same queue.
+    let force_async = matches!(work, Work::ToggleAutoSpace)
+        || state.preference_pending.load(Ordering::SeqCst) != 0
+        || state.pending.load(Ordering::SeqCst) != 0;
     let epoch = state.epoch.load(Ordering::SeqCst);
     let refresh_id = if matches!(work, Work::Refresh) {
         let mut pending = lock(&state.refresh_pending);
@@ -82,7 +97,8 @@ pub(crate) fn request(state: &Arc<TipState>, context: &ITfContext, work: Work) -
                 let rule = retype_types::symbols::rules(c, k.is_chinese());
                 !k.has_composition() && (rule.opening.is_some() || rule.closing.is_some())
             })) && crate::preferences::symbol_completion());
-    let pending_counted = !synchronous;
+    let pending_counted = !synchronous && !matches!(work, Work::Status | Work::ToggleAutoSpace);
+    let preference_counted = matches!(work, Work::ToggleAutoSpace);
     let cancelled = Arc::new(AtomicBool::new(false));
     let completed = Arc::new(AtomicBool::new(false));
     let session: ITfEditSession = Edit {
@@ -97,7 +113,8 @@ pub(crate) fn request(state: &Arc<TipState>, context: &ITfContext, work: Work) -
         },
         cancelled: Arc::clone(&cancelled),
         completed: Arc::clone(&completed),
-        pending_counted,
+        pending_counted: AtomicBool::new(pending_counted),
+        preference_counted: AtomicBool::new(preference_counted),
         synchronous,
         requested: Instant::now(),
         refresh_id,
@@ -105,6 +122,9 @@ pub(crate) fn request(state: &Arc<TipState>, context: &ITfContext, work: Work) -
     .into();
     if pending_counted {
         state.pending.fetch_add(1, Ordering::SeqCst);
+    }
+    if preference_counted {
+        state.preference_pending.fetch_add(1, Ordering::SeqCst);
     }
     // SAFETY: TSF holds the COM edit session if deferred. Kernel input is not consumed
     // until a write lock is granted. ASYNCDONTCARE allows immediate or deferred execution.
@@ -114,9 +134,11 @@ pub(crate) fn request(state: &Arc<TipState>, context: &ITfContext, work: Work) -
             &session,
             if synchronous {
                 TF_ES_SYNC
+            } else if force_async {
+                TF_ES_ASYNC
             } else {
                 TF_ES_ASYNCDONTCARE
-            } | if matches!(work, Work::Refresh) {
+            } | if matches!(work, Work::Refresh | Work::Status) {
                 TF_ES_READ
             } else {
                 TF_ES_READWRITE
@@ -140,12 +162,23 @@ struct Edit {
     finishing: Option<ITfComposition>,
     cancelled: Arc<AtomicBool>,
     completed: Arc<AtomicBool>,
-    pending_counted: bool,
+    pending_counted: AtomicBool,
+    preference_counted: AtomicBool,
     synchronous: bool,
     requested: Instant,
     refresh_id: u32,
 }
 impl Edit {
+    fn release_pending(&self) {
+        if self.pending_counted.swap(false, Ordering::SeqCst) {
+            self.state.pending.fetch_sub(1, Ordering::SeqCst);
+        }
+    }
+    fn release_preference(&self) {
+        if self.preference_counted.swap(false, Ordering::SeqCst) {
+            self.state.preference_pending.fetch_sub(1, Ordering::SeqCst);
+        }
+    }
     fn release_refresh(&self) {
         if self.refresh_id != 0 {
             let mut pending = lock(&self.state.refresh_pending);
@@ -158,9 +191,8 @@ impl Edit {
 impl Drop for Edit {
     fn drop(&mut self) {
         self.release_refresh();
-        if self.pending_counted {
-            self.state.pending.fetch_sub(1, Ordering::SeqCst);
-        }
+        self.release_preference();
+        self.release_pending();
     }
 }
 impl ITfEditSession_Impl for Edit_Impl {
@@ -182,6 +214,32 @@ impl ITfEditSession_Impl for Edit_Impl {
             }
             if matches!(self.work, Work::Refresh) {
                 return self.refresh(ec, &mut timing);
+            }
+            if matches!(self.work, Work::Status | Work::ToggleAutoSpace) {
+                if matches!(self.work, Work::ToggleAutoSpace)
+                    && self
+                        .state
+                        .session()
+                        .is_some_and(|s| s.backend.with_kernel(|k| !k.is_chinese()))
+                {
+                    if let Ok(selection) = crate::spacing::selection(&self.context, ec) {
+                        if crate::spacing::allowed(
+                            &self.state,
+                            &self.context,
+                            ec,
+                            &selection,
+                            &selection,
+                        ) {
+                            self.state.apply_auto_space_toggle()?;
+                        }
+                    }
+                }
+                if let Some(focus) = crate::spacing::safe_focus(&self.state, &self.context, ec) {
+                    self.state.show_statusbar(focus);
+                } else {
+                    self.state.hide_statusbar();
+                }
+                return Ok(());
             }
             self.state.writing.store(true, Ordering::SeqCst);
             let result = guarded(|| self.run(ec, &mut timing));
@@ -205,6 +263,8 @@ impl ITfEditSession_Impl for Edit_Impl {
         // Some hosts retain the completed COM session. Release now as well as
         // on Drop; the token prevents an older session clearing a newer one.
         self.release_refresh();
+        self.release_preference();
+        self.release_pending();
         timing.finish(
             || {
                 self.state
@@ -272,6 +332,18 @@ impl Edit_Impl {
         let Some(session) = state.session() else {
             return Ok(());
         };
+        if matches!(self.work, Work::Choose(..))
+            && session.backend.with_kernel(|k| !k.is_chinese())
+            && !learnable(&self.context, ec)
+        {
+            // The field may become private while a candidate popup remains.
+            // Keep raw text, discard the stale choice, and read no neighbors.
+            end(state, ec, false)?;
+            state.reset_kernel();
+            state.hide();
+            state.hide_statusbar();
+            return Ok(());
+        }
         if matches!(self.work, Work::Key(..) | Work::Boundary(..))
             && session.backend.with_kernel(|k| !k.is_chinese())
             && !learnable(&self.context, ec)
@@ -286,6 +358,7 @@ impl Edit_Impl {
             end(state, ec, false)?;
             state.reset_kernel();
             state.hide();
+            state.hide_statusbar();
             if let Some(text) = literal {
                 replace(state, &self.context, ec, &text, false)?;
             }
@@ -346,11 +419,31 @@ impl Edit_Impl {
                 }
                 InputEvent::ToggleChinese
             }
-            Work::Direct(_) | Work::Finish(_) | Work::Refresh | Work::PairBackspace => {
-                return Ok(())
-            }
+            Work::Direct(_)
+            | Work::Finish(_)
+            | Work::Refresh
+            | Work::PairBackspace
+            | Work::Status
+            | Work::ToggleAutoSpace => return Ok(()),
         };
         let input_chinese = session.backend.with_kernel(|k| k.is_chinese());
+        let prefix_space = !input_chinese
+            && session.backend.with_kernel(|k| {
+                if !k.config().english_auto_space || !k.has_composition() {
+                    return false;
+                }
+                match self.work {
+                    Work::Choose(index, _) => index < k.render_state().candidates.len(),
+                    Work::Key(Key::Space, mods) => mods.is_plain(),
+                    Work::Key(Key::Tab, mods) => {
+                        mods.is_plain() && !mods.contains(Modifiers::SHIFT) && k.has_candidates()
+                    }
+                    Work::Key(Key::Char(c @ '1'..='5'), mods) if mods.is_plain() => {
+                        (c as usize - '1' as usize) < k.render_state().visible().len()
+                    }
+                    _ => false,
+                }
+            });
         let spelling_before = session
             .backend
             .with_kernel(|k| (k.has_composition(), k.spelling_len()));
@@ -386,6 +479,11 @@ impl Edit_Impl {
                     KernelAction::Commit(
                         CommitRequest::Text(text) | CommitRequest::ReplaceComposition { text },
                     ) => {
+                        let text = if prefix_space {
+                            crate::spacing::decorate(state, &self.context, ec, &text)
+                        } else {
+                            text
+                        };
                         crate::symbols::commit(
                             state,
                             &self.context,
@@ -452,6 +550,14 @@ impl Edit_Impl {
             );
         }
         write_result?;
+        if !input_chinese
+            && spelling_before.0
+            && session.backend.with_kernel(|k| !k.has_composition())
+        {
+            // Toolbar changes defer only until this composition ends, including
+            // cancellation/deleting its last letter. Never reset the live word.
+            state.sync_english_completion_preferences();
+        }
         // Only successful host writes count as selections. Failed/cancelled edit sessions
         // and private input contexts must not persist a user's uncommitted text.
         if !committed.is_empty() && allow_learning {
@@ -521,6 +627,11 @@ impl Edit_Impl {
     }
     fn refresh(&self, ec: u32, timing: &mut crate::input_profile::Timing) -> Result<()> {
         let state = &self.state;
+        if let Some(focus) = crate::spacing::safe_focus(state, &self.context, ec) {
+            state.show_statusbar(focus);
+        } else {
+            state.hide_statusbar();
+        }
         let Some(session) = state.session() else {
             return Ok(());
         };

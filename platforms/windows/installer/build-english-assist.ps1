@@ -74,6 +74,8 @@ try {
       if ($LASTEXITCODE -ne 0) { throw "Offline resource integrity tests failed in $taskShell Windows PowerShell." }
       & (Join-Path $env:SystemRoot "$taskShell\WindowsPowerShell\v1.0\powershell.exe") -NoProfile -NonInteractive -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'tests\manual-words-access.tests.ps1')
       if ($LASTEXITCODE -ne 0) { throw "Manual dictionary scope/ACL tests failed in $taskShell Windows PowerShell." }
+      & (Join-Path $env:SystemRoot "$taskShell\WindowsPowerShell\v1.0\powershell.exe") -NoProfile -NonInteractive -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'tests\input-preferences.tests.ps1')
+      if ($LASTEXITCODE -ne 0) { throw 'Shared input preferences fixtures failed.' }
       & (Join-Path $env:SystemRoot "$taskShell\WindowsPowerShell\v1.0\powershell.exe") -NoProfile -NonInteractive -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'tests\cleanup-process.tests.ps1')
       if ($LASTEXITCODE -ne 0) { throw "Cleanup process identity/race and own-TIP tombstone tests failed in $taskShell Windows PowerShell." }
     }

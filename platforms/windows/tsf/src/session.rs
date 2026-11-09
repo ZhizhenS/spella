@@ -162,6 +162,7 @@ impl Session {
     }
 
     pub fn start_with(dict_path: PathBuf) -> Arc<Self> {
+        let _ = crate::user_preferences::initialize();
         Self::start_internal(dict_path, false)
     }
 
@@ -199,6 +200,7 @@ impl Session {
                 english_pinyin: crate::preferences::english_pinyin(),
                 english_segmentation: crate::preferences::english_continuous().0,
                 english_phrases: crate::preferences::english_continuous().1,
+                english_auto_space: crate::preferences::auto_space(),
                 pinyin_scheme: crate::preferences::scheme(),
                 decode: retype_pinyin::DecodeOptions {
                     page_size: 8,

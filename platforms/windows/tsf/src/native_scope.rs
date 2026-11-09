@@ -75,6 +75,9 @@ struct Evidence {
 }
 impl Evidence {
     fn permits(&self) -> bool {
+        self.permits_local(false)
+    }
+    fn permits_local(&self, caret: bool) -> bool {
         self.context_matches
             && self.same_thread_process
             && self.visible
@@ -86,11 +89,15 @@ impl Evidence {
             && self.password_char == 0
             && self.tom_window_matches
             && self.tsf_start >= 0
-            && self.tsf_end > self.tsf_start
+            && (self.tsf_end > self.tsf_start || caret && self.tsf_end == self.tsf_start)
             && self.tom_start == self.tsf_start
             && self.tom_end == self.tsf_end
             && self.story == tomMainTextStory.0
-            && self.selection_type == tomSelectionNormal.0
+            && (if self.tsf_end == self.tsf_start {
+                caret && self.selection_type == tomSelectionIP.0
+            } else {
+                self.selection_type == tomSelectionNormal.0
+            })
             && self.can_edit == tomTrue.0
             && self.hidden == tomFalse.0
             && self.protected == tomFalse.0
@@ -149,7 +156,7 @@ pub(crate) fn verify(
 ) -> bool {
     let mut diagnostic = Diagnostic::default();
     // SAFETY: caller is the TSF apartment holding a fresh read/write cookie.
-    let allowed = unsafe { collect(manager, context, ec, range, &mut diagnostic) }
+    let allowed = unsafe { collect(manager, context, ec, range, None, &mut diagnostic) }
         .is_some_and(|evidence| evidence.permits());
     #[cfg(not(test))]
     crate::settings_log::event(
@@ -160,11 +167,35 @@ pub(crate) fn verify(
     );
     allowed
 }
+/// Local spacing/status metadata probe. Unlike cloud selection capture, a caret
+/// is allowed, but it still requires the same native plaintext/identity evidence.
+pub(crate) fn verify_local(
+    manager: Option<&ITfThreadMgr>,
+    context: &ITfContext,
+    ec: u32,
+    selection: &ITfRange,
+    target: &ITfRange,
+) -> bool {
+    let mut diagnostic = Diagnostic::default();
+    // SAFETY: fresh edit cookie on this same TSF apartment; no text is read.
+    unsafe {
+        collect(
+            manager,
+            context,
+            ec,
+            selection,
+            Some(target),
+            &mut diagnostic,
+        )
+    }
+    .is_some_and(|evidence| evidence.permits_local(true))
+}
 unsafe fn collect(
     manager: Option<&ITfThreadMgr>,
     context: &ITfContext,
     ec: u32,
     range: &ITfRange,
+    local_target: Option<&ITfRange>,
     diagnostic: &mut Diagnostic,
 ) -> Option<Evidence> {
     // SAFETY: all HWND/COM operations below are metadata reads on this same
@@ -332,7 +363,12 @@ unsafe fn collect(
         let tsf_end = tsf_start.checked_add(length)?;
         diagnostic.tsf_start = Some(tsf_start);
         diagnostic.tsf_end = Some(tsf_end);
-        if hr != S_OK || length <= 0 || start != tsf_start || end != tsf_end {
+        if hr != S_OK
+            || length < 0
+            || (local_target.is_none() && length == 0)
+            || start != tsf_start
+            || end != tsf_end
+        {
             return None;
         }
         let story = scalar(
@@ -376,6 +412,77 @@ unsafe fn collect(
             diagnostic,
         )?;
         diagnostic.protected = Some(protected);
+        if let Some(target) = local_target {
+            // The caret's format says nothing about a hidden neighboring span.
+            // Verify the exact range to be read without fetching any characters.
+            diagnostic.stage = "local_target";
+            if target.GetContext().ok().as_ref() != Some(context) {
+                return None;
+            }
+            let acp: ITfRangeACP = target.cast().ok()?;
+            let mut target_start = -1;
+            let mut target_length = -1;
+            let hr = (acp.vtable().GetExtent)(acp.as_raw(), &mut target_start, &mut target_length);
+            if hr != S_OK || target_start < 0 || target_length < 0 {
+                return None;
+            }
+            let target_end = target_start.checked_add(target_length)?;
+            let mut raw = std::ptr::null_mut();
+            let hr = (document.vtable().base__.Range)(
+                document.as_raw(),
+                target_start,
+                target_end,
+                &mut raw,
+            );
+            let target = (!raw.is_null()).then(|| ITextRange::from_raw(raw));
+            let target = target.filter(|_| hr == S_OK)?;
+            if scalar(
+                target.as_raw(),
+                target.vtable().GetStart,
+                "local_start",
+                diagnostic,
+            )? != target_start
+                || scalar(
+                    target.as_raw(),
+                    target.vtable().GetEnd,
+                    "local_end",
+                    diagnostic,
+                )? != target_end
+                || scalar(
+                    target.as_raw(),
+                    target.vtable().GetStoryType,
+                    "local_story",
+                    diagnostic,
+                )? != tomMainTextStory.0
+                || scalar(
+                    target.as_raw(),
+                    target.vtable().CanEdit,
+                    "local_edit",
+                    diagnostic,
+                )? != tomTrue.0
+            {
+                return None;
+            }
+            let mut raw = std::ptr::null_mut();
+            let hr = (target.vtable().GetFont)(target.as_raw(), &mut raw);
+            let font = (!raw.is_null()).then(|| ITextFont::from_raw(raw));
+            let font = font.filter(|_| hr == S_OK)?;
+            if scalar(
+                font.as_raw(),
+                font.vtable().GetHidden,
+                "local_hidden",
+                diagnostic,
+            )? != tomFalse.0
+                || scalar(
+                    font.as_raw(),
+                    font.vtable().GetProtected,
+                    "local_protected",
+                    diagnostic,
+                )? != tomFalse.0
+            {
+                return None;
+            }
+        }
         // The COM getters may reenter their host. Recheck identity after them,
         // before this evidence can authorize reading/dispatching the selection.
         diagnostic.stage = "final_focus";
@@ -390,6 +497,24 @@ unsafe fn collect(
                 .GetFocus()
                 .and_then(|document| document.GetTop())
                 .is_ok_and(|focused| focused == *context)
+        {
+            return None;
+        }
+        let mut current_selection = [TF_SELECTION::default()];
+        let mut fetched = 0;
+        let result = context.GetSelection(
+            ec,
+            TF_DEFAULT_SELECTION,
+            &mut current_selection,
+            &mut fetched,
+        );
+        let current_selection = ManuallyDrop::take(&mut current_selection[0].range);
+        if result.is_err()
+            || fetched != 1
+            || !current_selection.is_some_and(|selected| {
+                selected.CompareStart(ec, range, TF_ANCHOR_START).ok() == Some(0)
+                    && selected.CompareEnd(ec, range, TF_ANCHOR_END).ok() == Some(0)
+            })
         {
             return None;
         }
