@@ -24,6 +24,7 @@ pub mod ids;
 mod input_profile;
 pub mod keymap;
 mod langbar;
+mod native_scope;
 mod packs;
 mod popup;
 mod preferences;

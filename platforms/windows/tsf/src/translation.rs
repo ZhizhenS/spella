@@ -31,6 +31,7 @@ pub(crate) struct SelectedText {
     range: ITfRange,
     original: Vec<u16>,
     guard: Arc<EditGuard>,
+    manager: Option<ITfThreadMgr>,
 }
 struct EditGuard {
     source: ITfSource,
@@ -63,7 +64,8 @@ impl ITfTextEditSink_Impl for SelectedTextObserver_Impl {
                     if record.GetSelectionStatus()?.as_bool() {
                         return Ok(true);
                     }
-                    let ranges = record.GetTextAndPropertyUpdates(TF_GTP_INCL_TEXT, &[])?;
+                    let ranges = record
+                        .GetTextAndPropertyUpdates(TF_GTP_INCL_TEXT, &[&GUID_PROP_INPUTSCOPE])?;
                     let mut values = [None];
                     let mut count = 0;
                     ranges.Next(&mut values, &mut count)?;
@@ -78,7 +80,15 @@ impl ITfTextEditSink_Impl for SelectedTextObserver_Impl {
     }
 }
 impl SelectedText {
+    #[cfg(test)]
     pub(crate) fn capture(context: &ITfContext, ec: u32) -> std::result::Result<Self, String> {
+        Self::capture_with_manager(context, ec, None)
+    }
+    fn capture_with_manager(
+        context: &ITfContext,
+        ec: u32,
+        manager: Option<ITfThreadMgr>,
+    ) -> std::result::Result<Self, String> {
         // SAFETY: caller holds a read/write cookie, interfaces remain on this apartment.
         unsafe {
             if context
@@ -96,7 +106,7 @@ impl SelectedText {
                 .GetSelection(ec, TF_DEFAULT_SELECTION, &mut selected, &mut count)
                 .map_err(|_| "此输入框不支持读取选区")?;
             let range = ManuallyDrop::take(&mut selected[0].range).ok_or("请先选中英文句子")?;
-            if count != 1 || !explicit_public_scope(context, ec, &range) {
+            if count != 1 || !explicit_public_scope(context, ec, &range, manager.as_ref()) {
                 return Err("此输入框的隐私属性不允许 AI 编辑".into());
             }
             let original = read_selected(&range, ec)
@@ -117,6 +127,7 @@ impl SelectedText {
             Ok(Self {
                 range,
                 original,
+                manager,
                 guard: Arc::new(EditGuard {
                     source,
                     cookie,
@@ -133,23 +144,7 @@ impl SelectedText {
         if !self.current() || units.len() > 6_144 || validate_text(&units).is_err() {
             return Err(E_ABORT.into());
         }
-        // SAFETY: verify selection, privacy, original content and the independent
-        // revision guard while holding the write cookie, then perform one range write.
-        unsafe {
-            let mut selected = [TF_SELECTION::default()];
-            let mut count = 0;
-            context.GetSelection(ec, TF_DEFAULT_SELECTION, &mut selected, &mut count)?;
-            let current = ManuallyDrop::take(&mut selected[0].range).ok_or(E_FAIL)?;
-            if count != 1
-                || current.CompareStart(ec, &self.range, TF_ANCHOR_START)? != 0
-                || current.CompareEnd(ec, &self.range, TF_ANCHOR_END)? != 0
-                || read_selected(&self.range, ec)? != self.original
-                || !explicit_public_scope(context, ec, &self.range)
-                || context.GetStatus()?.dwDynamicFlags & TS_SD_READONLY != 0
-                || !self.current()
-            {
-                return Err(E_ABORT.into());
-            }
+        self.with_verified(context, ec, || unsafe {
             self.range.SetText(ec, 0, &units)?;
             // Text is already committed; a host rejecting caret movement must not
             // cause us to report that the original text was left unchanged.
@@ -167,36 +162,260 @@ impl SelectedText {
                 }
             }
             Ok(())
+        })
+    }
+    pub(crate) fn with_verified(
+        &self,
+        context: &ITfContext,
+        ec: u32,
+        dispatch: impl FnOnce() -> Result<()>,
+    ) -> Result<()> {
+        if !self.current() {
+            return Err(E_ABORT.into());
+        }
+        // SAFETY: verify selection, privacy, original content and the independent
+        // revision guard while holding the fresh cookie, before reading or dispatch.
+        unsafe {
+            let mut selected = [TF_SELECTION::default()];
+            let mut count = 0;
+            context.GetSelection(ec, TF_DEFAULT_SELECTION, &mut selected, &mut count)?;
+            let current = ManuallyDrop::take(&mut selected[0].range).ok_or(E_FAIL)?;
+            if count != 1
+                || current.CompareStart(ec, &self.range, TF_ANCHOR_START)? != 0
+                || current.CompareEnd(ec, &self.range, TF_ANCHOR_END)? != 0
+                || !explicit_public_scope(context, ec, &self.range, self.manager.as_ref())
+                || context.GetStatus()?.dwDynamicFlags & TS_SD_READONLY != 0
+                || read_selected(&self.range, ec)? != self.original
+                || !self.current()
+            {
+                return Err(E_ABORT.into());
+            }
+        }
+        dispatch()
+    }
+}
+fn explicit_public_scope(
+    context: &ITfContext,
+    ec: u32,
+    range: &ITfRange,
+    manager: Option<&ITfThreadMgr>,
+) -> bool {
+    let mut diagnostic = ScopeDiagnostic::default();
+    let allowed = inspect_public_scope(context, ec, range, manager, &mut diagnostic);
+    // Fixed metadata only. Never include selected text, window names, paths or credentials.
+    #[cfg(not(test))]
+    crate::settings_log::event("launcher", "ai_scope_check", 0, format!(
+        "allowed={allowed} stage={} status_hr={:?} static={:?} dynamic={:?} property_hr={:?} value_hr={:?} vt={:?} scope_hr={:?} scope_count={:?} enum_hr={:?} enum_next_hr={:?} ranges={} scopes={:?}",
+        diagnostic.stage, diagnostic.status_hr, diagnostic.static_flags, diagnostic.dynamic_flags,
+        diagnostic.property_hr, diagnostic.value_hr, diagnostic.variant, diagnostic.scope_hr,
+        diagnostic.scope_count, diagnostic.enum_hr, diagnostic.enum_next_hr,
+        diagnostic.ranges, diagnostic.scopes,
+    ));
+    allowed
+}
+#[derive(Default)]
+struct ScopeDiagnostic {
+    stage: &'static str,
+    status_hr: Option<i32>,
+    static_flags: Option<u32>,
+    dynamic_flags: Option<u32>,
+    property_hr: Option<i32>,
+    value_hr: Option<i32>,
+    variant: Option<u16>,
+    scope_hr: Option<i32>,
+    scope_count: Option<u32>,
+    enum_hr: Option<i32>,
+    enum_next_hr: Option<i32>,
+    ranges: usize,
+    scopes: Vec<i32>,
+}
+#[derive(PartialEq, Eq, Debug)]
+enum ScopeValue {
+    Absent,
+    Public,
+    Reject,
+}
+fn scope_value(
+    hr: windows_core::HRESULT,
+    value: &windows::Win32::System::Variant::VARIANT,
+    diagnostic: &mut ScopeDiagnostic,
+) -> ScopeValue {
+    use windows::Win32::System::Variant::{VT_EMPTY, VT_UNKNOWN};
+    // SAFETY: read only the discriminator before converting a validated VARIANT.
+    let variant = unsafe { value.Anonymous.Anonymous.vt };
+    diagnostic.value_hr = Some(hr.0);
+    diagnostic.variant = Some(variant.0);
+    // Native TSF also returns S_OK when the owner explicitly returns a supported
+    // TS_ATTRVAL with VT_EMPTY. Neither success proves whole-range absence.
+    if matches!(hr, S_OK | S_FALSE) && variant == VT_EMPTY {
+        return ScopeValue::Absent;
+    }
+    if hr != S_OK || variant != VT_UNKNOWN {
+        return ScopeValue::Reject;
+    }
+    let scope = match windows_core::IUnknown::try_from(value)
+        .and_then(|unknown| unknown.cast::<ITfInputScope>())
+    {
+        Ok(scope) => scope,
+        Err(error) => {
+            diagnostic.scope_hr = Some(error.code().0);
+            diagnostic.stage = "scope_query";
+            return ScopeValue::Reject;
+        }
+    };
+    // SAFETY: COM owns the output allocation; check status/count before slicing
+    // and always release it. S_FALSE/zero/null are not documented default scopes.
+    unsafe {
+        let mut scopes = std::ptr::null_mut();
+        let mut count = 0;
+        let result = (scope.vtable().GetInputScopes)(scope.as_raw(), &mut scopes, &mut count);
+        diagnostic.scope_hr = Some(result.0);
+        diagnostic.scope_count = Some(count);
+        diagnostic.stage = "scope_array";
+        let allowed = result == S_OK && (1..=64).contains(&count) && !scopes.is_null() && {
+            let scopes = std::slice::from_raw_parts(scopes, count as usize);
+            diagnostic.scopes.extend(
+                scopes
+                    .iter()
+                    .take(16usize.saturating_sub(diagnostic.scopes.len()))
+                    .map(|scope| scope.0),
+            );
+            scopes
+                .iter()
+                .all(|scope| matches!(*scope, IS_DEFAULT | IS_TEXT))
+        };
+        windows::Win32::System::Com::CoTaskMemFree(Some(scopes.cast()));
+        if allowed {
+            ScopeValue::Public
+        } else {
+            ScopeValue::Reject
         }
     }
 }
-fn explicit_public_scope(context: &ITfContext, ec: u32, range: &ITfRange) -> bool {
-    // SAFETY: only an explicitly declared ordinary text scope permits cloud editing.
-    // Missing/empty properties, malformed metadata and private fields fail closed.
+fn scope_status_allows_editing(status: &TS_STATUS) -> bool {
+    // NOHIDDENTEXT describes a document capability, not whether a field is private.
+    status.dwDynamicFlags & (TS_SD_READONLY | TS_SD_LOADING) == 0
+}
+fn inspect_public_scope(
+    context: &ITfContext,
+    ec: u32,
+    range: &ITfRange,
+    manager: Option<&ITfThreadMgr>,
+    diagnostic: &mut ScopeDiagnostic,
+) -> bool {
+    // SAFETY: the caller holds a cookie for this context/range. Preserve raw
+    // HRESULTs because generated Result bindings erase the S_FALSE distinction.
     unsafe {
-        let Ok(property) = context.GetAppProperty(&GUID_PROP_INPUTSCOPE) else {
+        diagnostic.stage = "status";
+        let mut status = TS_STATUS::default();
+        let status_hr = (context.vtable().GetStatus)(context.as_raw(), &mut status);
+        diagnostic.status_hr = Some(status_hr.0);
+        if status_hr != S_OK {
+            return false;
+        }
+        diagnostic.static_flags = Some(status.dwStaticFlags);
+        diagnostic.dynamic_flags = Some(status.dwDynamicFlags);
+        if !scope_status_allows_editing(&status) {
+            return false;
+        }
+        diagnostic.stage = "property";
+        let mut raw = std::ptr::null_mut();
+        let hr =
+            (context.vtable().GetAppProperty)(context.as_raw(), &GUID_PROP_INPUTSCOPE, &mut raw);
+        diagnostic.property_hr = Some(hr.0);
+        let property = (!raw.is_null()).then(|| ITfReadOnlyProperty::from_raw(raw));
+        // Unsupported/missing interfaces and errors do not prove a default field.
+        let Some(property) = property.filter(|_| hr == S_OK) else {
             return false;
         };
-        let Ok(value) = property.GetValue(ec, range) else {
+        let read_value = |target: &ITfRange, diagnostic: &mut ScopeDiagnostic| {
+            let mut value = windows::Win32::System::Variant::VARIANT::default();
+            let hr =
+                (property.vtable().GetValue)(property.as_raw(), ec, target.as_raw(), &mut value);
+            scope_value(hr, &value, diagnostic)
+        };
+        diagnostic.stage = "value";
+        match read_value(range, diagnostic) {
+            ScopeValue::Public => {
+                diagnostic.stage = "explicit_public";
+                return true;
+            }
+            ScopeValue::Reject => {
+                if diagnostic
+                    .value_hr
+                    .zip(diagnostic.variant)
+                    .is_some_and(|(hr, vt)| crate::native_scope::eligible(hr, vt))
+                {
+                    let allowed = crate::native_scope::verify(manager, context, ec, range);
+                    diagnostic.stage = if allowed {
+                        "native_plain_compat"
+                    } else {
+                        "native_plain_rejected"
+                    };
+                    return allowed;
+                }
+                return false;
+            }
+            ScopeValue::Absent => {}
+        }
+        // GetValue(success, VT_EMPTY) also means mixed/partial coverage. Enumerate
+        // every clipped subrange, including empty values, and verify exact coverage.
+        diagnostic.stage = "enum_ranges";
+        let mut raw = std::ptr::null_mut();
+        let hr = (property.vtable().EnumRanges)(property.as_raw(), ec, &mut raw, range.as_raw());
+        diagnostic.enum_hr = Some(hr.0);
+        let ranges = (!raw.is_null()).then(|| IEnumTfRanges::from_raw(raw));
+        let Some(ranges) = ranges.filter(|_| hr == S_OK) else {
             return false;
         };
-        let Ok(unknown) = windows_core::IUnknown::try_from(&value) else {
+        let Ok(mut cursor) = range.Clone() else {
             return false;
         };
-        let Ok(scope) = unknown.cast::<ITfInputScope>() else {
+        if cursor.Collapse(ec, TF_ANCHOR_START).is_err() {
             return false;
+        }
+        let mut absent = false;
+        loop {
+            let mut raw = std::ptr::null_mut();
+            let mut fetched = 0;
+            let hr = (ranges.vtable().Next)(ranges.as_raw(), 1, &mut raw, &mut fetched);
+            diagnostic.enum_next_hr = Some(hr.0);
+            let chunk = (!raw.is_null()).then(|| ITfRange::from_raw(raw));
+            if hr == S_FALSE && fetched == 0 && chunk.is_none() {
+                break;
+            }
+            diagnostic.stage = "enum_partition";
+            let Some(chunk) = chunk.filter(|_| hr == S_OK && fetched == 1) else {
+                return false;
+            };
+            diagnostic.ranges += 1;
+            if diagnostic.ranges > MAX_ASSIST_TEXT
+                || !chunk.IsEmpty(ec).is_ok_and(|empty| !empty.as_bool())
+                || chunk.CompareStart(ec, &cursor, TF_ANCHOR_END).ok() != Some(0)
+                || !chunk
+                    .CompareEnd(ec, range, TF_ANCHOR_END)
+                    .is_ok_and(|end| end <= 0)
+            {
+                return false;
+            }
+            diagnostic.stage = "enum_value";
+            match read_value(&chunk, diagnostic) {
+                ScopeValue::Public => {}
+                ScopeValue::Absent => absent = true,
+                ScopeValue::Reject => return false,
+            }
+            cursor = chunk;
+        }
+        diagnostic.stage = "enum_coverage";
+        if diagnostic.ranges == 0 || cursor.CompareEnd(ec, range, TF_ANCHOR_END).ok() != Some(0) {
+            return false;
+        }
+        diagnostic.stage = if absent {
+            "verified_default"
+        } else {
+            "enumerated_public"
         };
-        let mut scopes = std::ptr::null_mut();
-        let mut count = 0;
-        let result = scope.GetInputScopes(&mut scopes, &mut count);
-        let allowed = result.is_ok()
-            && (1..=64).contains(&count)
-            && !scopes.is_null()
-            && std::slice::from_raw_parts(scopes, count as usize)
-                .iter()
-                .all(|scope| matches!(*scope, IS_DEFAULT | IS_TEXT));
-        windows::Win32::System::Com::CoTaskMemFree(Some(scopes.cast()));
-        allowed
+        true
     }
 }
 fn read_selected(range: &ITfRange, ec: u32) -> Result<Vec<u16>> {
@@ -304,7 +523,8 @@ fn capture_or_notice(
     } else if state.session().is_some_and(|session| session.shadow) {
         Err("此输入框暂不支持 AI 选区编辑".into())
     } else {
-        SelectedText::capture(context, ec)
+        let manager = lock(&state.thread_mgr).clone();
+        SelectedText::capture_with_manager(context, ec, manager)
     };
     let (selected, original, message) = match snapshot {
         Ok(selected) => {
@@ -360,16 +580,12 @@ fn start_task(hwnd: HWND, task: AssistTask) {
         status(hwnd, "选区已变化，请重新选中后重试");
         return;
     }
-    let Ok(text) = String::from_utf16(&selected.original) else {
-        return;
-    };
     let cancelled = Arc::new(AtomicBool::new(false));
-    let (tx, rx) = mpsc::channel();
     unsafe {
         let Some(f) = frame(hwnd) else { return };
         f.cancelled.store(true, Ordering::Release);
         f.cancelled = Arc::clone(&cancelled);
-        f.response = Some(rx);
+        f.response = None;
         f.translation = None;
         f.preview = false;
         f.busy = true;
@@ -383,7 +599,97 @@ fn start_task(hwnd: HWND, task: AssistTask) {
         f.hide_at = None;
     }
     resize_notice(hwnd, false);
-    if std::thread::Builder::new()
+    let validation: ITfEditSession = ValidateTask {
+        state: Arc::downgrade(&state),
+        context: context.clone(),
+        selected,
+        epoch,
+        owner,
+        cancelled: Arc::clone(&cancelled),
+        window: hwnd.0 as usize,
+        task,
+    }
+    .into();
+    // Always queue a fresh read transaction, including panel retries/completions.
+    // No worker receives text until this later cookie revalidates the source.
+    let result = unsafe {
+        context.RequestEditSession(
+            state.tid.load(Ordering::SeqCst),
+            &validation,
+            TF_ES_ASYNC | TF_ES_READ,
+        )
+    };
+    if result.is_err() || result.is_ok_and(|session| session.is_err()) {
+        if !cancelled.load(Ordering::Acquire) {
+            status(hwnd, "应用拒绝验证选区，未发送文本");
+        }
+    }
+}
+#[implement(ITfEditSession)]
+struct ValidateTask {
+    state: Weak<TipState>,
+    context: ITfContext,
+    selected: SelectedText,
+    epoch: u32,
+    owner: HWND,
+    cancelled: Arc<AtomicBool>,
+    window: usize,
+    task: AssistTask,
+}
+impl ITfEditSession_Impl for ValidateTask_Impl {
+    fn DoEditSession(&self, ec: u32) -> Result<()> {
+        guarded(|| {
+            if self.cancelled.load(Ordering::Acquire) {
+                return Ok(());
+            }
+            let Some(state) = self.state.upgrade() else {
+                return Ok(());
+            };
+            let hwnd = HWND(self.window as *mut _);
+            let result = if same_target(&state, &self.context, self.epoch, self.owner) {
+                self.selected.with_verified(&self.context, ec, || {
+                    if self.cancelled.load(Ordering::Acquire)
+                        || !same_target(&state, &self.context, self.epoch, self.owner)
+                    {
+                        return Err(E_ABORT.into());
+                    }
+                    spawn_verified_task(
+                        hwnd,
+                        self.task,
+                        &self.selected.original,
+                        Arc::clone(&self.cancelled),
+                    )
+                })
+            } else {
+                Err(E_ABORT.into())
+            };
+            if result.is_err() && !self.cancelled.load(Ordering::Acquire) {
+                status(hwnd, "选区或隐私属性已变化，未发送文本");
+            }
+            Ok(())
+        })
+    }
+}
+fn spawn_verified_task(
+    hwnd: HWND,
+    task: AssistTask,
+    original: &[u16],
+    cancelled: Arc<AtomicBool>,
+) -> Result<()> {
+    if cancelled.load(Ordering::Acquire) {
+        return Err(E_ABORT.into());
+    }
+    let text = String::from_utf16(original).map_err(|_| windows_core::Error::from(E_INVALIDARG))?;
+    let (tx, rx) = mpsc::channel();
+    // SAFETY: validation and the notice both live on the same TSF apartment.
+    let Some(f) = (unsafe { frame(hwnd) }) else {
+        return Err(E_ABORT.into());
+    };
+    if !Arc::ptr_eq(&f.cancelled, &cancelled) {
+        return Err(E_ABORT.into());
+    }
+    f.response = Some(rx);
+    std::thread::Builder::new()
         .name("english-assist-edit".into())
         .spawn(move || {
             let operation = match task {
@@ -393,10 +699,8 @@ fn start_task(hwnd: HWND, task: AssistTask) {
             let result = retype_ai::client::run(operation, &cancelled);
             let _ = tx.send(result);
         })
-        .is_err()
-    {
-        status(hwnd, "无法创建 AI 编辑任务");
-    }
+        .map_err(|_| windows_core::Error::from(E_FAIL))?;
+    Ok(())
 }
 
 /// Only consume preview controls while a live editing preview owns them.
@@ -1410,6 +1714,116 @@ unsafe extern "system" fn window_proc(hwnd: HWND, msg: u32, wp: WPARAM, lp: LPAR
 #[cfg(test)]
 mod tests {
     use super::*;
+    use windows::Win32::System::{Com::CoTaskMemAlloc, Variant::VARIANT};
+    #[implement(ITfInputScope)]
+    struct DeclaredScopes(Vec<InputScope>);
+    impl ITfInputScope_Impl for DeclaredScopes_Impl {
+        fn GetInputScopes(&self, scopes: *mut *mut InputScope, count: *mut u32) -> Result<()> {
+            if scopes.is_null() || count.is_null() {
+                return Err(E_POINTER.into());
+            }
+            // SAFETY: caller supplies out parameters and releases the COM allocation.
+            unsafe {
+                *count = self.0.len() as u32;
+                *scopes = std::ptr::null_mut();
+                if !self.0.is_empty() {
+                    *scopes = CoTaskMemAlloc(std::mem::size_of_val(self.0.as_slice())).cast();
+                    if (*scopes).is_null() {
+                        return Err(E_OUTOFMEMORY.into());
+                    }
+                    std::ptr::copy_nonoverlapping(self.0.as_ptr(), *scopes, self.0.len());
+                }
+            }
+            Ok(())
+        }
+        fn GetPhrase(&self, _: *mut *mut windows_core::BSTR, _: *mut u32) -> Result<()> {
+            Err(E_NOTIMPL.into())
+        }
+        fn GetRegularExpression(&self) -> Result<windows_core::BSTR> {
+            Err(E_NOTIMPL.into())
+        }
+        fn GetSRGS(&self) -> Result<windows_core::BSTR> {
+            Err(E_NOTIMPL.into())
+        }
+        fn GetXML(&self) -> Result<windows_core::BSTR> {
+            Err(E_NOTIMPL.into())
+        }
+    }
+    #[test]
+    fn scope_getter_contract_distinguishes_absence_errors_and_sensitive_arrays() -> Result<()> {
+        let mut diagnostic = ScopeDiagnostic::default();
+        for hr in [S_OK, S_FALSE] {
+            assert_eq!(
+                scope_value(hr, &VARIANT::default(), &mut diagnostic),
+                ScopeValue::Absent
+            );
+        }
+        for hr in [E_FAIL, E_NOTIMPL, E_INVALIDARG] {
+            assert_eq!(
+                scope_value(hr, &VARIANT::default(), &mut diagnostic),
+                ScopeValue::Reject
+            );
+        }
+        assert_eq!(
+            scope_value(S_OK, &VARIANT::from(1i32), &mut diagnostic),
+            ScopeValue::Reject
+        );
+        for scope in [
+            IS_DEFAULT,
+            IS_TEXT,
+            IS_PASSWORD,
+            IS_PRIVATE,
+            IS_NUMERIC_PASSWORD,
+            IS_NUMERIC_PIN,
+            IS_ALPHANUMERIC_PIN,
+            IS_ALPHANUMERIC_PIN_SET,
+            InputScope(123456),
+        ] {
+            let object: ITfInputScope = DeclaredScopes(vec![IS_DEFAULT, scope]).into();
+            let value = VARIANT::from(object.cast::<windows_core::IUnknown>()?);
+            assert_eq!(
+                scope_value(S_OK, &value, &mut diagnostic),
+                if matches!(scope, IS_DEFAULT | IS_TEXT) {
+                    ScopeValue::Public
+                } else {
+                    ScopeValue::Reject
+                }
+            );
+            assert_eq!(
+                scope_value(S_FALSE, &value, &mut diagnostic),
+                ScopeValue::Reject
+            );
+        }
+        let object: ITfInputScope = DeclaredScopes(Vec::new()).into();
+        assert_eq!(
+            scope_value(
+                S_OK,
+                &VARIANT::from(object.cast::<windows_core::IUnknown>()?),
+                &mut diagnostic
+            ),
+            ScopeValue::Reject
+        );
+        Ok(())
+    }
+    #[test]
+    fn scope_status_does_not_confuse_hidden_text_capability_with_field_privacy() {
+        for static_flags in [0, TS_SS_NOHIDDENTEXT] {
+            for dynamic_flags in [
+                0,
+                TS_SD_READONLY,
+                TS_SD_LOADING,
+                TS_SD_READONLY | TS_SD_LOADING,
+            ] {
+                assert_eq!(
+                    scope_status_allows_editing(&TS_STATUS {
+                        dwStaticFlags: static_flags,
+                        dwDynamicFlags: dynamic_flags
+                    }),
+                    dynamic_flags == 0
+                );
+            }
+        }
+    }
     #[test]
     fn embedded_and_invalid_text_is_rejected() {
         assert!(validate_text(&[0xfffc]).is_err());

@@ -8,27 +8,23 @@ AI grammar correction and sentence completion, through a real English TSF entry.
 [简体中文](README.zh-CN.md) · [English input](docs/english-input.md) ·
 [P0 validation](docs/english-assist/INPUT_VALIDATION.md)
 
-**Current checkpoint (2026-11-09):** the formal `final-r2` build completed with
-336 Rust test passes, 0 failures and 6 ignored results across x64/x86 runs
-(including repeated tests), plus 19 Python passes and 446 PowerShell checks.
-The r3 package refreshes installer scripts only; native files retain the same
-frozen final-r2 bytes. Its install → uninstall → reinstall cycle returned 0 at
-each step. The final payload is `0.2.0-20261109024807-741245`; all 24 file hashes,
-sizes and build.json matched, with `Uninstalling=0` and no learning-service
-login startup entry. Separate x64/x86 runs each passed 30 cleanup and 100 pending
-operation policy checks; these are not added to the earlier 446 checks.
+**Current checkpoint (2026-11-09):** the formal R5 build completed with 350 Rust
+test passes, 0 failures and 6 ignored results across x64/x86 runs (including
+repeated tests), plus 19 Python passes and 505 PowerShell checks. Upgrade returned 0; the current payload is
+`0.2.0-20261109035537-776110`, with all 24 artifacts and build.json matching the
+frozen build. Successful requests confirmed that the privately configured
+credential survived the upgrade.
+Installed R5 x64/x86 probes each passed 2 checks with activation S_OK; these do not replace real typing tests in x86 editors.
 
-A fresh Windows 11 Notepad process loaded the r2 native DLL and displayed Chinese
-definitions and parts of speech; numeric selection and paging produced the saved
-text `hello apple helped`. This supplements the independent NativeRichEdit host
-check and remains relevant to r3's unchanged native bytes; it does not establish
-a fresh final-install test in every application. The r3 uninstall removed the
-checked product registry, per-user CTF cache and AppData state while preserving
-the existing Sogou and US language entries. Eight old file/directory deletion
-operations remain queued without alteration; their actual deletion after reboot
-has not been verified. Final-installed probes and settings screenshots are tracked
-separately in the [validation record](docs/english-assist/INPUT_VALIDATION.md).
-No new DeepSeek key has been configured and no external API request has been made.
+Real DeepSeek HTTP requests corrected a controlled grammar sample and completed
+a sentence. In a Notepad process loading the R5 DLL, grammar preview and confirmed
+replacement matched the saved file; sentence completion also passed both confirmed
+replacement and Escape cancellation with the original text preserved. These are
+bounded Notepad checks, not a compatibility or quality claim for every application.
+R5 was upgraded and tested without another uninstall cycle. Earlier r2/r3 offline,
+lifecycle, probe and settings screenshot evidence remains version-specific history;
+reboot deletion of queued old files is still unverified. See the
+[validation record](docs/english-assist/INPUT_VALIDATION.md) for samples and limits.
 
 ## Implemented features
 
@@ -46,7 +42,8 @@ No new DeepSeek key has been configured and no external API request has been mad
 - Grouped Chinese settings for input, candidate appearance, shortcuts, manual words and explicit AI editing.
 
 Manual words support explicit editing, import/export and previous-version backups.
-Automatic next-word prediction is outside this release; AI service and host validation remain separate acceptance items.
+Automatic next-word prediction is outside this release; AI results still require
+your review, and other applications need their own compatibility checks.
 
 In a genuine AppContainer, AI cannot cold-start if its helper is not already
 running, and opening settings from the candidate menu is restricted; open
@@ -75,8 +72,8 @@ download links for this fork.
 A validated installation should appear under Windows Settings → Time & language
 → Language & region → English (United States) → Language options → Keyboards,
 and be selectable with Win+Space. It must preserve the existing default keyboard.
-See the validation record for the completed r3 install/uninstall/reinstall cycle,
-the bounded r2 Notepad evidence, and the remaining reboot and application checks.
+See the validation record for the R5 build, upgrade and Notepad AI checks, with
+earlier r3 lifecycle results and remaining reboot/application checks kept separate.
 
 ## Everyday keyboard behavior
 

@@ -28,6 +28,11 @@ struct Data {
     text_read_stop: Option<usize>,
     truncated_reads: usize,
     input_scope: Option<InputScope>,
+    scope_segments: Vec<(i32, i32, Option<InputScope>)>,
+    requested_scope_position: i32,
+    scope_read_error: bool,
+    scope_transition_error: bool,
+    empty_scope_attribute: bool,
     scope_after_end: Option<InputScope>,
     requested_scope: bool,
     deferred_flags: Option<u32>,
@@ -401,6 +406,7 @@ impl ITextStoreACP_Impl for Store_Impl {
         pafilterattrs: *const windows_core::GUID,
         dwflags: u32,
     ) -> windows_core::Result<()> {
+        lock(&self.data).requested_scope_position = acppos;
         self.RequestSupportedAttrs(dwflags, cfilterattrs, pafilterattrs)
     }
     fn RequestAttrsTransitioningAtPosition(
@@ -423,9 +429,24 @@ impl ITextStoreACP_Impl for Store_Impl {
         pffound: *mut windows_core::BOOL,
         plfoundoffset: *mut i32,
     ) -> windows_core::Result<()> {
+        let data = lock(&self.data);
+        if data.scope_transition_error {
+            return Err(E_FAIL.into());
+        }
+        let halt = if acphalt < 0 {
+            data.text.len() as i32
+        } else {
+            acphalt
+        };
+        let next = data
+            .scope_segments
+            .iter()
+            .flat_map(|(start, end, _)| [*start, *end])
+            .filter(|position| *position > acpstart && *position < halt)
+            .min();
         unsafe {
-            *pacpnext = acphalt;
-            *pffound = BOOL(0);
+            *pacpnext = next.unwrap_or(halt);
+            *pffound = BOOL::from(next.is_some());
             *plfoundoffset = 0;
         }
         Ok(())
@@ -436,10 +457,27 @@ impl ITextStoreACP_Impl for Store_Impl {
         paattrvals: *mut TS_ATTRVAL,
         pcfetched: *mut u32,
     ) -> windows_core::Result<()> {
-        let scope = {
+        let (scope, explicit_empty) = {
             let mut data = lock(&self.data);
+            if data.scope_read_error {
+                return Err(E_FAIL.into());
+            }
             let requested = std::mem::take(&mut data.requested_scope);
-            data.input_scope.filter(|_| requested)
+            let scope = if data.scope_segments.is_empty() {
+                data.input_scope
+            } else {
+                data.scope_segments
+                    .iter()
+                    .find(|(start, end, _)| {
+                        *start <= data.requested_scope_position
+                            && data.requested_scope_position < *end
+                    })
+                    .and_then(|(_, _, scope)| *scope)
+            };
+            (
+                scope.filter(|_| requested),
+                requested && data.empty_scope_attribute,
+            )
         };
         unsafe {
             *pcfetched = 0;
@@ -449,6 +487,13 @@ impl ITextStoreACP_Impl for Store_Impl {
                     idAttr: GUID_PROP_INPUTSCOPE,
                     dwOverlapId: 0,
                     varValue: VARIANT::from(object.cast::<windows_core::IUnknown>()?),
+                };
+                *pcfetched = 1;
+            } else if explicit_empty && ulcount > 0 {
+                *paattrvals = TS_ATTRVAL {
+                    idAttr: GUID_PROP_INPUTSCOPE,
+                    dwOverlapId: 0,
+                    varValue: VARIANT::default(),
                 };
                 *pcfetched = 1;
             }
@@ -1941,6 +1986,7 @@ fn check_candidate_getters(
 #[derive(Clone, Copy)]
 enum AssistProbeWork {
     Capture,
+    Preflight,
     Mutate(&'static str),
     Apply,
 }
@@ -1959,6 +2005,15 @@ impl ITfEditSession_Impl for AssistSelectionProbe_Impl {
                     crate::translation::SelectedText::capture(&self.context, ec)
                         .map_err(|_| E_FAIL)?,
                 );
+            }
+            AssistProbeWork::Preflight => {
+                let snapshot = lock(&self.saved).clone().ok_or(E_FAIL)?;
+                let mut dispatched = false;
+                let _ = snapshot.with_verified(&self.context, ec, || {
+                    dispatched = true;
+                    Ok(())
+                });
+                *lock(&self.applied) = Some(dispatched);
             }
             AssistProbeWork::Mutate(text) => unsafe {
                 let mut selections = [TF_SELECTION::default()];
@@ -2040,6 +2095,8 @@ fn assistance_selection_refuses_change_then_undo_and_keeps_neighbor_text() -> Re
                 lock(&data).input_scope = Some(IS_DEFAULT);
                 run(AssistProbeWork::Capture)?;
                 assert!(lock(&saved).as_ref().is_some_and(|s| s.current()));
+                run(AssistProbeWork::Preflight)?;
+                assert_eq!(lock(&applied).take(), Some(true));
                 run(AssistProbeWork::Mutate("NEW"))?;
                 run(AssistProbeWork::Mutate("OLD"))?;
                 assert_eq!(lock(&data).text, original);
@@ -2047,12 +2104,45 @@ fn assistance_selection_refuses_change_then_undo_and_keeps_neighbor_text() -> Re
                     !lock(&saved).as_ref().is_some_and(|s| s.current()),
                     "undo must not revive an old AI request"
                 );
+                run(AssistProbeWork::Preflight)?;
+                assert_eq!(
+                    lock(&applied).take(),
+                    Some(false),
+                    "stale source must not dispatch a request"
+                );
                 run(AssistProbeWork::Apply)?;
                 assert_eq!(lock(&applied).take(), Some(false));
                 assert_eq!(lock(&data).text, original);
                 run(AssistProbeWork::Capture)?;
                 run(AssistProbeWork::Apply)?;
                 assert_eq!(lock(&applied).take(), Some(true));
+                assert_eq!(
+                    String::from_utf16_lossy(&lock(&data).text),
+                    "prefix FIX suffix"
+                );
+                {
+                    let mut data = lock(&data);
+                    data.start = 7;
+                    data.end = 10;
+                }
+                let sink = lock(&data).sink.clone();
+                if let Some(sink) = sink {
+                    sink.OnSelectionChange()?;
+                }
+                run(AssistProbeWork::Capture)?;
+                lock(&data).input_scope = Some(IS_PRIVATE);
+                let sink = lock(&data).sink.clone();
+                if let Some(sink) = sink {
+                    sink.OnAttrsChange(0, original.len() as i32, &[GUID_PROP_INPUTSCOPE])?;
+                }
+                run(AssistProbeWork::Preflight)?;
+                assert_eq!(
+                    lock(&applied).take(),
+                    Some(false),
+                    "scope-only privacy change must not dispatch a request"
+                );
+                run(AssistProbeWork::Apply)?;
+                assert_eq!(lock(&applied).take(), Some(false));
                 assert_eq!(
                     String::from_utf16_lossy(&lock(&data).text),
                     "prefix FIX suffix"
@@ -2070,6 +2160,96 @@ fn assistance_selection_refuses_change_then_undo_and_keeps_neighbor_text() -> Re
     .map_err(|_| E_FAIL)?
 }
 
+#[test]
+fn assistance_scope_defaults_require_a_complete_nonsensitive_partition() -> Result<()> {
+    std::thread::spawn(|| -> Result<()> {
+        unsafe {
+            CoInitializeEx(None, COINIT_APARTMENTTHREADED).ok()?;
+            let result = (|| -> Result<()> {
+                let manager: ITfThreadMgr =
+                    CoCreateInstance(&CLSID_TF_ThreadMgr, None, CLSCTX_INPROC_SERVER)?;
+                let tid = manager.Activate()?;
+                for (segments, read_error, transition_error, allowed) in [
+                    (Vec::new(), false, false, true),
+                    (
+                        vec![(0, 2, None), (2, 5, Some(IS_PASSWORD)), (5, 9, None)],
+                        false,
+                        false,
+                        false,
+                    ),
+                    (
+                        vec![(0, 2, None), (2, 5, Some(IS_PRIVATE)), (5, 9, None)],
+                        false,
+                        false,
+                        false,
+                    ),
+                    (
+                        vec![(0, 2, None), (2, 5, Some(IS_NUMERIC_PIN)), (5, 9, None)],
+                        false,
+                        false,
+                        false,
+                    ),
+                    (
+                        vec![(0, 2, None), (2, 5, Some(InputScope(123456))), (5, 9, None)],
+                        false,
+                        false,
+                        false,
+                    ),
+                    (Vec::new(), true, false, false),
+                    (Vec::new(), false, true, false),
+                ] {
+                    // Each fresh context begins with its actual attribute map;
+                    // no stale TSF attribute cache or omitted notification is relied on.
+                    let document = manager.CreateDocumentMgr()?;
+                    let data = Arc::new(Mutex::new(Data {
+                        text: "ordinary!".encode_utf16().collect(),
+                        start: 0,
+                        end: 9,
+                        hidden: true,
+                        scope_segments: segments,
+                        empty_scope_attribute: true,
+                        scope_read_error: read_error,
+                        scope_transition_error: transition_error,
+                        ..Default::default()
+                    }));
+                    let store: ITextStoreACP = Store {
+                        data: Arc::clone(&data),
+                    }
+                    .into();
+                    let mut context = None;
+                    let mut cookie = 0;
+                    document.CreateContext(tid, 0, &store, &mut context, &mut cookie)?;
+                    let context = context.ok_or(E_FAIL)?;
+                    document.Push(&context)?;
+                    let saved = Arc::new(Mutex::new(None));
+                    let session: ITfEditSession = AssistSelectionProbe {
+                        context: context.clone(),
+                        saved: Arc::clone(&saved),
+                        work: AssistProbeWork::Capture,
+                        applied: Arc::new(Mutex::new(None)),
+                    }
+                    .into();
+                    let captured = context
+                        .RequestEditSession(tid, &session, TF_ES_SYNC | TF_ES_READWRITE)
+                        .is_ok_and(|result| result.is_ok());
+                    assert_eq!(
+                        captured, allowed,
+                        "read_error={read_error}, transition_error={transition_error}"
+                    );
+                    assert_eq!(String::from_utf16_lossy(&lock(&data).text), "ordinary!");
+                    lock(&saved).take();
+                    document.Pop(TF_POPF_ALL)?;
+                }
+                manager.Deactivate()?;
+                Ok(())
+            })();
+            CoUninitialize();
+            result
+        }
+    })
+    .join()
+    .map_err(|_| E_FAIL)?
+}
 #[test]
 fn assistance_selection_rejects_a_fresh_truncated_text_store() -> Result<()> {
     std::thread::spawn(|| -> Result<()> {

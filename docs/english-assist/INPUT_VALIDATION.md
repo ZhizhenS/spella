@@ -6,7 +6,25 @@
 
 ## 2026-11-09 集成交付检查点
 
-此节记录 final-r2 原生构建与 r3 脚本刷新后的安装→卸载→重装证据。r3 只重打包脚本，所有原生文件仍为 final-r2 冻结的相同字节；应用验证按实际执行版本分别记录。
+当前交付为 R5，原生文件已重新正式构建。下列证据区分生产 HTTP、真实记事本 GUI、保存文件核对及此前版本记录，不将旧 r3 的相同字节结论或卸载结果直接套到 R5。
+
+| R5 项目 | 当前结果及边界 |
+| --- | --- |
+| 正式构建 | `work/build-logs/v0.2.0-ai-r5-build.log` 显示正式构建完成；24 条 Rust summary 合计350通过、0失败、6忽略（含 x86 重复执行，不是350个唯一用例），Python19通过；PowerShell19条 cases-passed 输出合计505项 |
+| 正式升级与文件核对 | 升级退出0，ActiveDir=`C:\Program Files\EnglishAssist\versions\0.2.0-20261109035537-776110`；24项产物及 build.json 全部匹配冻结清单。日志 `work/build-logs/v0.2.0-ai-r5-upgrade.log`；核对收据 `work/research/20261109-installed-ai-r5-hashes.json`。本轮没有再次卸载 |
+| R5 安装后 x64/x86 探针 | 两种架构各2通过、0失败、退出0，ActivateProfile 均为 S_OK；直接运行已有 R5 测试程序，进程内选择已恢复，没有注册或默认输入法变更。日志 `work/build-logs/v0.2.0-ai-r5-installed-probes-x64.log`、`work/build-logs/v0.2.0-ai-r5-installed-probes-x86.log`。单独记录，不加进正式构建的350项；不替代 x86 编辑器真实键入测试 |
+| 凭据与真实 production HTTP | 用户已私下配置新 Key，升级后实际成功请求确认凭据保留；不在文档、日志或源码包保存密钥。受控样例 `She go to school every day.` → `She goes to school every day.`，观察耗时889ms；`I would like to` → `I would like to go home.`，799ms。收据 `work/research/deepseek-live-api.json`。这两次 HTTP 观察值不等于 GUI 端到端延迟、质量统计或服务保证 |
+| 真实 Notepad 语法修正 | PID39900 已加载该 R5 DLL。选中公开测试句 `She go to school every day.`，Ctrl+Alt+G 得真实预览 `She goes to school every day.`；Ctrl+Enter 应用、Ctrl+S 保存，再读取自有测试文件与预期完全一致 |
+| 真实 Notepad 补句取消 | 选中 `I would like to`，点击补完句子，真实预览 `I would like to go home now.`；Esc 取消后 Ctrl+S，自有文件保持原输入完全一致 |
+| 真实 Notepad 补句应用 | 再次补完，真实预览 `I would like to learn more about this.`；Ctrl+Enter、Ctrl+S 后，自有文件与该结果完全一致。三场景收据 `work/research/20261109-notepad-ai-r5.json` |
+| 输入范围核验 | R5 对 scope 查询 E_FAIL 的兼容处理仅适用于能证明为本进程同线程、可见可编辑的 RichEdit，且选择与 TSF 选区一致、非 password/hidden/protected；捕获、派发及应用三个阶段均复验，显式敏感 scope 继续拒绝。固定元数据导出 `work/research/notepad-ai-r5-scope-metadata.jsonl` 不记录输入正文 |
+| 验证范围 | 真实 GUI 结果限上述 Notepad 进程及公开受控样例；不声明全部应用、x86 编辑器键入、全部敏感控件或长文本质量已逐项实测。R5 未再次卸载；旧文件实际重启删除未核验；配置凭据后不再截图 AI 设置页 |
+
+真正 AppContainer 中，AI helper 未预先运行时仍不支持冷启动 AI，从候选菜单启动设置也受限制；开始菜单“英文助手设置”可用。不能仅凭 packaged 身份认定 AppContainer，也不能把 Notepad 成功扩大为全部沙箱应用通过。
+
+### 此前 r2/r3 证据（历史）
+
+以下记录属于旧构建/安装版本，保留作溯源。r3 当时只刷新脚本、原生与 final-r2 相同；该字节一致性不适用于本次重新构建的 R5。
 
 | 项目 | 当前结果及边界 |
 | --- | --- |
@@ -18,17 +36,16 @@
 | 独立 NativeRichEdit desktop_host | 真实 UI 三场景：`hello → 4 → hello`；`pingguo → 1 → apple`；`hel → - / + / = 翻页 → 第二页 3 → helped`。证明该独立测试宿主的本地候选、数字选择、拼音及翻页，不扩大为全部应用兼容或新冻结包全部通过 |
 | Windows 11 新记事本进程 | PID 40620 实际加载 r2 DLL；h/e/hel 的词性与中文正常；`hel + 4 → hello`、`pingguo + 1 → apple`；hel 下 Shift+equals 到 2/6 页、Shift+minus 回 1/6、equals 到 2/6，按 3 得 helped；自有测试文档实际保存 `hello apple helped`，未混入释义/编号。收据 `work/research/20261109-notepad-final-r2.json`。只代表该真实 Notepad 场景，不扩为全部应用兼容 |
 | r2 卸载与状态核对 | DLL 仍被宿主加载时卸载器退出 0。品牌 HKLM/HKCU 与产品 AppData 均移除；机器 COM/Profile 在32/64视图均移除；自有 SortOrder 无项，搜狗和 US 语言列表保持完整。日志 `work/build-logs/v0.2.0-final-r2-uninstall.log`；当时的缓存/重装问题及后续处理见历史段 |
-| 最终安装探针 | 最终安装的 x64/x86 各 2 项发现、加载和进程内激活检查通过，激活 HRESULT 均为 S_OK；日志 `work/build-logs/v0.2.0-installed-x64-final.log`、`v0.2.0-installed-x86-final.log`。这不替代 x86 编辑器的真实键入测试 |
-| 设置截图/操作 | 设置套件 20 通过/1 忽略；最终 installed exe 的常规、输入、外观、词库、AI 五页已重新截图并逐页检查布局，见 `work/research/settings-cli-0.2-20261109-024903/manifest.json`。截图不代表所有控件逐个完成真实点击验收，跨宿主手工词库与控件效果仍按下方矩阵区分 |
-| DeepSeek 外部服务 | 未配置新 Key、未调用外部 API；已有选区、预览、确认和过期结果回归不代表真实服务、输出质量或延迟通过 |
+| r3 安装探针 | 当时安装的 x64/x86 各 2 项发现、加载和进程内激活检查通过，激活 HRESULT 均为 S_OK；日志 `work/build-logs/v0.2.0-installed-x64-final.log`、`v0.2.0-installed-x86-final.log`。这不替代 R5 探针或 x86 编辑器真实键入 |
+| r3 设置截图/操作 | 设置套件20通过/1忽略；当时 installed exe 的常规、输入、外观、词库、AI 五页已截图并逐页检查布局，见 `work/research/settings-cli-0.2-20261109-024903/manifest.json`。这是配置新凭据前的旧版截图，不是 R5 新截图，也不代表全部控件真实点击验收 |
 
-**当前生命周期门槛：安装→卸载→重装已完成。** 原有 Windows pending 队列没有修改，8项均为已知旧 DLL 删除或经文件属性核验的已知目录空删：3个旧 DLL、3个旧 payload 目录、versions 和产品根目录。新目录独立分配，排队旧文件的实际删除尚未重启核验；不把排队成功写为删除已经完成。
+**历史 r3 生命周期：安装→卸载→重装完成。** 当时 pending 队列未修改，8项均为已知旧 DLL 删除或经属性核验的已知目录空删：3个旧 DLL、3个旧 payload 目录、versions 和产品根目录。新目录独立分配，排队成功不等于实际删除；本次 R5 没有执行重启删除核验。
 
 r3 重装前检查支持实测的精确 `*1\??\` NT 路径形式，仍校验产品范围、旧版本关系、目录属性与重解析限制。`*1` 在此仅是实测队列格式，不能解释为公开 API flags。目录重启删除只在目录为空时发生的依据是 [Microsoft MoveFileExW 文档](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-movefileexw)；该文档不用于解释此实测前缀。
 
-r2 已包含本包资源优先加载、生产输入 Noop 学习、无学习服务登录自启及 broker 登记/卸载状态门。缺失或错误的登记、Uninstalling 非显式 DWORD0 时 broker 拒绝生产启动；测试命令的隔离数据库例外不代表实际用户路径。原生文件证据沿用 final-r2；r3 新脚本由其独立策略测试及实际安装/卸载/重装结果覆盖，不借用 r2 测试数量。r2 记事本三场景仍有效地限定到这些相同原生字节，不称为最终重新安装后已逐应用全测。
+r2 已加入本包资源优先加载、生产输入 Noop 学习、无学习服务登录自启及 broker 登记/卸载状态门。缺失或错误的登记、Uninstalling 非显式 DWORD0 时 broker 拒绝生产启动；测试命令的隔离数据库例外不代表实际用户路径。r3 新脚本由其独立策略测试及实际生命周期结果覆盖。旧 r2 记事本离线三场景仍保留为旧版本证据，不当作 R5 全部应用重新实测。
 
-真正 AppContainer 中，AI helper 未预先运行时不支持冷启动 AI，从候选菜单启动设置也受限制；开始菜单“英文助手设置”可用。此边界不适用于所有打包应用，不能只凭 packaged 身份认定 AppContainer。DeepSeek 未配置新 Key、未外网验收的状态不变。
+在上述旧检查点尚未配置新凭据，不能由那些旧记录证明真实 DeepSeek 服务；最新 HTTP 与 GUI 结果已更新到本节顶部 R5 表。
 
 ## 当前键盘约定
 
@@ -132,5 +149,6 @@ UI-less `ShowCandidateNumbers` 返回 TRUE；展示字符串可以含注释，Fi
 - 2026-11-07：初始源码阶段缺少 link.exe，首次 cargo test 在链接阶段失败，没有运行测试；当时采用数字全部原样输入、无编号候选方案。
 - 随后安装 MSVC/SDK，修复测试 fixture 对旧 Shift 默认绑定的依赖；生产 Shift 默认保持禁用。普通富文本候选路径和私密范围分别建立回归。
 - 2026-11-08：用户明确要求 1–5 选词、减加号翻页，当前交互表取代初始数字方案；新增候选释义、拼音、外观和手工词库设置。根任务负责 0.2.0 最终构建、安装和实际应用验证。
-- 2026-11-09 早期检查点：旧 final-build 合计 318 Rust 通过/6忽略、Python19、脚本374；当时安装 DLL 为87DAFFFA前缀。旧9431进程中的记事本数字选词可提交hello，但释义失败，新窗口仍复用旧进程；早期卸载1→直接cleanup0→retry1。以上属于历史问题和旧构建，当前证据已更新为顶部 final-r2 原生加 r3 脚本，不将旧进程结果混入新包验收。
+- 2026-11-09 早期检查点：旧 final-build 合计318 Rust通过/6忽略、Python19、脚本374；当时安装 DLL 为87DAFFFA前缀。旧9431进程中的记事本数字选词可提交hello，但释义失败，新窗口仍复用旧进程；早期卸载1→直接cleanup0→retry1。以上均为旧构建历史，最新证据在顶部 R5 表，不将旧进程结果混入新包验收。
 - r2 历史待办曾有 HKCU CTF TIP Enable=0 缓存及8项旧文件/目录排队删除，重装尚未完成。r3 已清除自有缓存、核验旧路径并完成再次重装，pending 队列本身未修改；仍未执行实际重启删除核验。
+- R4 曾在正常 Notepad 的 scope 查询 E_FAIL 时误拒绝 AI 选区，不能视为 GUI 成功；R5 窄范围兼容修复后已完成顶部三场景真实 GUI 验证。r3 卸载循环与旧版截图不替代 R5 的重新卸载或配置凭据后截图。
