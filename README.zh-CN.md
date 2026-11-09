@@ -1,4 +1,4 @@
-# English Assist 0.4.0 英文助手（开发分支）
+# English Assist 0.5.0 英文助手（开发分支）
 
 本项目基于 [Retype 固定版本 902e35e](https://github.com/L-Chris/retype/tree/902e35e06ee4f744320cf995c39b1f64693034cf)
 开发 Windows 英文输入法，目标是在英语键盘列表中提供本地单词补全、拼写建议，
@@ -7,7 +7,23 @@
 [English](README.md) · [英文输入操作](docs/english-input.md) ·
 [P0 验证记录](docs/english-assist/INPUT_VALIDATION.md)
 
-## 0.4.0 输入状态与空格
+## 0.5.0 关系词库与英文夹拼音
+
+**0.5.0 R1正式检查点：** 构建通过413次Rust、46次Python和619次PowerShell检查，共1,078次通过结果，含x86重复，不是唯一测试总数。Rust为0失败、原始汇总7次忽略；随后显式运行的真实准备资源集成已计入413次通过。安装后x64/x86激活探针各2项通过、S_OK，4项另计。升级退出0，目录 `C:\Program Files\EnglishAssist\versions\0.5.0-20261109121445-346651` 的25项产物摘要及build.json全部匹配冻结构建。下方0.4.0及更早结果仍为历史证据。
+
+- 拼音词库保留“中文词条—带声调读音—原始义项—英文词”的关系证据，按中文词/读音用频、关系质量等排序，不再只按英文词频把常见英文释义推到前面。
+- `拼音 · 想` 表示精确拼音键命中，`扩展 · 想法` 表示通过前缀找到更长的拼音键。匹配汉字与英文词性、中文释义分别展示；同音字仍可能有多解，不等于理解了整句语义。
+- 同时开启“拼音查英文”和“连写智能分词”后，`iwilldotheyiyang`、`iwilldothetongyang` 可给出尾词 `same`，明确确认后一次提交完整 `I will do the same`。候选主行只显示尾词，英文前缀不重复；未完成拼音沿用有界前缀查找。
+- 识别到拼音解释时，直接按Space保留原串，不把拼音尾词误拆成英文字，也不自动翻译；用Tab、数字、点击，或上下键明确选中后再按Space，才接受混合候选。Enter仍原样提交，包括已经导航过候选的情况；不调用云端，也不自动学习输入历史。
+- 新增51条已审核现代实体的有限种子目录，提供Anthropic等公司/产品的规范拼写和独立实体说明，保留Wikidata固定修订及官网身份来源。大写开头优先名字，常见小写英文保留普通词义，并可另列实体含义；这不是完整知识库或自动更新的时事词典。
+
+双语含义来源仍是固定ECDICT版本和 **2017-11-17 CC-CEDICT快照**，本次重建的是关系与排序，未悄悄换成最新词库。中文排序使用固定Wanxiang v18.0.14字/词频，具体独立来源和许可见下文。
+
+真实记事本PID58000已确认加载最终R1 DLL：两个混合样例首项均为same，分别按1和Tab后完整提交 `I will do the same` 一次；xiang首屏显示think/想、mutually/相、to/向、like/像、item/项，翻页可见fragrant/香、elephant/象，Enter仍原样提交xiang。Anthropic公司及Claude开发商说明与普通形容词义并存，按1仅提交规范名字Anthropic。iamrobot直接Space得到 `I am robot`；iamnihao虽出现hello/你好候选，未选词的Space仍保留iamnihao。自有保存文件精确匹配六行预期，自动空格保持ON，原键盘及默认设置保留。收据为 `work/research/v0.5.0-r1-notepad-live.json`、`work/build-logs/v0.5.0-r1-test-counts.json`。
+
+这些是有限的记事本检查，不代表全部应用；本版没有重新验收AI、x86编辑器真实键入、卸载或重启删除，也未验证从源码ZIP完整重建原生产物。候选顺序是本次快照，不保证固定排名。
+
+## 沿用的0.4规则与历史验收
 
 **最终R5正式构建与安装检查点：** 24套Rust汇总396通过、0失败、6忽略（含x86重复），Python33通过、PowerShell602项通过，正式流水合计1,031次通过结果。安装后x64/x86探针各2项通过，进程内激活均S_OK；这4项独立记录，不加进正式合计。升级退出0，安装目录为 `C:\Program Files\EnglishAssist\versions\0.4.0-20261109110234-275066`，24项安装文件摘要及build.json匹配冻结构建。计数收据：`work/build-logs/v0.4.0-r5-test-counts.json`。
 
@@ -87,18 +103,18 @@ Python 3.11+，无需第三方 Python 包。使用 `-PythonPath` 或设置 `ENGL
 英文专用脚本构建 x64/x86 输入组件、设置程序、后台组件和固定版本英文词库，
 并执行其配置的检查；该脚本本身不安装产品，也不修改系统键盘列表。
 
-0.4.0安装包路径为 `dist/english-assist-0.4.0-windows-x64-setup.exe`，最终R5已完成正式构建、安装及上述记事本检查；实际交付产物及已完成UI检查以版本化验证记录为准。不要使用继承的 Retype 安装器、register.ps1
+0.5.0 R1安装包为 `dist/english-assist-0.5.0-windows-x64-setup.exe`，正式构建、安装摘要、双架构激活探针及有限记事本检查见上方和版本化验证记录；旧版本安装与生命周期结果保留历史边界。不要使用继承的 Retype 安装器、register.ps1
 或上游发布页安装包来替代本项目构建。
 
 安装后的验收目标是在“设置 → 时间和语言 → 语言和区域 → 英语（美国）
 → 语言选项 → 键盘”中看到本项目，用 Win+Space 选择，且保留原默认键盘。
-验证记录区分0.4构建与双向同步检查点；旧版记事本、AI及生命周期证据分别保留，其他应用与重启删除仍有未覆盖项。
+验证记录区分当前构建与历史双向同步检查点；旧版记事本、AI及生命周期证据分别保留，其他应用与重启删除仍有未覆盖项。
 
 ## 键盘操作
 
 1–5 接受当前页候选，减加号翻页，Tab 接受候选且不补尾空格。候选可见时要输入
 python3 等原始串，可先 Esc 结束组字再输入数字。上下键显式选中后，
-空格接受该候选。自动空格开启时确认不补尾空格，连写开启时只还原已输入词的内部空格；关闭自动空格后用Space手动隔词。单按Shift切换该设置。
+空格接受该候选。自动空格开启时确认不补尾空格，连写开启时可还原已输入词的内部空格；识别到拼音解释但未明确选词时，Space保留原串，避免误拆拼音。关闭自动空格后用Space手动隔词。单按Shift切换该设置。
 
 当前有组字时Enter原样提交并消费该次回车，不选候选、不补空格；没有组字后再次Enter才交给应用。Esc保留原输入。
 
@@ -112,6 +128,8 @@ python3 等原始串，可先 Esc 结束组字再输入数字。上下键显式�
 位于 data/dict/raw/english/；词义及拼音数据保留 ECDICT MIT 和 CC-CEDICT CC BY-SA 3.0
 署名，组合元数据文件按 CC BY-SA 3.0 分发，代码仍为 MIT。
 
+当前双语源具体为ECDICT提交 `bc015ed2e24a7abef49fc6dbbb7fe32c1dadaf8b`（MIT），以及HallelujahIM提交 `8be294f70a4dc7b24a93f07c41df6c34add07a07` 镜像的2017-11-17 CC-CEDICT（原文件头CC BY-SA 3.0）。[MDBG当前下载页](https://www.mdbg.net/chinese/dictionary?page=cc-cedict)已列最新发布采用CC BY-SA 4.0，与本包实际冻结源分别记录。Wanxiang v18.0.14的 `zi.dict.yaml`、`jichu.dict.yaml` 作为中文排序证据，保留其CC BY 4.0及精确哈希，见 `data/dict/raw/english-assist/SOURCES.json`、`data/dict/raw/wanxiang-base/SOURCE.md`。现代实体另保留CC0 Wikidata快照/修订和审核官网链接，见 `data/dict/modern-entities.json`，不混为双语词典许可。
+
 0.3 独立内嵌的双词偏好来自 SymSpell MIT 仓库固定提交
 `c239062ae02961df18ab7da1671d01b4388204e0` 的已发布文件，精确来源/许可哈希见
 data/dict/raw/english-bigrams/SOURCES.json，完整声明见 NOTICE-English-Assist.txt。
@@ -124,6 +142,7 @@ tools/english-assist/ 下的数据编译、准备、验证脚本和测试。新�
 仅归档 Git 已跟踪文件会漏掉这些工作树内容。
 0.3 还须保留 data/dict/raw/english-bigrams/ 与 core/english/assets/，包括原始gzip、
 许可、来源/输出清单及内嵌二进制。
+0.5另须保留冻结Wanxiang字/词频、关系词库v2编译器及测试、现代实体JSON/TSV、原始Wikidata投影快照、来源许可和离线校验工具。源码包不得纳入凭据或个人输入文件。
 
 源码目录保留上游中文、其他平台与同步模块，用于后续整理和必要兼容；
 这不代表英文专用产品会安装或提供这些功能。

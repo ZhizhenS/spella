@@ -38,6 +38,11 @@
       "bytes": 22240,
       "sha256": "3f941b3b89cf7b8370ceb83cc76d2120d471b58735d8ca60238a751a48d7f72f",
       "url": "https://creativecommons.org/licenses/by-sa/3.0/legalcode.txt"
+    },
+    "LICENSE-Wanxiang": {
+      "bytes": 18656,
+      "sha256": "9e5f1b3c610b9c2da5c313bf81d577a7d1acec686bdb0384edefa6df0f90cd94",
+      "url": "https://github.com/amzxyz/RIME-LMDG/blob/main/LICENSE"
     }
   },
   "cedictSnapshot": {
@@ -46,5 +51,35 @@
     "publisher": "MDBG",
     "originalAuthor": "Paul Andrew Denisowski (1997, 1998) and CC-CEDICT contributors",
     "license": "CC-BY-SA-3.0"
+  },
+  "chineseFrequency": {
+    "chinese_zi": {
+      "file": "zi.dict.yaml",
+      "bytes": 616522,
+      "sha256": "6adee15182755d6bb675b86cbe89ffcd4663cd8f7e217e9b5bc72d28473946c3",
+      "uncompressedBytes": 616522,
+      "uncompressedSha256": "6adee15182755d6bb675b86cbe89ffcd4663cd8f7e217e9b5bc72d28473946c3",
+      "repository": "https://github.com/amzxyz/rime-wanxiang",
+      "release": "v18.0.14",
+      "releaseAsset": "rime-wanxiang-base.zip",
+      "releaseAssetSha256": "a41287742e2e536e96582ae36c3352e0a26d762b59d33c89d39deb1750a6551b",
+      "path": "zi.dict.yaml",
+      "license": "CC-BY-4.0",
+      "sourceRecord": "data/dict/raw/wanxiang-base/SOURCE.md"
+    },
+    "chinese_words": {
+      "file": "jichu.dict.yaml",
+      "bytes": 45091053,
+      "sha256": "7b99f3c500e7c955aea532b447a6b12f6d5df9df6ae3e22c72a86b895e6e1cdd",
+      "uncompressedBytes": 45091053,
+      "uncompressedSha256": "7b99f3c500e7c955aea532b447a6b12f6d5df9df6ae3e22c72a86b895e6e1cdd",
+      "repository": "https://github.com/amzxyz/rime-wanxiang",
+      "release": "v18.0.14",
+      "releaseAsset": "rime-wanxiang-base.zip",
+      "releaseAssetSha256": "a41287742e2e536e96582ae36c3352e0a26d762b59d33c89d39deb1750a6551b",
+      "path": "jichu.dict.yaml",
+      "license": "CC-BY-4.0",
+      "sourceRecord": "data/dict/raw/wanxiang-base/SOURCE.md"
+    }
   }
 }

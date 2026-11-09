@@ -36,6 +36,16 @@ pub struct EnglishAnnotation {
     pub definition: String,
     pub phonetic: String,
     pub pinyin_match: bool,
+    /// Chinese headword that produced this match; display evidence only.
+    pub matched_chinese: String,
+    /// Original numbered-tone dictionary reading, such as `xiang3`.
+    pub matched_pinyin: String,
+    /// False denotes a longer Chinese word found through a pinyin prefix.
+    pub pinyin_exact: bool,
+    /// Curated entity category, such as company or product; display only.
+    pub entity_kind: String,
+    /// Attribution retained independently from the committed name.
+    pub entity_source: String,
 }
 
 /// 一条候选。

@@ -13,6 +13,7 @@ File: original plain-text dictionary (stored losslessly as cedict.txt.gz)
 Snapshot: 2017-11-17T23:06:02Z, 115687 entries, publisher MDBG.
 License: Creative Commons Attribution-ShareAlike 3.0 Unported.
 Full license: LICENSE-CC-CEDICT / https://creativecommons.org/licenses/by-sa/3.0/
+This frozen source remains under version 3.0; no newer license is substituted.
 Original file header (retained verbatim):
 
 # CC-CEDICT
@@ -46,16 +47,35 @@ Original file header (retained verbatim):
 #! date=2017-11-17T23:06:02Z
 #! time=1510959962
 
+Wanxiang Chinese word frequencies
+Source: https://github.com/amzxyz/rime-wanxiang and its contributors.
+Frozen release: v18.0.14, asset rime-wanxiang-base.zip.
+Release: https://github.com/amzxyz/rime-wanxiang/releases/tag/v18.0.14
+Asset SHA256: a41287742e2e536e96582ae36c3352e0a26d762b59d33c89d39deb1750a6551b
+Selected inputs: zi.dict.yaml and jichu.dict.yaml, used for Chinese-word/readings
+frequency evidence, not as a complete installed Chinese input-method dictionary.
+License: Creative Commons Attribution 4.0 International.
+Full unmodified license is installed as LICENSE-Wanxiang.
+Source record: data/dict/raw/wanxiang-base/SOURCE.md.
+
 Modifications by English Assist contributors (2026):
-- Extract English POS, Chinese definitions and IPA from ECDICT for the English
-  completion vocabulary and English words referenced by CC-CEDICT.
-- Normalize CC-CEDICT tone-number pinyin to lowercase untoned search keys;
-  select single-word English glosses, join them to ECDICT and rank them using
-  the attributed English frequency list; bound each key to 64 matches.
-- Compile separate indexes and strings into english-lexicon-v1.bin (RTENLX01).
-The combined metadata data file is distributed under CC BY-SA 3.0, with the
-independent ECDICT MIT notice and frequency-source notices also retained.
-This data license is separate from the English Assist / retype MIT code license.
+- Extract separate English POS, Chinese definitions and IPA fields from ECDICT.
+- Preserve CC-CEDICT Chinese headwords, original numbered-tone readings and
+  source glosses; derive lowercase untoned keys for lookup without discarding
+  the headword/sense evidence in each mapping.
+- Link eligible English heads from CC-CEDICT glosses to English entries; also
+  reverse exact complete Chinese gloss items in ECDICT through the known
+  CC-CEDICT headwords/readings. This is not arbitrary Chinese substring matching.
+- Attach Wanxiang Chinese headword/reading frequencies and source/usage flags
+  and sense ordinals. Rank word-level relations before English-frequency tie
+  breaks, distinguish exact pinyin from longer-word expansion, and bound lookup.
+- Compile the independent indexes and evidence into english-lexicon-v2.bin
+  (RTENLX02): word annotations plus Chinese headword/reading/gloss/frequency/source
+  relations. The English frequency image remains a separate component.
+CC-CEDICT-derived adapted metadata retains CC BY-SA 3.0. The ECDICT MIT notice,
+Wanxiang CC BY 4.0 attribution and English-frequency source terms are retained
+independently; this notice does not replace the original source licenses.
+Data terms are separate from the English Assist / retype MIT code license.
 No endorsement by any source project or publisher is implied.
 
 Reproducibility:
@@ -64,5 +84,22 @@ Python compiler in tools/english-assist/build-lexicon.py. Frozen repository comm
 original Git blob IDs, compressed/content SHA256 values and license SHA256 values
 are recorded in data/dict/raw/english-assist/SOURCES.json (installed as
 english-lexicon-sources.json). The actual output digest/counts are recorded in
-english-lexicon-v1.json beside the binary. The installed binary can be used and
-redistributed separately under the data terms above.
+english-lexicon-v2.json beside the binary. Preserve the source manifest, all data
+notices and complete licenses when redistributing this metadata.
+
+Separate limited modern-entity seed
+The 51 reviewed company/product/developer-tool entries are maintained
+separately in data/dict/modern-entities.json and the embedded EAMODEN1 TSV. Their
+structured source is Wikidata (CC0-1.0, https://www.wikidata.org/wiki/Wikidata:Licensing).
+Each approved entry records a Wikidata QID, exact revision, revision URL and an
+official-site URL; aliases and Chinese summaries are reviewed for this small seed.
+For example, Anthropic is linked to Q116758847 at revision 2562358338
+(https://www.wikidata.org/w/index.php?title=Q116758847&oldid=2562358338) and its
+official company page https://www.anthropic.com/company.
+Official sites are identity references, not a claim that their prose, logos or
+other assets are CC0 or copied into this product. Frozen structured source and
+provenance are in data/dict/raw/modern-entities/; build.json records the actual
+count and approved JSON/runtime TSV digests. This is not a complete Wikidata or
+current-entity dictionary and does not update automatically while typing.
+The independent catalog tools/runtime code remain MIT; this separate CC0 seed
+does not replace or change the lexicon licenses above.

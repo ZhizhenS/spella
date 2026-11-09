@@ -23,9 +23,9 @@ class IntegrityTests(unittest.TestCase):
         self.source = {"file": "source.txt.gz", "bytes": len(self.packed),
                        "sha256": hashlib.sha256(self.packed).hexdigest(),
                        "uncompressedBytes": len(self.raw), "uncompressedSha256": hashlib.sha256(self.raw).hexdigest()}
-        self.binary = b"RTENLX01test-data"
-        (self.root / "english-lexicon-v1.bin").write_bytes(self.binary)
-        self.manifest = {"schema": 1, "format": "RTENLX01", "file": "english-lexicon-v1.bin",
+        self.binary = b"RTENLX02test-data"
+        (self.root / "english-lexicon-v2.bin").write_bytes(self.binary)
+        self.manifest = {"schema": 2, "format": "RTENLX02", "file": "english-lexicon-v2.bin",
                          "bytes": len(self.binary), "sha256": hashlib.sha256(self.binary).hexdigest(),
                          "counts": {"words": 3, "pinyin": 1, "mappings": 2}}
 
@@ -78,7 +78,7 @@ class IntegrityTests(unittest.TestCase):
             module.validate_output(self.root, self.manifest)
 
     def test_wrong_manifest_identity_rejected(self):
-        for key, value in (("schema", 2), ("format", "RTENGL01"), ("file", "english-other.bin")):
+        for key, value in (("schema", 1), ("format", "RTENLX01"), ("file", "english-other.bin")):
             with self.subTest(key=key):
                 bad = {**self.manifest, key: value}
                 with self.assertRaises(ValueError):

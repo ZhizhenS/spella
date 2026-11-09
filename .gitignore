@@ -6,6 +6,7 @@ Cargo.lock.bak
 # 构建产物 / 词库产物（源数据 data/dict/raw/ 要入库，产物不要）
 /data/dict/*.bin
 /data/dict/*.tsv
+!/data/dict/modern-entities.tsv
 /dist/
 
 # Android / Gradle build outputs

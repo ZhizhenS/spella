@@ -1,0 +1,843 @@
+{
+  "schema": 1,
+  "runtime_format": "EAMODEN1",
+  "scope": "Reviewed seed of 51 AI companies/products and developer-tool brands; not a complete Wikidata or current-entity dictionary.",
+  "data_license": "CC0-1.0",
+  "snapshot": {
+    "file": "raw/modern-entities/wikidata-snapshot.json.gz",
+    "sha256": "459a576ca4cef6ae839a20c41773b49e6fea7889b1222a245a26bcd490ddb873",
+    "content_sha256": "7c68f3cf101b9208968c3ead16ddc7e9194eb8d681ee270d003fcad32e4075f1"
+  },
+  "entries": [
+    {
+      "text": "Alibaba Cloud",
+      "aliases": [
+        "alibabacloud"
+      ],
+      "entity_kind": "公司",
+      "definition_zh": "中国云计算公司",
+      "wikidata_id": "Q17062154",
+      "wikidata_revision": 2564823187,
+      "wikidata_modified": "2026-11-04T21:56:13Z",
+      "wikidata_label_en": "Alibaba Cloud",
+      "wikidata_description_en": "Chinese cloud computing company",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q17062154&oldid=2564823187",
+      "official_url": "https://www.alibabacloud.com/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "Anthropic",
+      "aliases": [
+        "anthropic"
+      ],
+      "entity_kind": "公司",
+      "definition_zh": "美国人工智能公司；Claude 开发商",
+      "wikidata_id": "Q116758847",
+      "wikidata_revision": 2562358338,
+      "wikidata_modified": "2026-10-29T23:52:41Z",
+      "wikidata_label_en": "Anthropic",
+      "wikidata_description_en": "American artificial intelligence corporation",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q116758847&oldid=2562358338",
+      "official_url": "https://www.anthropic.com/company",
+      "description_note": "Short editorial Chinese description; official company and Claude product identity verified at https://www.anthropic.com/company and https://www.anthropic.com/claude without copying marketing text."
+    },
+    {
+      "text": "Apple",
+      "aliases": [
+        "apple",
+        "appleinc"
+      ],
+      "entity_kind": "公司",
+      "definition_zh": "总部位于美国加州的跨国科技公司",
+      "wikidata_id": "Q312",
+      "wikidata_revision": 2564760385,
+      "wikidata_modified": "2026-11-04T16:27:43Z",
+      "wikidata_label_en": "Apple Inc.",
+      "wikidata_description_en": "American multinational technology company based in Cupertino, California",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q312&oldid=2564760385",
+      "official_url": "https://www.apple.com/",
+      "description_note": "Company identity and canonical Apple brand reviewed against https://www.apple.com/leadership/; ordinary apple fruit meanings remain a separate stream."
+    },
+    {
+      "text": "Bun",
+      "aliases": [
+        "bun"
+      ],
+      "entity_kind": "开发工具",
+      "definition_zh": "JavaScript 运行环境",
+      "wikidata_id": "Q113048518",
+      "wikidata_revision": 2559664788,
+      "wikidata_modified": "2026-10-22T10:45:53Z",
+      "wikidata_label_en": "Bun",
+      "wikidata_description_en": "JavaScript runtime",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q113048518&oldid=2559664788",
+      "official_url": "https://bun.sh/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "ChatGPT",
+      "aliases": [
+        "chatgpt"
+      ],
+      "entity_kind": "产品",
+      "definition_zh": "OpenAI 开发的人工智能聊天助手",
+      "wikidata_id": "Q115564437",
+      "wikidata_revision": 2565170281,
+      "wikidata_modified": "2026-11-05T23:39:22Z",
+      "wikidata_label_en": "ChatGPT",
+      "wikidata_description_en": "artificial intelligence chatbot developed by OpenAI",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q115564437&oldid=2565170281",
+      "official_url": "https://chatgpt.com/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "Claude",
+      "aliases": [
+        "claude"
+      ],
+      "entity_kind": "产品",
+      "definition_zh": "Anthropic 开发的大语言模型系列",
+      "wikidata_id": "Q118876059",
+      "wikidata_revision": 2566710367,
+      "wikidata_modified": "2026-11-08T21:12:36Z",
+      "wikidata_label_en": "Claude",
+      "wikidata_description_en": "large language model family developed by Anthropic",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q118876059&oldid=2566710367",
+      "official_url": "https://www.anthropic.com/claude",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "Cloudflare",
+      "aliases": [
+        "cloudflare"
+      ],
+      "entity_kind": "公司",
+      "definition_zh": "提供互联网基础设施和网站安全服务的公司",
+      "wikidata_id": "Q4778915",
+      "wikidata_revision": 2564909288,
+      "wikidata_modified": "2026-11-05T04:26:29Z",
+      "wikidata_label_en": "Cloudflare",
+      "wikidata_description_en": "American internet infrastructure and website security company",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q4778915&oldid=2564909288",
+      "official_url": "https://www.cloudflare.com/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "Codex",
+      "aliases": [
+        "codex",
+        "openaicodex"
+      ],
+      "entity_kind": "产品",
+      "definition_zh": "OpenAI 开发的软件工程智能体",
+      "wikidata_id": "Q138940795",
+      "wikidata_revision": 2552162450,
+      "wikidata_modified": "2026-10-02T12:54:58Z",
+      "wikidata_label_en": "OpenAI Codex",
+      "wikidata_description_en": "software engineering agent developed by OpenAI",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q138940795&oldid=2552162450",
+      "official_url": "https://openai.com/codex/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "Cohere",
+      "aliases": [
+        "cohere"
+      ],
+      "entity_kind": "公司",
+      "definition_zh": "加拿大人工智能公司",
+      "wikidata_id": "Q110363143",
+      "wikidata_revision": 2562497641,
+      "wikidata_modified": "2026-10-30T09:01:00Z",
+      "wikidata_label_en": "Cohere",
+      "wikidata_description_en": "Canadian artificial intelligence company building foundational models",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q110363143&oldid=2562497641",
+      "official_url": "https://cohere.com/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "GitHub Copilot",
+      "aliases": [
+        "copilot",
+        "githubcopilot"
+      ],
+      "entity_kind": "产品",
+      "definition_zh": "GitHub 的人工智能编程助手",
+      "wikidata_id": "Q107435063",
+      "wikidata_revision": 2565170135,
+      "wikidata_modified": "2026-11-05T23:38:34Z",
+      "wikidata_label_en": null,
+      "wikidata_description_en": "artificial intelligence tool for code autocompletion",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q107435063&oldid=2565170135",
+      "official_url": "https://github.com/features/copilot",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "Cursor",
+      "aliases": [
+        "cursor"
+      ],
+      "entity_kind": "开发工具",
+      "definition_zh": "Anysphere 开发的源代码编辑器",
+      "wikidata_id": "Q131980386",
+      "wikidata_revision": 2565170126,
+      "wikidata_modified": "2026-11-05T23:38:31Z",
+      "wikidata_label_en": "Cursor",
+      "wikidata_description_en": "source code editor developed by Anysphere",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q131980386&oldid=2565170126",
+      "official_url": "https://www.cursor.com/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "Google DeepMind",
+      "aliases": [
+        "deepmind",
+        "googledeepmind"
+      ],
+      "entity_kind": "公司",
+      "definition_zh": "谷歌旗下的人工智能公司",
+      "wikidata_id": "Q15733006",
+      "wikidata_revision": 2553464846,
+      "wikidata_modified": "2026-10-05T13:37:30Z",
+      "wikidata_label_en": "Google DeepMind",
+      "wikidata_description_en": "artificial intelligence company owned by Google",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q15733006&oldid=2553464846",
+      "official_url": "https://deepmind.google/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "DeepSeek",
+      "aliases": [
+        "deepseek"
+      ],
+      "entity_kind": "公司",
+      "definition_zh": "中国人工智能公司",
+      "wikidata_id": "Q131577453",
+      "wikidata_revision": 2557174282,
+      "wikidata_modified": "2026-10-15T05:01:59Z",
+      "wikidata_label_en": "DeepSeek",
+      "wikidata_description_en": "Chinese artificial intelligence company",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q131577453&oldid=2557174282",
+      "official_url": "https://www.deepseek.com/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "Deno",
+      "aliases": [
+        "deno"
+      ],
+      "entity_kind": "开发工具",
+      "definition_zh": "JavaScript 与 TypeScript 安全运行环境",
+      "wikidata_id": "Q65070939",
+      "wikidata_revision": 2559572864,
+      "wikidata_modified": "2026-10-21T20:16:02Z",
+      "wikidata_label_en": "Deno",
+      "wikidata_description_en": "secure runtime for JavaScript and TypeScript based on the V8 JavaScript engine and the Rust programming language",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q65070939&oldid=2559572864",
+      "official_url": "https://deno.com/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "Docker",
+      "aliases": [
+        "docker"
+      ],
+      "entity_kind": "开发工具",
+      "definition_zh": "用于部署和运行容器化应用的软件",
+      "wikidata_id": "Q15206305",
+      "wikidata_revision": 2565169662,
+      "wikidata_modified": "2026-11-05T23:36:27Z",
+      "wikidata_label_en": "Docker",
+      "wikidata_description_en": "open-source software for deploying and running of containerized applications",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q15206305&oldid=2565169662",
+      "official_url": "https://www.docker.com/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "FastAPI",
+      "aliases": [
+        "fastapi"
+      ],
+      "entity_kind": "框架",
+      "definition_zh": "Python 网络应用开发框架",
+      "wikidata_id": "Q101119404",
+      "wikidata_revision": 2566472760,
+      "wikidata_modified": "2026-11-08T13:15:00Z",
+      "wikidata_label_en": "FastAPI",
+      "wikidata_description_en": "software framework for developing web applications in Python",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q101119404&oldid=2566472760",
+      "official_url": "https://fastapi.tiangolo.com/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "Gemini",
+      "aliases": [
+        "gemini"
+      ],
+      "entity_kind": "产品",
+      "definition_zh": "Google 开发的人工智能聊天助手",
+      "wikidata_id": "Q116698014",
+      "wikidata_revision": 2566819604,
+      "wikidata_modified": "2026-11-09T01:07:56Z",
+      "wikidata_label_en": "Gemini",
+      "wikidata_description_en": "artificial intelligence chatbot developed by Google",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q116698014&oldid=2566819604",
+      "official_url": "https://gemini.google.com/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "GitHub",
+      "aliases": [
+        "github"
+      ],
+      "entity_kind": "平台",
+      "definition_zh": "基于 Git 的源代码托管平台",
+      "wikidata_id": "Q364",
+      "wikidata_revision": 2560835238,
+      "wikidata_modified": "2026-10-25T22:16:19Z",
+      "wikidata_label_en": "GitHub",
+      "wikidata_description_en": "hosting service for software projects using Git",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q364&oldid=2560835238",
+      "official_url": "https://github.com/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "Go",
+      "aliases": [
+        "go",
+        "golang"
+      ],
+      "entity_kind": "编程语言",
+      "definition_zh": "由 Google 与开源社区开发的编程语言",
+      "wikidata_id": "Q37227",
+      "wikidata_revision": 2559105801,
+      "wikidata_modified": "2026-10-20T06:20:50Z",
+      "wikidata_label_en": "Go",
+      "wikidata_description_en": "programming language developed by Google and the open-source community",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q37227&oldid=2559105801",
+      "official_url": "https://go.dev/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "Google",
+      "aliases": [
+        "google"
+      ],
+      "entity_kind": "公司",
+      "definition_zh": "美国跨国科技公司",
+      "wikidata_id": "Q95",
+      "wikidata_revision": 2565591271,
+      "wikidata_modified": "2026-11-06T20:59:28Z",
+      "wikidata_label_en": "Google",
+      "wikidata_description_en": "American multinational technology company, a subsidiary of Alphabet Inc.",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q95&oldid=2565591271",
+      "official_url": "https://about.google/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "Hugging Face",
+      "aliases": [
+        "huggingface"
+      ],
+      "entity_kind": "公司",
+      "definition_zh": "人工智能公司与模型开发社区",
+      "wikidata_id": "Q108943604",
+      "wikidata_revision": 2556289210,
+      "wikidata_modified": "2026-10-12T16:26:58Z",
+      "wikidata_label_en": "Hugging Face",
+      "wikidata_description_en": "American company",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q108943604&oldid=2556289210",
+      "official_url": "https://huggingface.co/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "IntelliJ IDEA",
+      "aliases": [
+        "intellij",
+        "intellijidea"
+      ],
+      "entity_kind": "开发工具",
+      "definition_zh": "集成开发环境",
+      "wikidata_id": "Q1206660",
+      "wikidata_revision": 2565170161,
+      "wikidata_modified": "2026-11-05T23:38:44Z",
+      "wikidata_label_en": "IntelliJ IDEA",
+      "wikidata_description_en": "integrated development environment",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q1206660&oldid=2565170161",
+      "official_url": "https://www.jetbrains.com/idea/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "JavaScript",
+      "aliases": [
+        "javascript"
+      ],
+      "entity_kind": "编程语言",
+      "definition_zh": "高级编程语言",
+      "wikidata_id": "Q2005",
+      "wikidata_revision": 2566877768,
+      "wikidata_modified": "2026-11-09T03:33:59Z",
+      "wikidata_label_en": "JavaScript",
+      "wikidata_description_en": "high-level programming language",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q2005&oldid=2566877768",
+      "official_url": "https://www.ecma-international.org/publications-and-standards/standards/ecma-262/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "JetBrains",
+      "aliases": [
+        "jetbrains"
+      ],
+      "entity_kind": "公司",
+      "definition_zh": "捷克软件开发公司",
+      "wikidata_id": "Q1688472",
+      "wikidata_revision": 2565186344,
+      "wikidata_modified": "2026-11-06T01:53:41Z",
+      "wikidata_label_en": "JetBrains",
+      "wikidata_description_en": "Czech software company",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q1688472&oldid=2565186344",
+      "official_url": "https://www.jetbrains.com/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "Kubernetes",
+      "aliases": [
+        "kubernetes"
+      ],
+      "entity_kind": "开发工具",
+      "definition_zh": "管理服务器集群中容器的软件",
+      "wikidata_id": "Q22661306",
+      "wikidata_revision": 2565844109,
+      "wikidata_modified": "2026-11-07T10:16:15Z",
+      "wikidata_label_en": "Kubernetes",
+      "wikidata_description_en": "software to manage containers on a server-cluster",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q22661306&oldid=2565844109",
+      "official_url": "https://kubernetes.io/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "LangChain",
+      "aliases": [
+        "langchain"
+      ],
+      "entity_kind": "框架",
+      "definition_zh": "大语言模型应用开发框架",
+      "wikidata_id": "Q117340550",
+      "wikidata_revision": 2557334159,
+      "wikidata_modified": "2026-10-15T15:21:32Z",
+      "wikidata_label_en": "LangChain",
+      "wikidata_description_en": "language model application development framework",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q117340550&oldid=2557334159",
+      "official_url": "https://langchain.com/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "LlamaIndex",
+      "aliases": [
+        "llamaindex"
+      ],
+      "entity_kind": "公司",
+      "definition_zh": "提供大语言模型开发工具的公司",
+      "wikidata_id": "Q125446413",
+      "wikidata_revision": 2547909708,
+      "wikidata_modified": "2026-09-20T10:17:31Z",
+      "wikidata_label_en": "LlamaIndex",
+      "wikidata_description_en": "large language model company",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q125446413&oldid=2547909708",
+      "official_url": "https://www.llamaindex.ai/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "Meta Platforms",
+      "aliases": [
+        "meta",
+        "metaplatforms"
+      ],
+      "entity_kind": "公司",
+      "definition_zh": "美国科技公司",
+      "wikidata_id": "Q380",
+      "wikidata_revision": 2565169562,
+      "wikidata_modified": "2026-11-05T23:36:03Z",
+      "wikidata_label_en": "Meta Platforms",
+      "wikidata_description_en": "American technology company",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q380&oldid=2565169562",
+      "official_url": "https://www.meta.com/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "Microsoft",
+      "aliases": [
+        "microsoft"
+      ],
+      "entity_kind": "公司",
+      "definition_zh": "美国跨国科技公司",
+      "wikidata_id": "Q2283",
+      "wikidata_revision": 2565523469,
+      "wikidata_modified": "2026-11-06T18:35:30Z",
+      "wikidata_label_en": "Microsoft",
+      "wikidata_description_en": "American multinational technology corporation",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q2283&oldid=2565523469",
+      "official_url": "https://www.microsoft.com/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "Mistral AI",
+      "aliases": [
+        "mistral",
+        "mistralai"
+      ],
+      "entity_kind": "公司",
+      "definition_zh": "法国人工智能公司",
+      "wikidata_id": "Q119718658",
+      "wikidata_revision": 2553330703,
+      "wikidata_modified": "2026-10-05T06:52:52Z",
+      "wikidata_label_en": "Mistral AI",
+      "wikidata_description_en": "French AI company",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q119718658&oldid=2553330703",
+      "official_url": "https://mistral.ai/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "Moonshot AI",
+      "aliases": [
+        "moonshot",
+        "moonshotai"
+      ],
+      "entity_kind": "公司",
+      "definition_zh": "中国人工智能公司",
+      "wikidata_id": "Q130270266",
+      "wikidata_revision": 2551404295,
+      "wikidata_modified": "2026-09-30T17:43:01Z",
+      "wikidata_label_en": "Moonshot AI",
+      "wikidata_description_en": "Chinese multinational artificial intelligence company",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q130270266&oldid=2551404295",
+      "official_url": "https://www.moonshot.ai/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "Node.js",
+      "aliases": [
+        "node",
+        "nodejs"
+      ],
+      "entity_kind": "开发工具",
+      "definition_zh": "JavaScript 运行环境",
+      "wikidata_id": "Q756100",
+      "wikidata_revision": 2565170182,
+      "wikidata_modified": "2026-11-05T23:38:54Z",
+      "wikidata_label_en": "Node.js",
+      "wikidata_description_en": "JavaScript runtime environment",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q756100&oldid=2565170182",
+      "official_url": "https://nodejs.org/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "npm",
+      "aliases": [
+        "npm"
+      ],
+      "entity_kind": "开发工具",
+      "definition_zh": "Node.js 的软件包管理器",
+      "wikidata_id": "Q7067518",
+      "wikidata_revision": 2564966661,
+      "wikidata_modified": "2026-11-05T09:14:58Z",
+      "wikidata_label_en": "npm",
+      "wikidata_description_en": "package manager for the Node.js JavaScript runtime environment",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q7067518&oldid=2564966661",
+      "official_url": "https://www.npmjs.com/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "NVIDIA",
+      "aliases": [
+        "nvidia"
+      ],
+      "entity_kind": "公司",
+      "definition_zh": "美国半导体与科技公司",
+      "wikidata_id": "Q182477",
+      "wikidata_revision": 2567252757,
+      "wikidata_modified": "2026-11-09T19:01:17Z",
+      "wikidata_label_en": "Nvidia",
+      "wikidata_description_en": "American multinational technology company",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q182477&oldid=2567252757",
+      "official_url": "https://www.nvidia.com/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "Ollama",
+      "aliases": [
+        "ollama"
+      ],
+      "entity_kind": "开发工具",
+      "definition_zh": "在本地计算机或云端运行大语言模型的软件",
+      "wikidata_id": "Q124636097",
+      "wikidata_revision": 2565440729,
+      "wikidata_modified": "2026-11-06T15:13:31Z",
+      "wikidata_label_en": "Ollama",
+      "wikidata_description_en": "software for running large language models (LLMs) on a local computer or in the cloud",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q124636097&oldid=2565440729",
+      "official_url": "https://ollama.com/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "OpenAI",
+      "aliases": [
+        "openai"
+      ],
+      "entity_kind": "公司",
+      "definition_zh": "人工智能研究与产品公司，ChatGPT 的开发方",
+      "wikidata_id": "Q21708200",
+      "wikidata_revision": 2561929276,
+      "wikidata_modified": "2026-10-29T03:34:20Z",
+      "wikidata_label_en": "OpenAI",
+      "wikidata_description_en": "American artificial intelligence research organization",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q21708200&oldid=2561929276",
+      "official_url": "https://openai.com/about/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "Perplexity AI",
+      "aliases": [
+        "perplexity",
+        "perplexityai"
+      ],
+      "entity_kind": "公司",
+      "definition_zh": "开发人工智能对话式搜索服务的公司",
+      "wikidata_id": "Q124333951",
+      "wikidata_revision": 2565170324,
+      "wikidata_modified": "2026-11-05T23:39:32Z",
+      "wikidata_label_en": "Perplexity AI",
+      "wikidata_description_en": "American conversational search engine company",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q124333951&oldid=2565170324",
+      "official_url": "https://www.perplexity.ai/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "PostgreSQL",
+      "aliases": [
+        "postgres",
+        "postgresql"
+      ],
+      "entity_kind": "数据库",
+      "definition_zh": "自由开源的关系数据库管理系统",
+      "wikidata_id": "Q192490",
+      "wikidata_revision": 2557308451,
+      "wikidata_modified": "2026-10-15T13:27:37Z",
+      "wikidata_label_en": "PostgreSQL",
+      "wikidata_description_en": "free and open-source relational database management system",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q192490&oldid=2557308451",
+      "official_url": "https://www.postgresql.org/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "PyCharm",
+      "aliases": [
+        "pycharm"
+      ],
+      "entity_kind": "开发工具",
+      "definition_zh": "面向 Python 开发的集成开发环境",
+      "wikidata_id": "Q1484375",
+      "wikidata_revision": 2565170150,
+      "wikidata_modified": "2026-11-05T23:38:40Z",
+      "wikidata_label_en": "PyCharm",
+      "wikidata_description_en": "integrated development environment for development in Python",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q1484375&oldid=2565170150",
+      "official_url": "https://www.jetbrains.com/pycharm/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "Python",
+      "aliases": [
+        "python"
+      ],
+      "entity_kind": "编程语言",
+      "definition_zh": "通用编程语言",
+      "wikidata_id": "Q28865",
+      "wikidata_revision": 2566877611,
+      "wikidata_modified": "2026-11-09T03:33:39Z",
+      "wikidata_label_en": "Python",
+      "wikidata_description_en": "general-purpose programming language",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q28865&oldid=2566877611",
+      "official_url": "https://www.python.org/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "PyTorch",
+      "aliases": [
+        "pytorch"
+      ],
+      "entity_kind": "框架",
+      "definition_zh": "开源机器学习框架",
+      "wikidata_id": "Q47509047",
+      "wikidata_revision": 2562117322,
+      "wikidata_modified": "2026-10-29T13:11:51Z",
+      "wikidata_label_en": "PyTorch",
+      "wikidata_description_en": "open source machine learning library for Python, based on Torch",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q47509047&oldid=2562117322",
+      "official_url": "https://pytorch.org/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "Qwen",
+      "aliases": [
+        "qwen"
+      ],
+      "entity_kind": "产品",
+      "definition_zh": "阿里云开发的人工智能聊天助手",
+      "wikidata_id": "Q130234299",
+      "wikidata_revision": 2537001715,
+      "wikidata_modified": "2026-08-27T08:49:15Z",
+      "wikidata_label_en": "Qwen",
+      "wikidata_description_en": "artificial intelligence chatbot developed by Alibaba Cloud",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q130234299&oldid=2537001715",
+      "official_url": "https://chat.qwen.ai/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "Replit",
+      "aliases": [
+        "replit"
+      ],
+      "entity_kind": "开发工具",
+      "definition_zh": "在线集成开发环境",
+      "wikidata_id": "Q60768699",
+      "wikidata_revision": 2565170113,
+      "wikidata_modified": "2026-11-05T23:38:28Z",
+      "wikidata_label_en": "Replit",
+      "wikidata_description_en": "Online IDE",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q60768699&oldid=2565170113",
+      "official_url": "https://replit.com/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "Rust",
+      "aliases": [
+        "rust"
+      ],
+      "entity_kind": "编程语言",
+      "definition_zh": "注重内存安全且无需垃圾回收的编程语言",
+      "wikidata_id": "Q575650",
+      "wikidata_revision": 2562751034,
+      "wikidata_modified": "2026-10-30T22:02:44Z",
+      "wikidata_label_en": "Rust",
+      "wikidata_description_en": "memory-safe programming language without garbage collection",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q575650&oldid=2562751034",
+      "official_url": "https://rust-lang.org/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "Stack Overflow",
+      "aliases": [
+        "stackoverflow"
+      ],
+      "entity_kind": "平台",
+      "definition_zh": "面向程序员的技术问答网站",
+      "wikidata_id": "Q549037",
+      "wikidata_revision": 2564761222,
+      "wikidata_modified": "2026-11-04T16:31:21Z",
+      "wikidata_label_en": "Stack Overflow",
+      "wikidata_description_en": "website for professional and enthusiast programmers",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q549037&oldid=2564761222",
+      "official_url": "https://stackoverflow.com/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "Supabase",
+      "aliases": [
+        "supabase"
+      ],
+      "entity_kind": "平台",
+      "definition_zh": "基于 PostgreSQL 的开源开发平台",
+      "wikidata_id": "Q136776342",
+      "wikidata_revision": 2550007574,
+      "wikidata_modified": "2026-09-27T12:32:30Z",
+      "wikidata_label_en": "Supabase",
+      "wikidata_description_en": "open-source Postgres development platform",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q136776342&oldid=2550007574",
+      "official_url": "https://supabase.com/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "TensorFlow",
+      "aliases": [
+        "tensorflow"
+      ],
+      "entity_kind": "框架",
+      "definition_zh": "机器学习软件框架",
+      "wikidata_id": "Q21447895",
+      "wikidata_revision": 2550169852,
+      "wikidata_modified": "2026-09-27T21:11:50Z",
+      "wikidata_label_en": "TensorFlow",
+      "wikidata_description_en": "machine learning software framework",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q21447895&oldid=2550169852",
+      "official_url": "https://tensorflow.org/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "TypeScript",
+      "aliases": [
+        "typescript"
+      ],
+      "entity_kind": "编程语言",
+      "definition_zh": "可编译为 JavaScript 的类型化编程语言",
+      "wikidata_id": "Q978185",
+      "wikidata_revision": 2563162385,
+      "wikidata_modified": "2026-10-31T21:32:18Z",
+      "wikidata_label_en": "TypeScript",
+      "wikidata_description_en": "programming language, superset of JavaScript that compiles to JavaScript",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q978185&oldid=2563162385",
+      "official_url": "https://www.typescriptlang.org/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "Vercel",
+      "aliases": [
+        "vercel"
+      ],
+      "entity_kind": "平台",
+      "definition_zh": "用于静态站点和无服务器应用的托管平台",
+      "wikidata_id": "Q139257301",
+      "wikidata_revision": 2565170149,
+      "wikidata_modified": "2026-11-05T23:38:40Z",
+      "wikidata_label_en": "Vercel",
+      "wikidata_description_en": "JAMstack-based platform as a service (PaaS) for hosting static sites and serverless web applications",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q139257301&oldid=2565170149",
+      "official_url": "https://vercel.com/about",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "Visual Studio Code",
+      "aliases": [
+        "visualstudiocode",
+        "vscode"
+      ],
+      "entity_kind": "开发工具",
+      "definition_zh": "微软开发的源代码编辑器",
+      "wikidata_id": "Q19841877",
+      "wikidata_revision": 2565454188,
+      "wikidata_modified": "2026-11-06T15:46:08Z",
+      "wikidata_label_en": "Visual Studio Code",
+      "wikidata_description_en": "source code editor developed by Microsoft",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q19841877&oldid=2565454188",
+      "official_url": "https://code.visualstudio.com/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    },
+    {
+      "text": "Zhipu AI",
+      "aliases": [
+        "zhipu",
+        "zhipuai"
+      ],
+      "entity_kind": "公司",
+      "definition_zh": "中国人工智能与大语言模型公司",
+      "wikidata_id": "Q129572031",
+      "wikidata_revision": 2563658868,
+      "wikidata_modified": "2026-11-02T00:35:07Z",
+      "wikidata_label_en": "Zhipu AI",
+      "wikidata_description_en": "Chinese technology company based in Beijing",
+      "revision_url": "https://www.wikidata.org/w/index.php?title=Q129572031&oldid=2563658868",
+      "official_url": "https://z.ai/",
+      "description_note": "Short editorial Chinese description based on the frozen structured description; official website is supplementary identity evidence."
+    }
+  ]
+}

@@ -14,7 +14,7 @@ class LexiconCompilerTests(unittest.TestCase):
     @staticmethod
     def entries(output):
         words, keys, mappings, _ = struct.unpack_from("<IIII", output, 8)
-        arena = 24 + words * 36 + keys * 16 + mappings * 4
+        arena = 24 + words * 36 + keys * 16 + mappings * 40
         result = {}
         for index in range(words):
             values = []
@@ -58,9 +58,94 @@ class LexiconCompilerTests(unittest.TestCase):
         output, counts = compiler.compile_data(csv, cedict, frequency)
         self.assertEqual(output, compiler.compile_data(csv, cedict, frequency)[0])
         self.assertEqual(counts, {"words": 3, "pinyin": 2, "mappings": 2})
-        self.assertEqual(output[:8], b"RTENLX01")
+        self.assertEqual(output[:8], b"RTENLX02")
         words, pinyin, mappings, arena = struct.unpack_from("<IIII", output, 8)
-        self.assertEqual(len(output), 24 + words * 36 + pinyin * 16 + mappings * 4 + arena)
+        self.assertEqual(len(output), 24 + words * 36 + pinyin * 16 + mappings * 40 + arena)
+
+    @staticmethod
+    def relations(output, key):
+        words, keys, count, _ = struct.unpack_from("<IIII", output, 8)
+        key_at = 24 + words * 36
+        hit_at = key_at + keys * 16
+        arena = hit_at + count * 40
+        def text(at):
+            offset, size = struct.unpack_from("<II", output, at)
+            return output[arena + offset:arena + offset + size].decode()
+        for index in range(keys):
+            at = key_at + index * 16
+            if text(at) != key:
+                continue
+            first, length = struct.unpack_from("<II", output, at + 8)
+            result = []
+            for index in range(first, first + length):
+                at = hit_at + index * 40
+                word_id = struct.unpack_from("<I", output, at)[0]
+                result.append((text(24 + word_id * 36), text(at + 4), text(at + 12), text(at + 20), *struct.unpack_from("<III", output, at + 28)))
+            return result
+        return []
+
+    def test_common_chinese_senses_beat_rare_characters_even_when_the_english_is_frequent(self):
+        csv = "word,translation,phonetic,pos,bnc,frq,exchange\nthink,v. 想,,,,,\nlike,prep. 像,,,,,\nfragrant,adj. 香,,,,,\nelephant,n. 象,,,,,\nschool,n. 学校,,,,,\nhelp,v. 帮助,,,,,\n".encode()
+        cedict = "想 想 [xiang3] /to think/\n像 像 [xiang4] /to resemble/to be like/\n香 香 [xiang1] /fragrant/\n象 象 [xiang4] /elephant/\n庠 庠 [xiang2] /school/\n襄 襄 [xiang1] /to help/\n".encode()
+        frequency = b"school 999999\nhelp 999998\nthink 30\nlike 20\nelephant 10\nfragrant 1\n"
+        chinese = "想\txiǎng\t342401\n像\txiàng\t26756\n香\txiāng\t14433\n象\txiàng\t5515\n襄\txiāng\t571\n庠\txiáng\t411\n".encode()
+        output, _ = compiler.compile_data(csv, cedict, frequency, chinese)
+        relations = self.relations(output, "xiang")
+        positions = {row[0]: i for i, row in enumerate(relations)}
+        for common in ("think", "like", "fragrant", "elephant"):
+            self.assertLess(positions[common], positions["school"])
+            self.assertLess(positions[common], positions["help"])
+        like = next(row for row in relations if row[0] == "like")
+        self.assertEqual(like[1:4], ("像", "xiang4", "to be like"))
+        self.assertEqual(like[5] & 3, 3)
+
+    def test_complete_chinese_gloss_items_are_required_for_reverse_links(self):
+        self.assertEqual(set(compiler.definition_terms(r"v. 想；像\nn. 想法；梦想")), {"想", "像", "想法", "梦想"})
+        self.assertNotIn("想", set(compiler.definition_terms("v. 联想；设想；有所想")))
+        self.assertEqual(list(compiler.direct_words("to be like")), ["like"])
+        self.assertEqual(list(compiler.direct_words("to be like a school")), [])
+
+    def test_chinese_prior_keeps_polyphonic_readings_separate(self):
+        csv = "word,translation,phonetic,pos,bnc,frq,exchange\nphase,n. 相,,,,,\nmutually,adv. 互相,,,,,\n".encode()
+        cedict = "相 相 [xiang1] /mutually/\n相 相 [xiang4] /phase/\n".encode()
+        chinese = "相\txiāng\t27861\n相\txiàng\t208\n".encode()
+        output, _ = compiler.compile_data(csv, cedict, b"phase 1000\nmutually 2\n", chinese)
+        rows = self.relations(output, "xiang")
+        self.assertEqual([(r[0], r[2], r[4]) for r in rows], [("mutually", "xiang1", 27861), ("phase", "xiang4", 208)])
+        self.assertEqual(compiler.numbered_reading("lǜ sè"), "lv4 se4")
+        self.assertEqual(compiler.numbered_reading("lu:4 se4"), "lv4 se4")
+
+    def test_reverse_glosses_do_not_add_every_inflected_form(self):
+        csv = "word,translation,phonetic,pos,bnc,frq,exchange\nthink,v. 想,,,,,\nthought,v. 想,,,,,0:think\n".encode()
+        output, _ = compiler.compile_data(csv, "想 想 [xiang3] /to think/\n".encode(), b"thought 100\nthink 10\n")
+        self.assertEqual([row[0] for row in self.relations(output, "xiang")], ["think"])
+
+    def test_low_english_frequency_relations_are_not_destroyed_by_a_key_level_64_cap(self):
+        names = ["word" + chr(97 + i // 26) + chr(97 + i % 26) for i in range(80)]
+        csv = ("word,translation,phonetic,pos,bnc,frq\n" + "".join(word + ",n. 香,,,,\n" for word in names)).encode()
+        cedict = ("香 香 [xiang1] /" + "/".join(names) + "/\n").encode()
+        frequency = "".join(f"{word} {i + 1}\n" for i, word in enumerate(names)).encode()
+        output, counts = compiler.compile_data(csv, cedict, frequency)
+        self.assertEqual(counts["mappings"], 80)
+        self.assertEqual({row[0] for row in self.relations(output, "xiang")}, set(names))
+
+    def test_context_limited_senses_do_not_outrank_unqualified_senses(self):
+        csv = "word,translation,phonetic,pos,bnc,frq\nsound,adj. 香,,,,\nfragrant,adj. 香,,,,\n".encode()
+        cedict = "香 香 [xiang1] /fragrant/(of sleep) sound/\n".encode()
+        output, _ = compiler.compile_data(csv, cedict, b"sound 10000\nfragrant 1\n")
+        self.assertEqual(self.relations(output, "xiang")[0][0], "fragrant")
+
+    def test_retained_sense_keeps_its_own_usage_flags_and_ordinal(self):
+        csv = "word,translation,phonetic,pos,bnc,frq\ngrandfather,n. 祖父,,,,\nflash,v. 闪光,,,,\n".encode()
+        cedict = "阿公 阿公 [a1 gong1] /(old) grandfather/(Taiwanese) grandfather/\n掣電 掣电 [che4 dian4] /to flash/a flash (literary)/\n".encode()
+        output, _ = compiler.compile_data(csv, cedict, b"grandfather 100\nflash 10\n")
+        grandfather = self.relations(output, "agong")[0]
+        self.assertEqual(grandfather[3], "(Taiwanese) grandfather")
+        self.assertEqual(grandfather[5] & 12, 0)
+        self.assertEqual(grandfather[6], 1)
+        flash = self.relations(output, "chedian")[0]
+        self.assertEqual(flash[3], "to flash")
+        self.assertEqual(flash[5] & 12, 0)
 
 
 if __name__ == "__main__":

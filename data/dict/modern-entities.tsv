@@ -1,0 +1,52 @@
+# EAMODEN1	text	aliases	kind	definition_zh	wikidata_id	revision	official_url
+Alibaba Cloud	alibabacloud	公司	中国云计算公司	Q17062154	2564823187	https://www.alibabacloud.com/
+Anthropic	anthropic	公司	美国人工智能公司；Claude 开发商	Q116758847	2562358338	https://www.anthropic.com/company
+Apple	apple,appleinc	公司	总部位于美国加州的跨国科技公司	Q312	2564760385	https://www.apple.com/
+Bun	bun	开发工具	JavaScript 运行环境	Q113048518	2559664788	https://bun.sh/
+ChatGPT	chatgpt	产品	OpenAI 开发的人工智能聊天助手	Q115564437	2565170281	https://chatgpt.com/
+Claude	claude	产品	Anthropic 开发的大语言模型系列	Q118876059	2566710367	https://www.anthropic.com/claude
+Cloudflare	cloudflare	公司	提供互联网基础设施和网站安全服务的公司	Q4778915	2564909288	https://www.cloudflare.com/
+Codex	codex,openaicodex	产品	OpenAI 开发的软件工程智能体	Q138940795	2552162450	https://openai.com/codex/
+Cohere	cohere	公司	加拿大人工智能公司	Q110363143	2562497641	https://cohere.com/
+GitHub Copilot	copilot,githubcopilot	产品	GitHub 的人工智能编程助手	Q107435063	2565170135	https://github.com/features/copilot
+Cursor	cursor	开发工具	Anysphere 开发的源代码编辑器	Q131980386	2565170126	https://www.cursor.com/
+Google DeepMind	deepmind,googledeepmind	公司	谷歌旗下的人工智能公司	Q15733006	2553464846	https://deepmind.google/
+DeepSeek	deepseek	公司	中国人工智能公司	Q131577453	2557174282	https://www.deepseek.com/
+Deno	deno	开发工具	JavaScript 与 TypeScript 安全运行环境	Q65070939	2559572864	https://deno.com/
+Docker	docker	开发工具	用于部署和运行容器化应用的软件	Q15206305	2565169662	https://www.docker.com/
+FastAPI	fastapi	框架	Python 网络应用开发框架	Q101119404	2566472760	https://fastapi.tiangolo.com/
+Gemini	gemini	产品	Google 开发的人工智能聊天助手	Q116698014	2566819604	https://gemini.google.com/
+GitHub	github	平台	基于 Git 的源代码托管平台	Q364	2560835238	https://github.com/
+Go	go,golang	编程语言	由 Google 与开源社区开发的编程语言	Q37227	2559105801	https://go.dev/
+Google	google	公司	美国跨国科技公司	Q95	2565591271	https://about.google/
+Hugging Face	huggingface	公司	人工智能公司与模型开发社区	Q108943604	2556289210	https://huggingface.co/
+IntelliJ IDEA	intellij,intellijidea	开发工具	集成开发环境	Q1206660	2565170161	https://www.jetbrains.com/idea/
+JavaScript	javascript	编程语言	高级编程语言	Q2005	2566877768	https://www.ecma-international.org/publications-and-standards/standards/ecma-262/
+JetBrains	jetbrains	公司	捷克软件开发公司	Q1688472	2565186344	https://www.jetbrains.com/
+Kubernetes	kubernetes	开发工具	管理服务器集群中容器的软件	Q22661306	2565844109	https://kubernetes.io/
+LangChain	langchain	框架	大语言模型应用开发框架	Q117340550	2557334159	https://langchain.com/
+LlamaIndex	llamaindex	公司	提供大语言模型开发工具的公司	Q125446413	2547909708	https://www.llamaindex.ai/
+Meta Platforms	meta,metaplatforms	公司	美国科技公司	Q380	2565169562	https://www.meta.com/
+Microsoft	microsoft	公司	美国跨国科技公司	Q2283	2565523469	https://www.microsoft.com/
+Mistral AI	mistral,mistralai	公司	法国人工智能公司	Q119718658	2553330703	https://mistral.ai/
+Moonshot AI	moonshot,moonshotai	公司	中国人工智能公司	Q130270266	2551404295	https://www.moonshot.ai/
+Node.js	node,nodejs	开发工具	JavaScript 运行环境	Q756100	2565170182	https://nodejs.org/
+npm	npm	开发工具	Node.js 的软件包管理器	Q7067518	2564966661	https://www.npmjs.com/
+NVIDIA	nvidia	公司	美国半导体与科技公司	Q182477	2567252757	https://www.nvidia.com/
+Ollama	ollama	开发工具	在本地计算机或云端运行大语言模型的软件	Q124636097	2565440729	https://ollama.com/
+OpenAI	openai	公司	人工智能研究与产品公司，ChatGPT 的开发方	Q21708200	2561929276	https://openai.com/about/
+Perplexity AI	perplexity,perplexityai	公司	开发人工智能对话式搜索服务的公司	Q124333951	2565170324	https://www.perplexity.ai/
+PostgreSQL	postgres,postgresql	数据库	自由开源的关系数据库管理系统	Q192490	2557308451	https://www.postgresql.org/
+PyCharm	pycharm	开发工具	面向 Python 开发的集成开发环境	Q1484375	2565170150	https://www.jetbrains.com/pycharm/
+Python	python	编程语言	通用编程语言	Q28865	2566877611	https://www.python.org/
+PyTorch	pytorch	框架	开源机器学习框架	Q47509047	2562117322	https://pytorch.org/
+Qwen	qwen	产品	阿里云开发的人工智能聊天助手	Q130234299	2537001715	https://chat.qwen.ai/
+Replit	replit	开发工具	在线集成开发环境	Q60768699	2565170113	https://replit.com/
+Rust	rust	编程语言	注重内存安全且无需垃圾回收的编程语言	Q575650	2562751034	https://rust-lang.org/
+Stack Overflow	stackoverflow	平台	面向程序员的技术问答网站	Q549037	2564761222	https://stackoverflow.com/
+Supabase	supabase	平台	基于 PostgreSQL 的开源开发平台	Q136776342	2550007574	https://supabase.com/
+TensorFlow	tensorflow	框架	机器学习软件框架	Q21447895	2550169852	https://tensorflow.org/
+TypeScript	typescript	编程语言	可编译为 JavaScript 的类型化编程语言	Q978185	2563162385	https://www.typescriptlang.org/
+Vercel	vercel	平台	用于静态站点和无服务器应用的托管平台	Q139257301	2565170149	https://vercel.com/about
+Visual Studio Code	visualstudiocode,vscode	开发工具	微软开发的源代码编辑器	Q19841877	2565454188	https://code.visualstudio.com/
+Zhipu AI	zhipu,zhipuai	公司	中国人工智能与大语言模型公司	Q129572031	2563658868	https://z.ai/

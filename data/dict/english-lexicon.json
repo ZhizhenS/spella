@@ -1,19 +1,29 @@
 {
-  "bytes": 9504865,
+  "bytes": 15098862,
   "counts": {
-    "mappings": 75463,
-    "pinyin": 33724,
-    "words": 83369
+    "mappings": 121350,
+    "pinyin": 37668,
+    "words": 83367
   },
-  "file": "english-lexicon-v1.bin",
-  "format": "RTENLX01",
-  "schema": 1,
-  "sha256": "05ac7881ad2ea58001045584a46a8b67d0da728cce5beea551e3ad4df49f9458",
+  "file": "english-lexicon-v2.bin",
+  "format": "RTENLX02",
+  "schema": 2,
+  "sha256": "cca750ec8fbd1b3366038f3a096fc48d4e2843a4a1bf5265507e6b868e7e933c",
   "sources": {
     "cedict": {
       "content_sha256": "27699e200e87b10950711a979382c041d01136a3bcef4bf4c1c0f86bbf3cdcf4",
       "file": "cedict.txt.gz",
       "sha256": "8c6c011dcc0202e87b813e5416904e684fdb7223c0fba47e8e3d5de7c6bd0335"
+    },
+    "chinese_words": {
+      "content_sha256": "7b99f3c500e7c955aea532b447a6b12f6d5df9df6ae3e22c72a86b895e6e1cdd",
+      "file": "jichu.dict.yaml",
+      "sha256": "7b99f3c500e7c955aea532b447a6b12f6d5df9df6ae3e22c72a86b895e6e1cdd"
+    },
+    "chinese_zi": {
+      "content_sha256": "6adee15182755d6bb675b86cbe89ffcd4663cd8f7e217e9b5bc72d28473946c3",
+      "file": "zi.dict.yaml",
+      "sha256": "6adee15182755d6bb675b86cbe89ffcd4663cd8f7e217e9b5bc72d28473946c3"
     },
     "ecdict": {
       "content_sha256": "1a6947e04785db63613a92e14903cdae7954f7e84860b10e68e5c7cbb3f9c3cf",

@@ -1,4 +1,4 @@
-# English Assist 0.4.0 — Windows development branch
+# English Assist 0.5.0 — Windows development branch
 
 English Assist is a Windows English input-method project derived from
 [Retype at 902e35e](https://github.com/L-Chris/retype/tree/902e35e06ee4f744320cf995c39b1f64693034cf).
@@ -8,9 +8,68 @@ AI grammar correction and sentence completion, through a real English TSF entry.
 [简体中文](README.zh-CN.md) · [English input](docs/english-input.md) ·
 [P0 validation](docs/english-assist/INPUT_VALIDATION.md)
 
-## 0.4.0 input status and spacing
+## 0.5.0 dictionary and mixed input
 
-**Final R5 build and installation checkpoint:** the formal build completed with
+**Final 0.5.0 R1 checkpoint:** the formal build passed 413 Rust checks, 46 Python
+checks and 619 PowerShell checks: 1,078 counted passes, including repeated x86
+runs. Rust reported 0 failures and 7 raw ignored entries; the prepared-resource
+integration was then explicitly run and is included in the 413 passes. Installed
+x64/x86 activation probes each passed 2 checks with S_OK, counted separately.
+Upgrade exited 0 to `C:\Program Files\EnglishAssist\versions\0.5.0-20261109121445-346651`;
+all 25 installed artifact hashes and build.json matched the frozen build.
+The 0.4.0 and earlier results below remain version-specific history.
+
+- The relational dictionary keeps the matched Chinese headword, numbered-tone
+  reading, original sense and source evidence for each pinyin-to-English link.
+  Ordering uses Chinese word/reading frequency and relation quality instead of
+  letting a frequent English gloss hide unrelated or dated Chinese senses.
+- Labels such as `拼音 · 想` identify an exact pinyin key; `扩展 · 想法` marks a
+  longer dictionary key found through a prefix. English POS/definitions remain
+  separate from the Chinese word that caused the match. These are dictionary
+  alternatives, not a promise of understanding a sentence's intended meaning.
+- With both pinyin lookup and continuous segmentation enabled,
+  `iwilldotheyiyang` and `iwilldothetongyang` can offer the suffix `same`, while
+  confirmation replaces the composition once with `I will do the same`.
+  The entire English prefix is preserved; it is not repeated in the candidate
+  row. Incomplete pinyin uses the same bounded prefix lookup.
+- Plain Space preserves the raw spelling when a pinyin interpretation is
+  recognized, rather than splitting its letters into accidental English words
+  or translating the tail. Tab, a number, a click, or Up/Down followed by Space
+  explicitly accepts the mixed candidate. Enter still commits the raw
+  composition, even after navigation. Neither cloud requests nor automatic
+  learning are involved.
+- A limited reviewed seed of 51 modern entities adds canonical company/product names
+  such as Anthropic and its Claude-related identity. Its frozen Wikidata
+  revisions and official identity links are retained separately from ordinary
+  dictionary meanings. Capitalized prefixes promote names; common lowercase
+  words retain their ordinary meaning alongside the entity. This is a small
+  offline catalog, not the complete Wikidata knowledge base or an automatic
+  current-events feed.
+
+The bilingual sources are still a pinned ECDICT revision and the **2017-11-17
+CC-CEDICT snapshot**. This rebuild changes the relationships and ranking; it does
+not silently replace them with today's dictionary. Pinned Wanxiang v18.0.14
+character/word frequencies help order Chinese matches. See the source and license
+section for the exact independent snapshots.
+
+Notepad PID58000 was confirmed to load the final R1 DLL. The two mixed examples
+offered `same` first; number 1 and Tab each committed `I will do the same` once.
+For `xiang`, the first page showed think/想, mutually/相, to/向, like/像 and item/项;
+paging exposed fragrant/香 and elephant/象, while Enter kept literal `xiang`.
+Anthropic's company/Claude identity and the ordinary adjective coexisted, with
+number 1 committing canonical `Anthropic`. Plain Space produced `I am robot`
+from `iamrobot`, and kept `iamnihao` raw despite a visible hello/你好 candidate.
+The owned saved file matched all six expected lines. Automatic spacing stayed on,
+and existing keyboard/default preferences were preserved. Receipts:
+`work/research/v0.5.0-r1-notepad-live.json` and
+`work/build-logs/v0.5.0-r1-test-counts.json`.
+These are bounded Notepad checks; this version did not repeat AI, uninstall,
+reboot deletion or real x86 editor typing, and a complete native rebuild from the
+source ZIP has not been verified. Candidate ranks are snapshots, not guarantees.
+
+## Inherited 0.4 behavior and historical checks
+
+**Historical 0.4.0 R5 build and installation checkpoint:** the formal build completed with
 396 Rust passes, 0 failures and 6 ignored results across 24 suites (including
 repeated x86 runs), 33 Python passes and 602 PowerShell checks: 1,031 counted pass
 results. Installed x64/x86 probes each passed 2 checks with in-process activation
@@ -184,16 +243,17 @@ The English-specific script builds both TSF architectures, the settings/helper
 programs and the pinned English vocabulary, then runs its configured checks.
 It does not install the product or modify the system keyboard list.
 
-The 0.4 installer path is `dist/english-assist-0.4.0-windows-x64-setup.exe`.
-R5 was formally built, installed and checked in Notepad as recorded above; consult the versioned
-validation record for the exact delivered artifact and completed UI checks.
+The 0.5.0 R1 installer is `dist/english-assist-0.5.0-windows-x64-setup.exe`.
+Its formal build, installed hashes, activation probes and bounded Notepad checks
+are recorded above and in the versioned validation record. Earlier installation
+and lifecycle results remain historical.
 Do not use the inherited Retype installer, register.ps1 or upstream release
 download links for this fork.
 
 A validated installation should appear under Windows Settings → Time & language
 → Language & region → English (United States) → Language options → Keyboards,
 and be selectable with Win+Space. It must preserve the existing default keyboard.
-See the validation record for the 0.4 build and synchronization checkpoints;
+See the validation record for the current build and historical synchronization checkpoints;
 earlier Notepad, AI and lifecycle results remain separate from the current version
 and outstanding application/reboot-deletion coverage.
 
@@ -202,9 +262,10 @@ and outstanding application/reboot-deletion coverage.
 Use 1–5 to select a visible candidate, minus/plus to page, or Tab to accept without a trailing space.
 To enter an original spelling with a digit, such as python3, press Esc before the digit when candidates are visible. Use
 Up/Down then Space to accept a selected candidate. With automatic spacing on,
-Space confirms without a trailing space and restores only already-typed internal
-word boundaries when segmentation is on; with it off, Space inserts a manual
-space. Shift toggles that preference. Enter submits the current raw input and
+plain Space confirms without a trailing space and may restore already-typed
+internal word boundaries when segmentation is on; a recognized pinyin
+interpretation keeps its raw spelling unless explicitly selected. With automatic
+spacing off, Space inserts a manual space. Shift toggles that preference. Enter submits the current raw input and
 consumes that first Enter; a subsequent Enter has the application's normal action.
 Esc keeps the original text.
 
@@ -218,6 +279,17 @@ The English vocabulary has separate SymSpell, SCOWL and Google Ngram notices
 under data/dict/raw/english/. Definitions and pinyin data retain ECDICT MIT and
 CC-CEDICT CC BY-SA 3.0 attribution; the combined metadata file is distributed
 under CC BY-SA 3.0. Data licenses do not become MIT because the code is MIT.
+
+The frozen CC-CEDICT source is the 2017 snapshot mirrored at HallelujahIM
+`8be294f70a4dc7b24a93f07c41df6c34add07a07`, with its original CC BY-SA 3.0
+header. The [current MDBG download page](https://www.mdbg.net/chinese/dictionary?page=cc-cedict)
+lists CC BY-SA 4.0 for its current release; that does not change this package's
+source snapshot. ECDICT is pinned at `bc015ed2e24a7abef49fc6dbbb7fe32c1dadaf8b`
+under MIT. Wanxiang v18.0.14 `zi.dict.yaml` and `jichu.dict.yaml` retain CC BY 4.0
+attribution and hashes in `data/dict/raw/english-assist/SOURCES.json` and
+`data/dict/raw/wanxiang-base/SOURCE.md`. Modern entities retain their separate
+CC0 Wikidata snapshot/revision records and reviewed official identity URLs in
+`data/dict/modern-entities.json`; they are independent of the bilingual sidecar.
 
 The separate 0.3 embedded bigram preferences use the frozen published SymSpell
 file from MIT repository commit `c239062ae02961df18ab7da1671d01b4388204e0`.
@@ -234,6 +306,10 @@ preparation and verification scripts/tests in `tools/english-assist/`. A tracked
 archive omits new working-tree files until they are committed.
 For 0.3 also retain `data/dict/raw/english-bigrams/` and `core/english/assets/`,
 including the frozen gzip, license, source/output manifests and embedded image.
+For 0.5 also retain the pinned Wanxiang frequency inputs, relational v2 compiler
+and tests, and the modern-entity JSON/TSV, raw Wikidata projection, source/license
+records and offline verification tools. Source archives must exclude credentials
+and personal input files.
 Inherited modules for Chinese input, other platforms and synchronization remain
 in the checkout; their existence does not imply those features ship in this
 English-only product.

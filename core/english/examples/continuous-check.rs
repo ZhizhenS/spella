@@ -56,11 +56,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("segment_exact={:?}", vocabulary.segment_exact(input));
         for (index, candidate) in hits.iter().take(5).enumerate() {
             println!(
-                "{}\tdisplay={:?}\tcommit={:?}\tscore={:.4}",
+                "{}\tdisplay={:?}\tcommit={:?}\tscore={:.4}\tannotation={:?}",
                 index + 1,
                 candidate.display_text(),
                 candidate.text,
-                candidate.score
+                candidate.score,
+                candidate.annotation
             );
         }
     }

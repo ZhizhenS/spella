@@ -922,6 +922,36 @@ impl SettingsApp {
             );
         });
         ui.add_space(12.0);
+        card(ui, |ui| {
+            ui.label(RichText::new("词义与候选来源").strong());
+            ui.horizontal_wrapped(|ui| {
+                ui.hyperlink_to("ECDICT", "https://github.com/skywind3000/ECDICT");
+                ui.label("英汉释义、词性与音标。");
+            });
+            ui.horizontal_wrapped(|ui| {
+                ui.hyperlink_to(
+                    "CC-CEDICT（2017 快照）",
+                    "https://www.mdbg.net/chinese/dictionary?page=cc-cedict",
+                );
+                ui.label("中文词的读音与义项。");
+            });
+            ui.horizontal_wrapped(|ui| {
+                ui.hyperlink_to(
+                    "万象词库",
+                    "https://github.com/amzxyz/rime-wanxiang/releases/tag/v18.0.14",
+                );
+                ui.label("中文词及具体读音的常用程度。");
+            });
+            ui.horizontal_wrapped(|ui| {
+                ui.hyperlink_to("Wikidata", "https://www.wikidata.org/");
+                ui.label("结合官网核对现代公司、产品等专名，覆盖有限。");
+            });
+            ui.label(
+                RichText::new("拼音候选会标出命中的中文词，区分精确匹配与扩展建议；排序优先考虑中文词的常用程度，英文词频仅作辅助。")
+                    .color(MUTED),
+            );
+        });
+        ui.add_space(12.0);
         self.manual_words_ui(ui);
     }
 

@@ -16,12 +16,12 @@ foreach ($name in @('Get-EnglishAssistSha256','Test-EnglishAssistOfflineLexicon'
 function Get-FileHash { throw [Management.Automation.CommandNotFoundException]::new('Get-FileHash unavailable in simulated Setup environment') }
 $taskRoot = Join-Path ([IO.Path]::GetTempPath()) ('EnglishAssist-resource-test-' + [Guid]::NewGuid().ToString('N'))
 [IO.Directory]::CreateDirectory($taskRoot) | Out-Null
-$taskImage = Join-Path $taskRoot 'english-lexicon-v1.bin'
-$taskManifest = Join-Path $taskRoot 'english-lexicon-v1.json'
+$taskImage = Join-Path $taskRoot 'english-lexicon-v2.bin'
+$taskManifest = Join-Path $taskRoot 'english-lexicon-v2.json'
 $script:Passed = 0
 function Reset-ResourceFixture {
-  [IO.File]::WriteAllBytes($taskImage, [Text.Encoding]::ASCII.GetBytes('RTENLX01' + ('x' * 24)))
-  $script:Manifest = [ordered]@{schema=1;format='RTENLX01';file='english-lexicon-v1.bin';bytes=32;sha256='a92eb5b78b7e31a1c066eb887cc839f178140762697d164224cb8bb03fcbe75f'}
+  [IO.File]::WriteAllBytes($taskImage, [Text.Encoding]::ASCII.GetBytes('RTENLX02' + ('x' * 24)))
+  $script:Manifest = [ordered]@{schema=2;format='RTENLX02';file='english-lexicon-v2.bin';bytes=32;sha256='8a7c959cf76e7fe887477f9d15e88eaa6c34fbb1388711d95ddb7424a19b55e4'}
   Save-ResourceManifest
 }
 function Save-ResourceManifest {
@@ -58,7 +58,8 @@ try {
   Assert-Rejected { Remove-Item -LiteralPath $taskImage } 'Missing image'
   Assert-Rejected { Remove-Item -LiteralPath $taskManifest } 'Missing manifest'
   Assert-Rejected { [IO.File]::WriteAllText($taskManifest, '{') } 'Invalid JSON'
-  Assert-Rejected { $script:Manifest.schema = 2; Save-ResourceManifest } 'Unknown schema'
+  Assert-Rejected { $script:Manifest.schema = 3; Save-ResourceManifest } 'Unknown schema'
+  Assert-Rejected { $script:Manifest.schema = 1; Save-ResourceManifest } 'Legacy schema rejected for the word-level lexicon'
   Assert-Rejected { $script:Manifest.format = 'RTENGL01'; Save-ResourceManifest } 'Wrong format'
   Assert-Rejected { $script:Manifest.file = '..\other.bin'; Save-ResourceManifest } 'Path outside fixed image'
   Assert-Rejected { $script:Manifest.sha256 = 'z' * 64; Save-ResourceManifest } 'Invalid digest'
@@ -66,6 +67,7 @@ try {
   Assert-Rejected { $script:Manifest.bytes = 67108865; Save-ResourceManifest } 'Unbounded image size'
   Assert-Rejected { $script:Manifest.bytes = 31; Save-ResourceManifest } 'Size mismatch'
   Assert-Rejected { [IO.File]::WriteAllBytes($taskImage, [Text.Encoding]::ASCII.GetBytes('RTENGL01' + ('x' * 24))); $script:Manifest.sha256 = '199f1c0a56dd057001679ec42cc5e5f354876a91ecdeaabb26196d625bba931f'; Save-ResourceManifest } 'Hash-valid wrong magic'
+  Assert-Rejected { [IO.File]::WriteAllBytes($taskImage, [Text.Encoding]::ASCII.GetBytes('RTENLX01' + ('x' * 24))); $script:Manifest.sha256 = 'a92eb5b78b7e31a1c066eb887cc839f178140762697d164224cb8bb03fcbe75f'; Save-ResourceManifest } 'Hash-valid legacy magic rejected'
   Assert-Rejected { Remove-Item -LiteralPath $taskImage; [IO.Directory]::CreateDirectory($taskImage) | Out-Null } 'Directory in place of image'
   Remove-Item -LiteralPath $taskImage -Force
   $englishHash = 'e1098fbaa665d52788f6ed1fde2a00eb8145e459c41583f5e59f4678db7619bc'

@@ -3,6 +3,7 @@
 use retype_types::{Candidate, CandidateLanguage, CandidateSource, LearningStore};
 use std::collections::{BinaryHeap, HashSet};
 mod continuous;
+mod entities;
 mod image;
 pub mod lexicon;
 pub use image::{compile, current, Vocabulary, MAGIC, MAX_BYTES};
@@ -53,6 +54,16 @@ fn casing(word: &str, input: &str) -> String {
     } else {
         word.into()
     }
+}
+
+fn is_entity(candidate: &Candidate) -> bool {
+    candidate
+        .annotation
+        .as_ref()
+        .is_some_and(|annotation| !annotation.entity_kind.is_empty())
+}
+fn candidate_identity(candidate: &Candidate) -> (String, bool) {
+    (candidate.text.to_ascii_lowercase(), is_entity(candidate))
 }
 
 impl Vocabulary {
@@ -132,11 +143,40 @@ impl Vocabulary {
         segmentation: bool,
         phrases: bool,
     ) -> Vec<Candidate> {
-        let plain = self.complete_with_pinyin(input, learner, limit, pinyin);
-        if !segmentation || limit == 0 {
+        if limit == 0 || !valid_word(input) {
+            return Vec::new();
+        }
+        self.complete_input_from(
+            input,
+            learner,
+            limit,
+            (pinyin, segmentation, phrases),
+            &lexicon::current(),
+            &lexicon::manual(),
+        )
+    }
+    fn complete_input_from(
+        &self,
+        input: &str,
+        learner: &dyn LearningStore,
+        limit: usize,
+        options: (bool, bool, bool),
+        metadata: &lexicon::Lexicon,
+        manual: &lexicon::ManualWords,
+    ) -> Vec<Candidate> {
+        let (pinyin, segmentation, phrases) = options;
+        let plain = self.complete_from(input, learner, limit, pinyin, metadata, manual);
+        if !segmentation
+            || limit == 0
+            || plain.iter().any(|candidate| {
+                (candidate.source == CandidateSource::User || is_entity(candidate))
+                    && candidate.text.eq_ignore_ascii_case(input)
+            })
+        {
             return plain;
         }
-        let segmented = continuous::complete(self, input, limit, phrases);
+        let segmented =
+            continuous::complete_with_pinyin(self, input, limit, phrases, pinyin, metadata);
         if segmented.is_empty() {
             return plain;
         }
@@ -152,6 +192,7 @@ impl Vocabulary {
         let mut ranked = Vec::new();
         for mut candidate in plain {
             if candidate.source == CandidateSource::User
+                || is_entity(&candidate)
                 || candidate.text.eq_ignore_ascii_case(input)
                 || (primary_pinyin
                     && candidate
@@ -173,7 +214,7 @@ impl Vocabulary {
         });
         pinned.extend(ranked);
         let mut seen = HashSet::new();
-        pinned.retain(|candidate| seen.insert(candidate.text.to_ascii_lowercase()));
+        pinned.retain(|candidate| seen.insert(candidate_identity(candidate)));
         pinned.truncate(limit);
         pinned
     }
@@ -282,7 +323,49 @@ impl Vocabulary {
             .collect();
         hits.retain(|candidate| !personal_keys.contains(&candidate.text.to_ascii_lowercase()));
         personal.extend(hits);
-        self.assist(input, personal, limit, enabled, lexicon)
+        let ordinary = self.assist(input, personal, limit, enabled, lexicon);
+        self.with_entities(input, ordinary, limit)
+    }
+
+    fn with_entities(&self, input: &str, ordinary: Vec<Candidate>, limit: usize) -> Vec<Candidate> {
+        let names = entities::complete(input, limit);
+        if names.is_empty() {
+            return ordinary;
+        }
+        let exact_name = names
+            .iter()
+            .any(|candidate| candidate.text.eq_ignore_ascii_case(input));
+        let ordinary_common = self.find(&input.to_ascii_lowercase()).is_some_and(|id| {
+            self.frequency(id) as f64 / self.total_frequency().max(1) as f64 >= 0.000_001
+        });
+        let promote = input
+            .bytes()
+            .next()
+            .is_some_and(|letter| letter.is_ascii_uppercase())
+            || ordinary.is_empty()
+            || (exact_name && !ordinary_common);
+        let (mut personal, ordinary): (Vec<_>, Vec<_>) = ordinary
+            .into_iter()
+            .partition(|candidate| candidate.source == CandidateSource::User);
+        if promote {
+            personal.extend(names);
+            personal.extend(ordinary);
+        } else {
+            // Preserve a common lowercase word's first slot, while reserving
+            // room for its independently attributed modern entity meaning.
+            let available = limit.saturating_sub(personal.len());
+            let normal_slots = available
+                .saturating_sub(names.len().min(2))
+                .max(usize::from(personal.is_empty() && available > 0));
+            let mut normal = ordinary.into_iter();
+            personal.extend(normal.by_ref().take(normal_slots));
+            personal.extend(names);
+            personal.extend(normal);
+        }
+        let mut seen = HashSet::new();
+        personal.retain(|candidate| seen.insert(candidate_identity(candidate)));
+        personal.truncate(limit);
+        personal
     }
 
     fn assist(
@@ -465,6 +548,124 @@ mod tests {
         Vocabulary::from_bytes(bytes).unwrap()
     }
     #[test]
+    fn joined_pinyin_options_and_exact_personal_spelling_are_independent() {
+        let vocab = current();
+        let metadata = lexicon::fixture();
+        let empty = lexicon::ManualWords::default();
+        let input = "iwilldotheyiyang";
+        for options in [
+            (false, true, true),
+            (true, false, true),
+            (false, false, false),
+        ] {
+            let hits = vocab.complete_input_from(input, &Empty, 5, options, &metadata, &empty);
+            assert!(!hits
+                .iter()
+                .any(|candidate| candidate.text == "I will do the same"));
+        }
+        let hits =
+            vocab.complete_input_from(input, &Empty, 5, (true, true, false), &metadata, &empty);
+        assert!(hits
+            .iter()
+            .take(5)
+            .any(|candidate| candidate.text == "I will do the same"));
+        let manual =
+            lexicon::ManualWords::validate(vec![(input.into(), "显式保留拼写".into())]).unwrap();
+        let hits =
+            vocab.complete_input_from(input, &Empty, 5, (true, true, true), &metadata, &manual);
+        assert_eq!(hits[0].text, input);
+        assert_eq!(hits[0].comment, "显式保留拼写");
+        assert!(hits
+            .iter()
+            .all(|candidate| candidate.display_text.is_none()));
+        struct Personal;
+        impl LearningStore for Personal {
+            fn record(&self, _: retype_types::LearningEvent) {
+                panic!("completion must not learn");
+            }
+            fn english_words(&self, _: &str, _: usize) -> Vec<(String, u64)> {
+                vec![("iwilldotheyiyang".into(), 2)]
+            }
+        }
+        let hits =
+            vocab.complete_input_from(input, &Personal, 5, (true, true, true), &metadata, &empty);
+        assert_eq!(hits[0].text, input);
+        assert_eq!(hits[0].source, CandidateSource::User);
+        assert!(hits
+            .iter()
+            .all(|candidate| candidate.display_text.is_none()));
+    }
+    #[test]
+    fn modern_entities_keep_canonical_names_and_distinct_common_word_meanings() {
+        let vocab = current();
+        for input in ["anthropic", "Anthr", "ANTHROPIC"] {
+            let hits = vocab.complete_input(input, &Empty, 5, false, true, true);
+            assert_eq!(hits[0].text, "Anthropic");
+            assert!(is_entity(&hits[0]));
+            assert!(hits[0]
+                .annotation
+                .as_ref()
+                .unwrap()
+                .entity_source
+                .contains("Q116758847"));
+        }
+        let hits = vocab.complete_input("anthropic", &Empty, 5, false, true, true);
+        assert!(
+            hits.iter()
+                .any(|candidate| candidate.text == "anthropic" && !is_entity(candidate)),
+            "ordinary adjective must remain independently available"
+        );
+        let hits = vocab.complete_input("apple", &Empty, 5, false, true, true);
+        assert_eq!(hits[0].text, "apple");
+        assert!(!is_entity(&hits[0]));
+        assert!(hits
+            .iter()
+            .any(|candidate| candidate.text == "Apple" && is_entity(candidate)));
+        assert!(is_entity(&vocab.complete("Apple", &Empty, 1)[0]));
+        assert!(!is_entity(&vocab.complete("apple", &Empty, 1)[0]));
+        let manual =
+            lexicon::ManualWords::validate(vec![("Apple".into(), "我的显式词条".into())]).unwrap();
+        let hits = vocab.complete_input_from(
+            "Apple",
+            &Empty,
+            5,
+            (true, true, true),
+            &lexicon::fixture(),
+            &manual,
+        );
+        assert_eq!(hits[0].comment, "我的显式词条");
+        assert_eq!(hits[0].source, CandidateSource::User);
+        assert!(!is_entity(&hits[0]));
+        for input in ["app", "App", "APP"] {
+            for limit in [1, 2, 5] {
+                let hits = vocab.complete_input_from(
+                    input,
+                    &Empty,
+                    limit,
+                    (true, true, true),
+                    &lexicon::fixture(),
+                    &manual,
+                );
+                assert_eq!(
+                    hits[0].source,
+                    CandidateSource::User,
+                    "personal prefix priority for {input}"
+                );
+                assert_eq!(hits[0].comment, "我的显式词条");
+                assert!(!is_entity(&hits[0]));
+                assert!(hits.len() <= limit);
+                if limit > 1 {
+                    assert!(
+                        hits.iter()
+                            .skip(1)
+                            .any(|candidate| candidate.text == "Apple" && is_entity(candidate)),
+                        "entity meaning remains independently available for {input}"
+                    );
+                }
+            }
+        }
+    }
+    #[test]
     fn known_english_keeps_a_slot_even_with_one_or_two_candidate_limits() {
         let vocabulary = small_vocabulary(b"nihao 100\nnihaoz 10\n");
         let lexicon = lexicon::fixture();
@@ -494,23 +695,40 @@ mod tests {
                 &lexicon,
                 &lexicon::ManualWords::default(),
             );
-            assert_eq!(hits[0].text, word);
-            assert!(hits[0].comment.contains("苹果"));
+            let ordinary = hits
+                .iter()
+                .find(|candidate| candidate.text == word && !is_entity(candidate))
+                .unwrap();
+            assert!(ordinary.comment.contains("苹果"));
         }
         let manual =
             lexicon::ManualWords::validate(vec![("Apple".into(), "显式个人备注".into())]).unwrap();
         let hits = vocabulary.complete_from("app", &Empty, 5, true, &lexicon, &manual);
         assert_eq!(
             hits.iter()
-                .filter(|candidate| candidate.text.eq_ignore_ascii_case("apple"))
+                .filter(|candidate| candidate.text.eq_ignore_ascii_case("apple")
+                    && !is_entity(candidate))
                 .count(),
             1
         );
         assert_eq!(hits[0].comment, "显式个人备注");
+        assert_eq!(hits[0].source, CandidateSource::User);
+        assert!(!is_entity(&hits[0]));
         assert_eq!(
             hits[0].annotation.as_ref().unwrap().definition,
             "显式个人备注"
         );
+        let entity = hits
+            .iter()
+            .find(|candidate| candidate.text == "Apple" && is_entity(candidate))
+            .expect("company meaning is separate from the personal word");
+        assert!(entity
+            .annotation
+            .as_ref()
+            .unwrap()
+            .entity_source
+            .contains("Q312"));
+        assert_ne!(entity.comment, "显式个人备注");
         let hits = vocabulary.complete_from(
             "hel",
             &Empty,
@@ -602,14 +820,19 @@ mod tests {
                 .filter(|i| word(*i).starts_with(prefix))
                 .collect();
             expected.sort_by(|a, b| frequency(*b).cmp(&frequency(*a)).then_with(|| a.cmp(b)));
+            let ordinary: Vec<_> = actual
+                .iter()
+                .filter(|candidate| !is_entity(candidate))
+                .collect();
+            assert!(actual.len() <= 12);
             assert_eq!(
-                actual
+                ordinary
                     .iter()
                     .map(|c| c.text.to_lowercase())
                     .collect::<Vec<_>>(),
                 expected
                     .into_iter()
-                    .take(12)
+                    .take(ordinary.len())
                     .map(|id| word(id).to_owned())
                     .collect::<Vec<_>>()
             );

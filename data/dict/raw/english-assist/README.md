@@ -11,6 +11,17 @@ build reads these committed archives without downloading or recompressing them.
   2017-11-17 header intact. It is not the mirror's derived JSON/SQLite database.
 - `LICENSE-ECDICT`, `LICENSE-CC-CEDICT`: complete unmodified license texts.
 - `NOTICE-English-Lexicon.txt`: attribution, original header and modification notice.
+- `../wanxiang-base/zi.dict.yaml` and `jichu.dict.yaml`: Chinese word/reading
+  frequency evidence from Wanxiang Base v18.0.14, CC BY 4.0; the complete upstream
+  `LICENSE` is installed as `LICENSE-Wanxiang`. `SOURCE.md` and this directory's
+  manifest pin the release asset and selected source-file hashes.
+
+RTENLX02 preserves each Chinese headword, numbered-tone reading, source gloss,
+Chinese frequency and source/usage flags. It combines eligible CC-CEDICT English
+gloss heads with exact complete Chinese-gloss reverse links from ECDICT. It does
+not infer reverse links from arbitrary Chinese substrings. Exact pinyin and
+longer-word expansion retain distinct evidence, and Chinese-word quality precedes
+global English frequency when ranking these relations.
 
 The independent compiler is `tools/english-assist/build-lexicon.py`; the guarded
 build entry is `tools/english-assist/build-english-lexicon.ps1`. Python 3.11+ is
@@ -21,7 +32,8 @@ required, with no third-party Python packages. Set `ENGLISH_ASSIST_PYTHON` if ne
 .\tools\english-assist\build-english-lexicon.ps1 -VerifyOnly
 ```
 
-The metadata binary and its JSON manifest are placed beside the compiled English
+The `english-lexicon-v2.bin` metadata binary and `english-lexicon-v2.json` manifest
+are placed beside the compiled English
 frequency image in `dist/english-dictionaries/` and then in each installation's
 immutable `dictionaries/` directory. The source distribution contains these frozen
 archives and the compiler; the installer contains the compiled files, attribution,
@@ -37,5 +49,18 @@ that expected manifest explicitly (never as an automatic build fallback):
 & $env:ENGLISH_ASSIST_PYTHON tools/english-assist/prepare-lexicon.py --output dist/english-dictionaries --refresh-manifest
 ```
 
-Preserve all attributions and the CC BY-SA 3.0 license for the combined metadata
-data file. This does not change the separate MIT code license.
+Preserve the CC-CEDICT-derived metadata's CC BY-SA 3.0 terms, the independent
+ECDICT MIT notice, Wanxiang CC BY 4.0 attribution and the frequency-source notices.
+The 2017 CC-CEDICT snapshot is not relabeled as CC BY-SA 4.0, and the original
+Wanxiang inputs keep their CC BY 4.0 terms. Code remains independently MIT.
+
+The modern-entity catalog is separate from this lexicon: a limited reviewed seed
+of 51 names, with Wikidata CC0 structured IDs/revisions, official-site
+references and reviewed Chinese summaries. Approved data is in
+`data/dict/modern-entities.json`, generated embedded data in
+`data/dict/modern-entities.tsv`, and frozen provenance in
+`data/dict/raw/modern-entities/`. `tools/english-assist/modern-entities.py --check`
+validates it offline before production compilation; updates require an explicit
+proposal/review and runtime regeneration. It is not a complete modern-entity
+corpus. Actual count and both file hashes are recorded in installed `build.json`;
+the independent validation/runtime code remains MIT.

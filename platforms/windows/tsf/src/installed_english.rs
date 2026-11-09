@@ -92,13 +92,24 @@ mod tests {
         pinyin.extend_from_slice(&0u32.to_le_bytes());
         pinyin.extend_from_slice(&1u32.to_le_bytes());
         arena.extend_from_slice(b"nihao");
+        let mut relation = Vec::new();
+        relation.extend_from_slice(&0u32.to_le_bytes());
+        for text in ["你好", "ni3 hao3", "hello"] {
+            relation.extend_from_slice(&(arena.len() as u32).to_le_bytes());
+            relation.extend_from_slice(&(text.len() as u32).to_le_bytes());
+            arena.extend_from_slice(text.as_bytes());
+        }
+        // RTENLX02 MATCH40: Chinese frequency, source flags, sense ordinal.
+        for value in [1000u32, 1, 0] {
+            relation.extend_from_slice(&value.to_le_bytes());
+        }
         let mut result = retype_english::lexicon::MAGIC.to_vec();
         for value in [1u32, 1, 1, arena.len() as u32] {
             result.extend_from_slice(&value.to_le_bytes());
         }
         result.extend(words);
         result.extend(pinyin);
-        result.extend_from_slice(&0u32.to_le_bytes());
+        result.extend(relation);
         result.extend(arena);
         result
     }
@@ -168,6 +179,11 @@ mod tests {
         .unwrap();
         assert_eq!(sidecar.lookup("hello").unwrap().definition, "你好");
         assert_eq!(sidecar.pinyin_count(), 1);
+        let (exact, hits) = sidecar.pinyin("nihao", 1);
+        assert!(exact);
+        assert_eq!(hits[0].hanzi, "你好");
+        assert_eq!(hits[0].reading, "ni3 hao3");
+        assert_eq!(hits[0].annotation(true).matched_chinese, "你好");
     }
     #[test]
     fn incomplete_or_corrupt_package_remains_eligible_for_user_root_fallback() {

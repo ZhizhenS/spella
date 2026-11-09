@@ -9,3 +9,23 @@ platforms/macos/*.command text eol=lf
 /data/dict/raw/english-bigrams/SOURCES.json -text
 /data/dict/raw/english-bigrams/LICENSE-SymSpell -text
 /data/dict/raw/english-bigrams/frequency-bigrams.txt.gz -text
+
+# Source hashes and independent compiler receipts must survive Windows source archives.
+/data/dict/raw/wanxiang-base/zi.dict.yaml -text
+/data/dict/raw/wanxiang-base/jichu.dict.yaml -text
+/data/dict/raw/wanxiang-base/LICENSE -text
+/data/dict/raw/english-assist/LICENSE-* -text
+/data/dict/raw/english-assist/SOURCES.json -text
+/data/dict/english-lexicon.json -text
+/tools/english-assist/build-lexicon.py text eol=lf
+/tools/english-assist/prepare-lexicon.py text eol=lf
+/tools/english-assist/test-build-lexicon.py text eol=lf
+/tools/english-assist/test-prepare-lexicon.py text eol=lf
+
+# Reviewed modern-name data must retain exact embedded/source snapshot bytes.
+/data/dict/modern-entities.json -text
+/data/dict/modern-entities.tsv -text
+/data/dict/raw/modern-entities/wikidata-snapshot.json.gz -text
+/data/dict/raw/modern-entities/NOTICE.txt text eol=lf
+/tools/english-assist/modern-entities.py text eol=lf
+/tools/english-assist/test-modern-entities.py text eol=lf

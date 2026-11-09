@@ -27,8 +27,8 @@ function Get-EnglishAssistPayloadSpec {
     @('retype-ai-host.exe','target/release/retype-ai-host.exe','helper','ai'),
     @('x86/retype_ime.dll','target/i686-pc-windows-msvc/release/retype_ime.dll','tip-x86','x86'),
     @('dictionaries/english-e1098fbaa665d52788f6ed1fde2a00eb8145e459c41583f5e59f4678db7619bc.bin','dist/english-dictionaries/english-e1098fbaa665d52788f6ed1fde2a00eb8145e459c41583f5e59f4678db7619bc.bin','data','support'),
-    @('dictionaries/english-lexicon-v1.bin','dist/english-dictionaries/english-lexicon-v1.bin','data','support'),
-    @('dictionaries/english-lexicon-v1.json','dist/english-dictionaries/english-lexicon-v1.json','data','support'),
+    @('dictionaries/english-lexicon-v2.bin','dist/english-dictionaries/english-lexicon-v2.bin','data','support'),
+    @('dictionaries/english-lexicon-v2.json','dist/english-dictionaries/english-lexicon-v2.json','data','support'),
     @('retype.ico','assets/retype.ico','asset','support'),
     @('LICENSE','LICENSE','license','support'),
     @('NOTICE.txt','NOTICE-English-Assist.txt','license','support'),
@@ -37,6 +37,7 @@ function Get-EnglishAssistPayloadSpec {
     @('LICENSE-SymSpell','data/dict/raw/english/LICENSE-SymSpell','license','support'),
     @('LICENSE-ECDICT','data/dict/raw/english-assist/LICENSE-ECDICT','license','support'),
     @('LICENSE-CC-CEDICT','data/dict/raw/english-assist/LICENSE-CC-CEDICT','license','support'),
+    @('LICENSE-Wanxiang','data/dict/raw/wanxiang-base/LICENSE','license','support'),
     @('NOTICE-English-Lexicon.txt','data/dict/raw/english-assist/NOTICE-English-Lexicon.txt','license','support'),
     @('english-lexicon-sources.json','data/dict/raw/english-assist/SOURCES.json','data','support')
   )
@@ -84,6 +85,29 @@ function Write-EnglishAssistPayloadManifest([string]$PayloadRoot, [object]$Manif
     (($Manifest | ConvertTo-Json -Depth 12) + [Environment]::NewLine), [Text.UTF8Encoding]::new($false))
 }
 
+function Get-EnglishAssistModernEntitiesReceipt([string]$RepoRoot) {
+  $approvedFile='data/dict/modern-entities.json'
+  $runtimeFile='data/dict/modern-entities.tsv'
+  $approvedPath=Join-Path $RepoRoot $approvedFile
+  $runtimePath=Join-Path $RepoRoot $runtimeFile
+  $approved=ConvertFrom-Json ([IO.File]::ReadAllText($approvedPath))
+  $lines=[IO.File]::ReadAllLines($runtimePath)
+  $count=@($approved.entries).Count
+  if ($approved.schema -ne 1 -or $approved.runtime_format -cne 'EAMODEN1' -or
+      $approved.data_license -cne 'CC0-1.0' -or $count -lt 30 -or $count -gt 80 -or
+      $lines.Length -eq 0 -or $lines[0] -cnotmatch '^# EAMODEN1\t' -or
+      @($lines | Where-Object { $_ -and -not $_.StartsWith('#') }).Count -ne $count) {
+    throw 'Reviewed modern-entity JSON/runtime count or format is inconsistent; run the offline catalog check.'
+  }
+  [ordered]@{
+    schema=1; runtime_format='EAMODEN1'; count=$count; data_license='CC0-1.0'
+    source='Wikidata structured data with reviewed official-site references'
+    approved=@{file=$approvedFile;bytes=([IO.FileInfo]$approvedPath).Length;sha256=(Get-EnglishAssistPayloadHash $approvedPath)}
+    runtime=@{file=$runtimeFile;bytes=([IO.FileInfo]$runtimePath).Length;sha256=(Get-EnglishAssistPayloadHash $runtimePath)}
+    snapshot=$approved.snapshot
+  }
+}
+
 function Complete-EnglishAssistPayload([string]$RepoRoot, [string]$PayloadRoot, [string]$Version) {
   if ((Get-EnglishAssistSourceVersion $RepoRoot) -ne $Version) { throw 'Requested build version differs from the workspace source version.' }
   $metadata = [ordered]@{
@@ -91,9 +115,10 @@ function Complete-EnglishAssistPayload([string]$RepoRoot, [string]$PayloadRoot, 
     upstreamCommit='902e35e06ee4f744320cf995c39b1f64693034cf'
     tipClsid='{9257DCE8-EC1B-4D4A-8EA0-8795A9FD881D}'
     englishProfile='{F395A724-DC88-4E75-B3D4-9063A552B8F4}'; languageId='0409'
-    lexicon=(ConvertFrom-Json ([IO.File]::ReadAllText((Join-Path $PayloadRoot 'dictionaries/english-lexicon-v1.json'))))
+    lexicon=(ConvertFrom-Json ([IO.File]::ReadAllText((Join-Path $PayloadRoot 'dictionaries/english-lexicon-v2.json'))))
     metadataCompilerSha256=(Get-EnglishAssistPayloadHash (Join-Path $RepoRoot 'tools/english-assist/build-lexicon.py'))
     EnglishContinuous=(ConvertFrom-Json ([IO.File]::ReadAllText((Join-Path $RepoRoot 'core/english/assets/bigrams.json'))))
+    ModernEntities=(Get-EnglishAssistModernEntitiesReceipt $RepoRoot)
     artifacts=@(Get-EnglishAssistPayloadRecords $PayloadRoot)
   }
   Write-EnglishAssistPayloadManifest $PayloadRoot $metadata
@@ -122,8 +147,9 @@ function Assert-EnglishAssistFrozenPayload([string]$PayloadRoot, [string]$Versio
     }
   }
   $lexicon = $metadata.lexicon
-  $image = @($metadata.artifacts | Where-Object path -CEQ 'dictionaries/english-lexicon-v1.bin')[0]
-  if ($lexicon.schema -ne 1 -or $lexicon.format -ne 'RTENLX01' -or
+  $image = @($metadata.artifacts | Where-Object path -CEQ 'dictionaries/english-lexicon-v2.bin')[0]
+  if ($lexicon.schema -ne 2 -or $lexicon.format -ne 'RTENLX02' -or
+      $lexicon.file -cne 'english-lexicon-v2.bin' -or
       $lexicon.sha256 -ne $image.sha256 -or $lexicon.bytes -ne $image.bytes -or
       $metadata.metadataCompilerSha256 -cnotmatch '^[a-f0-9]{64}$') { throw 'Frozen Python metadata digest is inconsistent.' }
   # The bigram image is embedded in the production TIP, not another runtime file.
@@ -144,6 +170,22 @@ function Assert-EnglishAssistFrozenPayload([string]$PayloadRoot, [string]$Versio
         $continuous.source.uncompressedSha256 -cnotmatch '^[a-f0-9]{64}$') {
       throw 'Frozen embedded English bigram receipt is missing or inconsistent.'
     }
+  }
+  # The reviewed entity TSV is embedded in the production TIP. These provenance
+  # hashes describe its approved inputs; the native artifact hashes above remain
+  # authoritative. Repack never reloads or silently updates the source catalog.
+  $entities=$metadata.ModernEntities
+  if ($entities.schema -ne 1 -or $entities.runtime_format -cne 'EAMODEN1' -or
+      $entities.data_license -cne 'CC0-1.0' -or $entities.count -lt 30 -or $entities.count -gt 80 -or
+      $entities.approved.file -cne 'data/dict/modern-entities.json' -or
+      $entities.runtime.file -cne 'data/dict/modern-entities.tsv' -or
+      $entities.approved.bytes -le 0 -or $entities.runtime.bytes -le 0 -or
+      $entities.approved.sha256 -cnotmatch '^[a-f0-9]{64}$' -or
+      $entities.runtime.sha256 -cnotmatch '^[a-f0-9]{64}$' -or
+      $entities.snapshot.file -cne 'raw/modern-entities/wikidata-snapshot.json.gz' -or
+      $entities.snapshot.sha256 -cnotmatch '^[a-f0-9]{64}$' -or
+      $entities.snapshot.content_sha256 -cnotmatch '^[a-f0-9]{64}$') {
+    throw 'Frozen embedded modern-entity provenance is missing or inconsistent.'
   }
   $metadata
 }

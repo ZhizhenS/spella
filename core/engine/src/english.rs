@@ -113,7 +113,17 @@ impl Kernel {
                     // A plain Space may add boundaries, never untyped letters.
                     // Explicitly navigating to a candidate still accepts it.
                     // This lookup is independent of the visible candidate cap.
-                    if index.is_none() && self.cfg.english_segmentation {
+                    // A recognized pinyin interpretation requires explicit
+                    // acceptance. Do not respell its letters as accidental
+                    // English words (e.g. "they I yang") on a plain Space.
+                    let pinyin_interpretation = self.cfg.english_pinyin
+                        && self.candidates.iter().any(|candidate| {
+                            candidate
+                                .annotation
+                                .as_ref()
+                                .is_some_and(|note| note.pinyin_match)
+                        });
+                    if index.is_none() && self.cfg.english_segmentation && !pinyin_interpretation {
                         if let Some(text) = self.english.segment_exact(&self.buffer) {
                             self.buffer = text;
                         }

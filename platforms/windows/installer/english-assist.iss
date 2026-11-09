@@ -61,8 +61,8 @@ Source: "install-state.ps1"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversi
 Source: "manual-words-access.ps1"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
 Source: "powershell-environment.ps1"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
 Source: "dictionaries\english-e1098fbaa665d52788f6ed1fde2a00eb8145e459c41583f5e59f4678db7619bc.bin"; DestDir: "{code:GetPayloadDir}\dictionaries"; Flags: ignoreversion
-Source: "dictionaries\english-lexicon-v1.bin"; DestDir: "{code:GetPayloadDir}\dictionaries"; Flags: ignoreversion
-Source: "dictionaries\english-lexicon-v1.json"; DestDir: "{code:GetPayloadDir}\dictionaries"; Flags: ignoreversion
+Source: "dictionaries\english-lexicon-v2.bin"; DestDir: "{code:GetPayloadDir}\dictionaries"; Flags: ignoreversion
+Source: "dictionaries\english-lexicon-v2.json"; DestDir: "{code:GetPayloadDir}\dictionaries"; Flags: ignoreversion
 Source: "LICENSE"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
 Source: "NOTICE.txt"; DestDir: "{code:GetPayloadDir}"; DestName: "NOTICE.txt"; Flags: ignoreversion
 Source: "LICENSE-Google-Ngram"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
@@ -70,6 +70,7 @@ Source: "LICENSE-SCOWL"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
 Source: "LICENSE-SymSpell"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
 Source: "LICENSE-ECDICT"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
 Source: "LICENSE-CC-CEDICT"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
+Source: "LICENSE-Wanxiang"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
 Source: "NOTICE-English-Lexicon.txt"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
 Source: "english-lexicon-sources.json"; DestDir: "{code:GetPayloadDir}"; DestName: "english-lexicon-sources.json"; Flags: ignoreversion
 

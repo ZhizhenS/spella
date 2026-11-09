@@ -1,10 +1,38 @@
 # English Assist：交互与验证记录
 
-更新：2026-11-09。0.4.0词前空格与原文回车已完成正式安装版的有限记事本检查。上游基线：Retype `902e35e06ee4f744320cf995c39b1f64693034cf`。
+更新：2026-11-09。0.5.0 R1已完成正式构建、升级、产物核对和有限真实记事本检查。上游基线：Retype `902e35e06ee4f744320cf995c39b1f64693034cf`。
 
 本文区分本子任务执行的定向检查和根任务负责的最终集成、安装及真实宿主验收。产品范围见 [产品规格](../english-assist-product.md)，操作说明见 [英文输入](../english-input.md)。最终安装包与宿主兼容结论以根任务的版本化构建记录为准。
 
-## 0.4.0 词前空格、原文回车与状态条
+## 0.5.0 R1 关系词库、混合拼音尾词与现代实体
+
+数据契约和维护方式见 [词典 v2](LEXICON_V2.md)。本节记录自动检查、正式安装及真实应用的不同范围，旧版本结果保留在后面。
+
+| 0.5.0 项目 | 实际结果 / 验收边界 |
+| --- | --- |
+| 改动前备份 | `work/backups/20261109-before-0.4.1-mixed-pinyin` 保存0.4.0源码提交、安装产物/安装包、产品配置、共享偏好值和Notepad LocalState；目录名来自最初小版本计划。冷启动前另备份LocalState。不读取恢复标签或凭据内容 |
+| 实际旧问题 | 旧版 `xiang` 前五项to/help/support/high/school来自向、襄、庠等精确同音字，不是长拼音扩展污染。旧关系只留英文ID且按英文频率重排，丢失中文来源；fragrant还被每键64项编译截断删除。相应旧截图不能解释为仅第一项进行了拼音匹配 |
+| 来源 | ECDICT固定`bc015ed…`/MIT，CC-CEDICT是Hallelujah固定镜像的2017 MDBG快照/CC BY-SA3.0；万象v18.0.14字/词与读音频率/CC BY4.0。现代实体另用固定Wikidata修订和官网身份材料/CC0。没有声称采用最新CC-CEDICT全量、Google输入法模型或全量Wikidata |
+| v2数据 | RTENLX02：83,367个英文词、37,668个拼音键、121,350条关系，15,098,862字节；SHA256=`cca750ec8fbd1b3366038f3a096fc48d4e2843a4a1bf5265507e6b868e7e933c`。每关系保留汉字、带调读音、原义项、中文用频、来源/用法及义项序；普通构建必须与审核清单严格一致 |
+| 关系和排序 | CC-CEDICT整词/受限系词归一保原gloss，ECDICT只用完整中文释义项反查；有歧义的多音反查与有明确lemma的屈折扩散受限。中文词和具体读音频率、主次/用法、常用词项多样性在英文频率之前；合并来源时保留最佳义项自己的用法和序号，不把另一古义标签混到现代义上 |
+| 有界前缀 | worker加载时建立只读中文频率范围树，非精确键有界选择64个高优先级键，单键最多64关系、总扫描512关系、最多64个英文去重结果。精确键保留编译预排、总扫描512，不能再按全局英文频率重排。主补词通道取24项，异步拼写可追加至内核32项；因此数据中存在的低频关系未必出现在可见页 |
+| 罕见义项 | 离线全键审计仍找到school←庠，去重后第66位，低于think/like/fragrant/elephant；它在该次前64个返回项之外，不宣称GUI后页一定可见。学校拼音的正常school关系独立存在。`work/research/v0.5.0-lexicon-quality.json` |
+| 英文＋拼音 | `iwilldotheyiyang`、`iwilldothetongyang`同时受拼音与连写开关控制，候选显示same，正文完整替换为I will do the same一次；中文来源、词性和释义只展示。可靠英文前缀、普通整词/个人词保护、回退预算和同分稳定排序回归均覆盖 |
+| 原文确认 | 数字/Tab/点击或明确导航后的Space接受译词；有拼音解释但未明确选词时，ON的Space保留原串，避免偶然拆成they I yang。Enter即使导航/翻页后仍raw，不换行；无组字的下一次Enter交还应用。普通iamrobot自动内部空格与无尾空格语义保留 |
+| 现代实体 | 51条经审核的公司/产品/开发工具目录，固定QID、修订和官网链接。Anthropic公司/Claude开发商与普通anthropic形容词独立显示；Apple水果、Apple公司及显式个人词优先级/容量均有回归。目录校验及6个隔离变异测试是离线检查，不在输入时联网或自动扩充 |
+| 定向检查 | English crate39通过/1忽略；独立真实准备词库的engine集成1通过，覆盖两例same、完整数字提交、raw Enter/Space、明确导航Space、开关、xiang证据和Anthropic双义。该1项也在正式流水显式执行，不与正式统计重复相加 |
+| 正式构建 | `work/build-logs/v0.5.0-r1-full-build.log`退出0，ISCC成功。Rust26条汇总413通过（常规412＋显式准备词库1）、Python46、PowerShell619，正式合计1,078次通过；包含架构重复，不是唯一用例数。计数收据 `v0.5.0-r1-test-counts.json` |
+| 忽略项与安装探针 | 常规日志原始7次忽略中，准备词库1项随后在正式流水执行；安装后x64/x86各2项另行通过、HRESULT均S_OK，FORPROCESS作用域恢复、不改默认键盘，4项不加进1,078。还有2项未执行，见计数收据IgnoredAccounting；不把忽略项统一称为已测 |
+| 升级与冻结 | 升级退出0；ActiveDir=`C:\Program Files\EnglishAssist\versions\0.5.0-20261109121445-346651`。25项文件及build.json全部匹配生产冻结清单，已映射共享偏好File ID和全部槽值保持；现代目录审核JSON/TSV摘要及51条数量写入build.json |
+| 宿主身份 | 冷启动Notepad PID58000确认加载本次DLL，SHA256=`4f5a738d8e9647e884f333746380c7bdbe24006604d897f3677e75a1d7b8bd3c`；模块收据 `work/research/v0.5.0-r1-notepad-module.json`。用自有公开测试文件验证，不读取其他恢复标签 |
+| 两例真实提交 | 逐键输入yiyang示例，首项same/拼音·一样，按1；tongyang示例首项same/拼音·同样，按Tab。每阶段Ctrl+S后读回，两行均精确I will do the same，无重复前缀/中文注释/尾空格；分别留有裁剪候选PNG |
+| xiang真实候选 | 第一页think想、mutually相、to向、like像、item项；Shift+equal翻至第二页，见fragrant香、ring响、elephant象、enjoy享、township乡。翻页组合键不切换自动空格；翻页后Enter保存raw xiang、无换行。候选位置仅为本次快照 |
+| 实体真实显示 | anthropic首项Anthropic/专名/现代·公司，释义美国人工智能公司、Claude开发商；第二项anthropic/adj./人类的。按1仅提交规范大小写Anthropic，未提交释义或徽标。`v0.5.0-r1-anthropic-live.png` |
+| 其他真实回归 | iamrobot按Space精确I am robot、无尾空格；iamnihao显示hello/拼音·你好后，未选词Space精确保留iamnihao，不译成hello、不插内部空格。共享偏好自动空格仍ON |
+| 保存结果和范围 | 自有文件 `work/ui-tests/notepad-v050-e22cdb54.txt` 精确六行 `I will do the same\nI will do the same\nxiang\nAnthropic\nI am robot\niamnihao`，无最终换行/尾空格。收据 `work/research/v0.5.0-r1-notepad-live.json`；语言列表、InputMethodTips、默认override前后相同，见 `v0.5.0-keyboard-preserved.json` |
+| 未宣称通过 | 全部应用、x86编辑器真实键入、AI联机/AI GUI、卸载/重启清理、全部长尾翻译质量以及从源码ZIP重做整套原生编译。本轮不读密钥、不请求外部AI；老应用应完全退出后重开以加载新DLL。源码归档完整性与离线重建另由交付收据记录 |
+
+## 历史0.4.0 词前空格、原文回车与状态条
 
 用户要求：确认新词时只补词前空格，不自动补尾空格；连写串如 `iamrobot` 按 Space 可补齐内部词界，单按 Shift 切换；回车始终原文上屏。关闭自动空格后，物理 Space 保留手动空格的传统语义。
 

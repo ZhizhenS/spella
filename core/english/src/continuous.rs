@@ -499,18 +499,29 @@ fn admit_suggestion(pool: &mut Vec<Suggestion>, suggestion: Suggestion, cap: usi
         pool.truncate(cap * 2);
     }
 }
+#[cfg(test)]
 pub(super) fn complete(
     vocab: &Vocabulary,
     input: &str,
     limit: usize,
     phrases: bool,
 ) -> Vec<Candidate> {
+    complete_with_pinyin(vocab, input, limit, phrases, false, &lexicon::current())
+}
+/// Final pinyin is an alternative tail lookup, never part of exact Space segmentation.
+pub(super) fn complete_with_pinyin(
+    vocab: &Vocabulary,
+    input: &str,
+    limit: usize,
+    phrases: bool,
+    pinyin: bool,
+    metadata: &lexicon::Lexicon,
+) -> Vec<Candidate> {
     let cap = limit.min(MAX_RESULTS);
     if cap == 0 || input.len() < 2 || input.len() > MAX_INPUT || !super::valid_word(input) {
         return Vec::new();
     }
     let key = input.to_ascii_lowercase();
-    let metadata = lexicon::current();
     // Ordinary complete words have a fully literal interpretation. Do not split
     // them merely because short high-frequency fragments can also be found.
     if vocab.find(&key).is_some() || metadata.lookup(&key).is_some() {
@@ -519,6 +530,9 @@ pub(super) fn complete(
     let Some(model) = model() else {
         return Vec::new();
     };
+    // Whole exact pinyin retains its established stream, just like an English
+    // whole word. Do not reinterpret its initial syllables as English prefixes.
+    let pinyin = pinyin && !metadata.pinyin(input, 1).0;
     let mut paths: Vec<Vec<Path>> = vec![Vec::new(); input.len() + 1];
     paths[0].push(Path {
         parts: Vec::new(),
@@ -570,11 +584,40 @@ pub(super) fn complete(
         if prefix.len() > MAX_WORD || !super::valid_word(prefix) {
             continue;
         }
+        // Look up each tail once, not once per beam path. Use a fixed bounded
+        // pool before contextual ranking so a one-row request can still choose
+        // a less frequent translation that fits the English prefix better.
+        let pinyin_tails = if pinyin
+            && paths[start].iter().any(Path::allows_tail_backoff)
+            && vocab.find(prefix).is_none()
+            && metadata.lookup(prefix).is_none()
+        {
+            metadata.pinyin(prefix, MAX_RESULTS).1
+        } else {
+            Vec::new()
+        };
         for path in &paths[start] {
             let Some((previous_start, previous_end)) = path.parts.last().copied() else {
                 continue;
             };
             let previous = &key[previous_start..previous_end];
+            let beginning = path_text(input, &path.parts);
+            if path.allows_tail_backoff() {
+                for (position, hit) in pinyin_tails.iter().enumerate() {
+                    if let Some(candidate) =
+                        pinyin_tail(vocab, input, start, &beginning, hit, position)
+                    {
+                        admit_suggestion(
+                            &mut pool,
+                            Suggestion {
+                                candidate,
+                                phrase: false,
+                            },
+                            cap,
+                        );
+                    }
+                }
+            }
             let observed = model.top(previous, prefix, BEAM);
             let backoff = path.allows_tail_backoff();
             if observed.is_empty() && !backoff {
@@ -604,7 +647,6 @@ pub(super) fn complete(
                     tails.push(word.to_owned());
                 }
             }
-            let beginning = path_text(input, &path.parts);
             for word in tails {
                 if word.len() > MAX_WORD || !word.starts_with(prefix) || !super::valid_word(&word) {
                     continue;
@@ -612,7 +654,7 @@ pub(super) fn complete(
                 let suffix = casing(&word, &input[start..]);
                 let text = format!("{beginning} {suffix}");
                 let mut candidate = if let Some(id) = vocab.find(&word) {
-                    vocab.candidate(id, &input[start..], &metadata)
+                    vocab.candidate(id, &input[start..], metadata)
                 } else {
                     Candidate::new(suffix.clone(), CandidateSource::Local)
                 };
@@ -661,7 +703,7 @@ pub(super) fn complete(
                 candidate.text = format!("{text} {next}");
                 let display_suffix = format!("{suffix} {next}");
                 candidate.display_text = Some(display_suffix.clone());
-                annotate_phrase(&mut candidate, &display_suffix, &metadata);
+                annotate_phrase(&mut candidate, &display_suffix, metadata);
                 candidate.score = score(vocab, &candidate.text, input.len());
                 admit_suggestion(
                     &mut pool,
@@ -695,6 +737,34 @@ pub(super) fn complete(
         .collect()
 }
 
+fn pinyin_tail(
+    vocab: &Vocabulary,
+    input: &str,
+    start: usize,
+    beginning: &str,
+    hit: &lexicon::PinyinHit<'_>,
+    position: usize,
+) -> Option<Candidate> {
+    if hit.word.len() > MAX_WORD || !super::valid_word(hit.word) {
+        return None;
+    }
+    let suffix = casing(hit.word, &input[start..]);
+    let mut candidate = Candidate::new(format!("{beginning} {suffix}"), CandidateSource::Local);
+    candidate.language = CandidateLanguage::English;
+    candidate.consumed = input.len();
+    candidate.display_text = Some(suffix);
+    candidate.comment = hit.comment();
+    candidate.annotation = Some(hit.annotation(true));
+    // Ordinary assist scores are ln(frequency), not continuous log-probability.
+    // Rank translations on the same complete-text scale as English candidates.
+    let evidence_cost = position as f32 * 0.02
+        + if hit.exact { 0. } else { 0.5 }
+        + if hit.flags & 4 != 0 { 2. } else { 0. }
+        + if hit.flags & 8 != 0 { 1. } else { 0. };
+    candidate.score = score(vocab, &candidate.text, input.len()) - evidence_cost;
+    Some(candidate)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -713,6 +783,132 @@ mod tests {
         let mut bytes = Vec::new();
         super::super::compile(&source[..], &mut bytes).unwrap();
         Vocabulary::from_bytes(bytes).unwrap()
+    }
+    #[test]
+    fn joined_english_pinyin_tail_keeps_complete_commit_and_chinese_evidence() {
+        let vocab = frozen_vocabulary();
+        let metadata = lexicon::fixture();
+        for (input, hanzi, reading) in [
+            ("iwilldotheyiyang", "一样", "yi1 yang4"),
+            ("iwilldothetongyang", "同样", "tong2 yang4"),
+        ] {
+            for limit in [1, 5, 24] {
+                for phrases in [false, true] {
+                    let hits = complete_with_pinyin(&vocab, input, limit, phrases, true, &metadata);
+                    let candidate = hits
+                        .iter()
+                        .take(5)
+                        .find(|candidate| candidate.text == "I will do the same")
+                        .unwrap_or_else(|| {
+                            panic!(
+                                "missing first-page mixed tail for {input}: {:?}",
+                                hits.iter().map(|c| &c.text).collect::<Vec<_>>()
+                            )
+                        });
+                    assert_eq!(candidate.display_text.as_deref(), Some("same"));
+                    assert_eq!(candidate.consumed, input.len());
+                    assert_eq!(candidate.comment, "adj. 相同的；同样的");
+                    let annotation = candidate.annotation.as_ref().unwrap();
+                    assert!(annotation.pinyin_match && annotation.pinyin_exact);
+                    assert_eq!(annotation.matched_chinese, hanzi);
+                    assert_eq!(annotation.matched_pinyin, reading);
+                    assert!(!candidate.text.ends_with(' '));
+                    assert!(hits.len() <= limit.min(MAX_RESULTS));
+                }
+            }
+        }
+        let prefix = complete_with_pinyin(&vocab, "iwilldotheyiy", 5, false, true, &metadata);
+        let same = prefix
+            .iter()
+            .find(|candidate| candidate.text == "I will do the same")
+            .unwrap();
+        assert!(!same.annotation.as_ref().unwrap().pinyin_exact);
+        assert_eq!(same.annotation.as_ref().unwrap().matched_chinese, "一样");
+        let upper = complete_with_pinyin(&vocab, "IWILLDOTHETONGYANG", 5, false, true, &metadata);
+        assert!(upper
+            .iter()
+            .any(|candidate| candidate.text == "I WILL DO THE SAME"
+                && candidate.display_text.as_deref() == Some("SAME")));
+    }
+    #[test]
+    fn mixed_tail_retains_multiple_english_boundaries_without_greedy_prefix_commit() {
+        let vocab = frozen_vocabulary();
+        let hits = complete_with_pinyin(&vocab, "iamanquan", 24, false, true, &lexicon::fixture());
+        assert!(hits.iter().any(|candidate| candidate.text == "I am safe"
+            && candidate.display_text.as_deref() == Some("safe")));
+        assert!(hits.iter().any(|candidate| candidate.text == "I am an all"
+            && candidate.display_text.as_deref() == Some("all")));
+        assert!(hits
+            .iter()
+            .all(|candidate| candidate.consumed == "iamanquan".len()));
+    }
+    #[test]
+    fn mixed_tail_requires_pinyin_and_reliable_prefix_and_never_changes_exact_space() {
+        let vocab = frozen_vocabulary();
+        let metadata = lexicon::fixture();
+        for input in ["iwilldotheyiyang", "iwilldothetongyang"] {
+            assert!(
+                !complete_with_pinyin(&vocab, input, 24, true, false, &metadata)
+                    .iter()
+                    .any(|candidate| candidate
+                        .annotation
+                        .as_ref()
+                        .is_some_and(|note| note.pinyin_match))
+            );
+            assert!(complete_with_pinyin(&vocab, input, 0, true, true, &metadata).is_empty());
+            assert!(!complete_with_pinyin(
+                &vocab,
+                input,
+                24,
+                true,
+                true,
+                &lexicon::Lexicon::empty()
+            )
+            .iter()
+            .any(|candidate| candidate.text == "I will do the same"));
+            if let Some(spaced) =
+                segment_exact(&vocab, input, &metadata, &lexicon::ManualWords::default())
+            {
+                assert!(spaced.replace(' ', "").eq_ignore_ascii_case(input));
+            }
+        }
+        for input in [
+            "zzzyiyang",
+            "qzxtongyang",
+            "nihao",
+            "apple",
+            "iambic",
+            "international",
+            "iam机器人",
+        ] {
+            assert!(
+                complete_with_pinyin(&vocab, input, 24, false, true, &metadata)
+                    .iter()
+                    .all(|candidate| !candidate
+                        .annotation
+                        .as_ref()
+                        .is_some_and(|note| note.pinyin_match)),
+                "{input}"
+            );
+        }
+        for input in ["iamt", "iloveyou", "thisisan"] {
+            let old = complete(&vocab, input, 24, false);
+            let new = complete_with_pinyin(&vocab, input, 24, false, true, &metadata);
+            assert_eq!(
+                old.iter().map(|c| &c.text).collect::<Vec<_>>(),
+                new.iter().map(|c| &c.text).collect::<Vec<_>>(),
+                "{input}"
+            );
+        }
+        assert!(complete_with_pinyin(
+            &vocab,
+            &"i".repeat(MAX_INPUT + 1),
+            24,
+            false,
+            true,
+            &metadata
+        )
+        .is_empty());
     }
     #[test]
     fn pinned_context_prefix_topk_has_real_support_and_consistent_rows() {

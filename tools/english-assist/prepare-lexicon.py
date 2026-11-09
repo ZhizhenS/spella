@@ -51,13 +51,13 @@ def verify_source(root: Path, record: dict) -> Path:
 
 
 def validate_output(root: Path, manifest: dict) -> Path:
-    if manifest.get("schema") != 1 or manifest.get("format") != "RTENLX01":
+    if manifest.get("schema") != 2 or manifest.get("format") != "RTENLX02":
         raise ValueError("Unexpected offline lexicon schema/format")
-    if manifest.get("file") != "english-lexicon-v1.bin":
+    if manifest.get("file") != "english-lexicon-v2.bin":
         raise ValueError("Unexpected offline lexicon filename")
     path = checked_file(root, manifest)
     with path.open("rb") as stream:
-        if stream.read(8) != b"RTENLX01":
+        if stream.read(8) != b"RTENLX02":
             raise ValueError("Unexpected offline lexicon magic")
     counts = manifest.get("counts", {})
     if any(type(counts.get(key)) is not int or counts[key] <= 0 for key in ("words", "pinyin", "mappings")):
@@ -76,6 +76,9 @@ def prepare(repo: Path, output: Path, refresh: bool = False, verify_only: bool =
     if source_manifest.get("schema") != 1:
         raise ValueError("Unexpected frozen sources manifest schema")
     inputs = {key: verify_source(sources_root, source_manifest["sources"][key]) for key in ("ecdict", "cedict")}
+    chinese_root = repo / "data/dict/raw/wanxiang-base"
+    for key in ("chinese_zi", "chinese_words"):
+        inputs[key] = verify_source(chinese_root, source_manifest["chineseFrequency"][key])
     for name, record in source_manifest["licenses"].items():
         checked_file(sources_root, {"file": name, **record})
     frequency = repo / "data/dict/raw/english/frequency.txt"
@@ -83,25 +86,27 @@ def prepare(repo: Path, output: Path, refresh: bool = False, verify_only: bool =
     expected = None if refresh else json.loads(expected_path.read_text(encoding="utf-8-sig"))
     if expected:
         for key, path in {**inputs, "frequency": frequency}.items():
-            content_sha = (source_manifest["sources"][key]["uncompressedSha256"]
-                           if key in inputs else digest(path))
+            records = {**source_manifest["sources"], **source_manifest["chineseFrequency"]}
+            content_sha = records[key]["uncompressedSha256"] if key in inputs else digest(path)
             if expected["sources"][key] != {"file": path.name, "sha256": digest(path), "content_sha256": content_sha}:
                 raise ValueError(f"Lexicon input differs from reviewed output sources: {key}")
     if verify_only:
         if refresh:
             raise ValueError("Cannot refresh a manifest in verify-only mode")
         validate_output(output, expected)
-        packaged = json.loads((output / "english-lexicon-v1.json").read_text(encoding="utf-8-sig"))
+        packaged = json.loads((output / "english-lexicon-v2.json").read_text(encoding="utf-8-sig"))
         require_same_manifest(packaged, expected)
         return expected
     output.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix=".english-lexicon-", dir=output) as task_temp:
         stage = Path(task_temp)
-        actual_path = stage / "english-lexicon-v1.json"
+        actual_path = stage / "english-lexicon-v2.json"
         subprocess.run([
             sys.executable, str(repo / "tools/english-assist/build-lexicon.py"),
             "--ecdict", str(inputs["ecdict"]), "--cedict", str(inputs["cedict"]),
-            "--frequency", str(frequency), "--output", str(stage / "english-lexicon-v1.bin"),
+            "--frequency", str(frequency),
+            "--chinese-zi", str(inputs["chinese_zi"]), "--chinese-words", str(inputs["chinese_words"]),
+            "--output", str(stage / "english-lexicon-v2.bin"),
             "--manifest", str(actual_path),
         ], check=True, stdout=subprocess.PIPE)
         actual = json.loads(actual_path.read_text(encoding="utf-8-sig"))

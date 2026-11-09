@@ -23,6 +23,24 @@ if ($Version -ne $taskSourceVersion) { throw 'Installer version must equal Cargo
 . (Join-Path $taskRepo 'tools\english-assist\enter-env.ps1')
 Push-Location $taskRepo
 try {
+  if (-not $PythonPath) {
+    $taskPythonCandidates=@('C:\Python313\python.exe')
+    foreach ($taskCommand in @('python.exe','python3.exe')) {
+      $taskFound=Get-Command $taskCommand -ErrorAction SilentlyContinue
+      if ($taskFound -and $taskFound.Source -notlike '*\WindowsApps\*') { $taskPythonCandidates+=$taskFound.Source }
+    }
+    $PythonPath=$taskPythonCandidates | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1
+  }
+  if (-not $PythonPath -or -not (Test-Path -LiteralPath $PythonPath -PathType Leaf)) {
+    throw 'Python 3.11+ is required. Set ENGLISH_ASSIST_PYTHON or pass -PythonPath.'
+  }
+  # This check is offline and read-only; a proposal/TSV rewrite is never a build fallback.
+  if (-not $NoTest) {
+    & $PythonPath (Join-Path $taskRepo 'tools\english-assist\test-modern-entities.py')
+    if ($LASTEXITCODE -ne 0) { throw 'Modern-entity catalog integrity fixtures failed.' }
+  }
+  & $PythonPath (Join-Path $taskRepo 'tools\english-assist\modern-entities.py') --check
+  if ($LASTEXITCODE -ne 0) { throw 'Reviewed modern-entity catalog check failed.' }
   # Embedded data must be reviewed/reproducible before Cargo reads include_bytes!.
   & (Join-Path $taskRepo 'tools\english-assist\build-english-bigrams.ps1') -PythonPath $PythonPath -Test:(-not $NoTest)
   if (-not (Get-Command cargo -ErrorAction SilentlyContinue)) {
@@ -83,6 +101,8 @@ try {
     & (Join-Path $PSScriptRoot 'tests\user-profile-diagnostics.tests.ps1')
     & cargo test --release --locked -p retype-tsf -p retype-english -p retype-engine -p retype-ai-core -p retype-ai -p retype-candidate-ui -p retype-learning -p retype-settings-egui --features retype-ai-core/service,retype-ai/service,retype-learning/broker
     if ($LASTEXITCODE -ne 0) { throw 'Core/TSF tests failed.' }
+    & cargo test --release --locked -p retype-engine --test english_mixed -- --ignored
+    if ($LASTEXITCODE -ne 0) { throw 'Prepared English/pinyin/entity resource integration failed.' }
     & cargo test --release --locked --target i686-pc-windows-msvc -p retype-tsf
     if ($LASTEXITCODE -ne 0) { throw 'x86 TSF tests failed.' }
   }

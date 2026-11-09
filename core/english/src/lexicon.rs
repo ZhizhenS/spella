@@ -1,17 +1,23 @@
 //! Immutable English annotations and pinyin lookup, loaded only by resource workers.
 use retype_file_map::ReadOnlyFile;
 use std::{
-    collections::HashSet,
+    cmp::Reverse,
+    collections::{BinaryHeap, HashSet},
     path::Path,
     sync::{Arc, OnceLock, RwLock},
 };
 
-pub const FILE_NAME: &str = "english-lexicon-v1.bin";
-pub const MAGIC: &[u8; 8] = b"RTENLX01";
+pub const FILE_NAME: &str = "english-lexicon-v2.bin";
+pub const MAGIC: &[u8; 8] = b"RTENLX02";
 pub const MAX_BYTES: u64 = 64 * 1024 * 1024;
 const HEADER: usize = 24;
 const WORD: usize = 36;
 const PINYIN: usize = 16;
+const MAPPING: usize = 40;
+const QUERY_RELATIONS: usize = 512;
+const QUERY_KEYS: usize = 64;
+const QUERY_HITS: usize = 64;
+const MAX_KEY_RELATIONS: usize = 65_536;
 
 enum Image {
     Mapped(ReadOnlyFile),
@@ -32,7 +38,10 @@ pub struct Lexicon {
     pinyin_at: usize,
     hits_at: usize,
     arena: usize,
+    key_priorities: Vec<(u8, u32)>,
+    key_tree: Vec<usize>,
 }
+#[derive(Debug)]
 pub struct Entry<'a> {
     pub word: &'a str,
     pub part_of_speech: &'a str,
@@ -54,8 +63,55 @@ impl Entry<'_> {
             definition: self.definition.to_owned(),
             phonetic: self.ipa.to_owned(),
             pinyin_match,
+            ..Default::default()
         }
     }
+}
+/// One Chinese sense relation, kept distinct from an English word's definition.
+#[derive(Debug)]
+pub struct PinyinHit<'a> {
+    pub entry: Entry<'a>,
+    pub hanzi: &'a str,
+    pub reading: &'a str,
+    pub gloss: &'a str,
+    pub key: &'a str,
+    pub exact: bool,
+    pub frequency: u32,
+    pub flags: u32,
+    pub ordinal: u32,
+}
+impl<'a> std::ops::Deref for PinyinHit<'a> {
+    type Target = Entry<'a>;
+    fn deref(&self) -> &Self::Target {
+        &self.entry
+    }
+}
+impl PinyinHit<'_> {
+    pub fn annotation(&self, pinyin_match: bool) -> retype_types::EnglishAnnotation {
+        let mut annotation = self.entry.annotation(pinyin_match);
+        if pinyin_match {
+            annotation.matched_chinese = self.hanzi.to_owned();
+            annotation.matched_pinyin = self.reading.to_owned();
+            annotation.pinyin_exact = self.exact;
+        }
+        annotation
+    }
+}
+fn reading_key(reading: &str) -> String {
+    reading
+        .to_lowercase()
+        .replace("u:", "v")
+        .replace('ü', "v")
+        .chars()
+        .filter(|c| !c.is_whitespace() && !matches!(c, '1'..='5'))
+        .collect()
+}
+fn relation_priority(flags: u32, frequency: u32) -> (u8, u32) {
+    // Ordinary modern readings precede proper/variant and dated senses.
+    (
+        3 - u8::from(flags & 8 != 0) - 2 * u8::from(flags & 4 != 0),
+        frequency,
+    )
 }
 impl Lexicon {
     pub fn open(path: &Path) -> Result<Arc<Self>, String> {
@@ -75,6 +131,8 @@ impl Lexicon {
             pinyin_at: HEADER,
             hits_at: HEADER,
             arena: HEADER,
+            key_priorities: Vec::new(),
+            key_tree: vec![usize::MAX; 2],
         }
     }
     fn number(&self, at: usize) -> usize {
@@ -114,6 +172,96 @@ impl Lexicon {
     fn key(&self, id: usize) -> &str {
         self.string(self.pinyin_at + id * PINYIN)
     }
+    fn pinyin_hit(&self, mapping: usize, key_id: usize, exact: bool) -> PinyinHit<'_> {
+        let at = self.hits_at + mapping * MAPPING;
+        PinyinHit {
+            entry: self.entry(self.number(at)),
+            hanzi: self.string(at + 4),
+            reading: self.string(at + 12),
+            gloss: self.string(at + 20),
+            // Key and relation strings all borrow the same immutable image.
+            key: self.key(key_id),
+            exact,
+            frequency: self.number(at + 28) as u32,
+            flags: self.number(at + 32) as u32,
+            ordinal: self.number(at + 36) as u32,
+        }
+    }
+    fn pinyin_lower(&self, key: &str) -> usize {
+        let (mut lo, mut hi) = (0, self.pinyin);
+        while lo < hi {
+            let mid = (lo + hi) / 2;
+            if self.key(mid) < key {
+                lo = mid + 1;
+            } else {
+                hi = mid;
+            }
+        }
+        lo
+    }
+    fn key_rank(&self, id: usize) -> (u8, u32, Reverse<usize>) {
+        let (tier, frequency) = self.key_priorities[id];
+        (tier, frequency, Reverse(id))
+    }
+    fn best_key(&self, left: usize, right: usize) -> usize {
+        if left == usize::MAX {
+            return right;
+        }
+        if right == usize::MAX || self.key_rank(left) >= self.key_rank(right) {
+            left
+        } else {
+            right
+        }
+    }
+    fn index_keys(&mut self, priorities: Vec<(u8, u32)>) {
+        self.key_priorities = priorities;
+        let size = self.pinyin.max(1).next_power_of_two();
+        self.key_tree = vec![usize::MAX; size * 2];
+        for id in 0..self.pinyin {
+            self.key_tree[size + id] = id;
+        }
+        for node in (1..size).rev() {
+            self.key_tree[node] =
+                self.best_key(self.key_tree[node * 2], self.key_tree[node * 2 + 1]);
+        }
+    }
+    /// Range-max search visits only the best bounded key set, not every matching key.
+    fn prefix_keys(&self, lo: usize, hi: usize) -> Vec<usize> {
+        let size = self.key_tree.len() / 2;
+        let mut heap = BinaryHeap::new();
+        let push = |heap: &mut BinaryHeap<_>, node: usize| {
+            let id = self.key_tree[node];
+            if id != usize::MAX {
+                heap.push((self.key_rank(id), node));
+            }
+        };
+        let (mut left, mut right) = (lo + size, hi + size);
+        while left < right {
+            if left % 2 == 1 {
+                push(&mut heap, left);
+                left += 1;
+            }
+            if right % 2 == 1 {
+                right -= 1;
+                push(&mut heap, right);
+            }
+            left /= 2;
+            right /= 2;
+        }
+        let mut keys = Vec::new();
+        while keys.len() < QUERY_KEYS {
+            let Some((_, node)) = heap.pop() else {
+                break;
+            };
+            if node >= size {
+                keys.push(self.key_tree[node]);
+            } else {
+                push(&mut heap, node * 2);
+                push(&mut heap, node * 2 + 1);
+            }
+        }
+        keys
+    }
     fn validate(image: Image) -> Result<Self, String> {
         let bytes = image.as_ref();
         let bad = || "Invalid English annotation/pinyin image".to_owned();
@@ -131,17 +279,19 @@ impl Lexicon {
         }
         let pinyin_at = HEADER + words * WORD;
         let hits_at = pinyin_at + pinyin * PINYIN;
-        let arena = hits_at + mappings * 4;
+        let arena = hits_at + mappings * MAPPING;
         if arena.checked_add(strings) != Some(bytes.len()) {
             return Err(bad());
         }
-        let result = Self {
+        let mut result = Self {
             image,
             words,
             pinyin,
             pinyin_at,
             hits_at,
             arena,
+            key_priorities: Vec::new(),
+            key_tree: Vec::new(),
         };
         let mut previous = "";
         for id in 0..words {
@@ -165,6 +315,7 @@ impl Lexicon {
         }
         previous = "";
         let mut next_hit = 0;
+        let mut priorities = Vec::with_capacity(pinyin);
         for id in 0..pinyin {
             let at = pinyin_at + id * PINYIN;
             if !result.valid_string(at, 64) {
@@ -178,24 +329,44 @@ impl Lexicon {
                 || !key.bytes().all(|c| c.is_ascii_lowercase())
                 || start != next_hit
                 || count == 0
-                || count > 64
+                || count > MAX_KEY_RELATIONS
                 || start.checked_add(count).is_none_or(|end| end > mappings)
             {
                 return Err(bad());
             }
-            let mut seen = HashSet::new();
+            let mut priority = (0, 0);
             for hit in start..start + count {
-                let word = result.number(hits_at + hit * 4);
-                if word >= words || !seen.insert(word) {
+                let relation = hits_at + hit * MAPPING;
+                if result.number(relation) >= words
+                    || !result.valid_string(relation + 4, 1024)
+                    || !result.valid_string(relation + 12, 256)
+                    || !result.valid_string(relation + 20, 4096)
+                {
                     return Err(bad());
                 }
+                let flags = result.number(relation + 32);
+                if result.string(relation + 4).trim().is_empty()
+                    || result.string(relation + 20).trim().is_empty()
+                    || reading_key(result.string(relation + 12)) != key
+                    || flags & !15 != 0
+                    || flags & 3 == 0
+                    || result.number(relation + 36) > 1_000_000
+                {
+                    return Err(bad());
+                }
+                priority = priority.max(relation_priority(
+                    flags as u32,
+                    result.number(relation + 28) as u32,
+                ));
             }
+            priorities.push(priority);
             previous = key;
             next_hit = start + count;
         }
         if next_hit != mappings {
             return Err(bad());
         }
+        result.index_keys(priorities);
         Ok(result)
     }
     pub fn count(&self) -> usize {
@@ -252,8 +423,8 @@ impl Lexicon {
         hits.truncate(limit);
         hits
     }
-    /// Exact full pinyin first; prefix expansion is bounded to 64 keys and 64 results.
-    pub fn pinyin(&self, input: &str, limit: usize) -> (bool, Vec<Entry<'_>>) {
+    /// Preserve the compiler's sense-aware order; bound all relation work, including duplicates.
+    pub fn pinyin(&self, input: &str, limit: usize) -> (bool, Vec<PinyinHit<'_>>) {
         let key = input.to_ascii_lowercase();
         if key.len() < 2
             || key.len() > 64
@@ -262,26 +433,18 @@ impl Lexicon {
         {
             return (false, Vec::new());
         }
-        let (mut lo, mut hi) = (0, self.pinyin);
-        while lo < hi {
-            let mid = (lo + hi) / 2;
-            if self.key(mid) < key.as_str() {
-                lo = mid + 1;
-            } else {
-                hi = mid;
-            }
-        }
+        let lo = self.pinyin_lower(&key);
         let exact = lo < self.pinyin && self.key(lo) == key;
         if !exact && key.len() < 3 {
             return (false, Vec::new());
         }
-        let end = if exact {
-            (lo + 1).min(self.pinyin)
-        } else {
-            (lo + 64).min(self.pinyin)
-        };
-        let mut ids = Vec::new();
+        if !exact {
+            return (false, self.pinyin_prefix(&key, lo, limit));
+        }
+        let end = (lo + 1).min(self.pinyin);
+        let mut hits = Vec::new();
         let mut seen = HashSet::new();
+        let mut scanned = 0;
         for id in lo..end {
             if !self.key(id).starts_with(&key) {
                 break;
@@ -290,15 +453,52 @@ impl Lexicon {
             let start = self.number(at + 8);
             let count = self.number(at + 12);
             for hit in start..start + count {
-                let word = self.number(self.hits_at + hit * 4);
+                if scanned == QUERY_RELATIONS {
+                    return (exact, hits);
+                }
+                scanned += 1;
+                let word = self.number(self.hits_at + hit * MAPPING);
                 if seen.insert(word) {
-                    ids.push(word);
+                    hits.push(self.pinyin_hit(hit, id, exact));
+                    if hits.len() == limit.min(QUERY_HITS) {
+                        return (exact, hits);
+                    }
                 }
             }
         }
-        ids.sort_by_key(|id| (self.entry(*id).rank, *id));
-        ids.truncate(limit.min(64));
-        (exact, ids.into_iter().map(|id| self.entry(id)).collect())
+        (exact, hits)
+    }
+    fn pinyin_prefix(&self, key: &str, lo: usize, limit: usize) -> Vec<PinyinHit<'_>> {
+        let hi = self.pinyin_lower(&format!("{key}{{"));
+        let mut pool = Vec::new();
+        for id in self.prefix_keys(lo, hi) {
+            let at = self.pinyin_at + id * PINYIN;
+            let start = self.number(at + 8);
+            for local in 0..self.number(at + 12).min(QUERY_HITS) {
+                if pool.len() == QUERY_RELATIONS {
+                    break;
+                }
+                pool.push((id, local, self.pinyin_hit(start + local, id, false)));
+            }
+            if pool.len() == QUERY_RELATIONS {
+                break;
+            }
+        }
+        pool.sort_by_key(|(id, local, hit)| {
+            let (tier, frequency) = relation_priority(hit.flags, hit.frequency);
+            (
+                Reverse(tier),
+                Reverse(frequency),
+                hit.key.len() - key.len(),
+                *local,
+                *id,
+            )
+        });
+        let mut seen = HashSet::new();
+        pool.into_iter()
+            .filter_map(|(_, _, hit)| seen.insert(hit.word).then_some(hit))
+            .take(limit.min(QUERY_HITS))
+            .collect()
     }
 }
 static ACTIVE: OnceLock<RwLock<Arc<Lexicon>>> = OnceLock::new();
@@ -362,6 +562,7 @@ impl ManualWords {
                         definition: comment.clone(),
                         phonetic: String::new(),
                         pinyin_match: false,
+                        ..Default::default()
                     });
                 }
                 candidate
@@ -393,19 +594,19 @@ fn replace_manual(
 }
 
 #[cfg(test)]
-pub(super) fn fixture() -> Lexicon {
-    let words = [
-        ("apple", "n.", "苹果；苹果树", "ˈæpəl", 1u32),
-        ("hello", "int.", "你好", "həˈləʊ", 2),
-        ("help", "v.", "帮助", "help", 3),
-    ];
-    let keys = [
-        ("nihao", vec![1u32]),
-        ("pingguo", vec![0]),
-        ("pingguoshu", vec![0]),
-    ];
+type FixtureWord<'a> = (&'a str, &'a str, &'a str, &'a str, u32);
+#[cfg(test)]
+type FixtureRelation<'a> = (&'a str, usize, &'a str, &'a str, &'a str, u32, u32, u32);
+#[cfg(test)]
+fn fixture_bytes(words: &[FixtureWord<'_>], relations: &[FixtureRelation<'_>]) -> Vec<u8> {
+    let mut keys = std::collections::BTreeMap::new();
+    for relation in relations {
+        keys.entry(relation.0)
+            .or_insert_with(Vec::new)
+            .push(relation);
+    }
     let mut bytes = MAGIC.to_vec();
-    for n in [words.len(), keys.len(), 3, 0] {
+    for n in [words.len(), keys.len(), relations.len(), 0] {
         bytes.extend_from_slice(&(n as u32).to_le_bytes());
     }
     let mut arena = Vec::new();
@@ -414,7 +615,7 @@ pub(super) fn fixture() -> Lexicon {
         bytes.extend_from_slice(&(s.len() as u32).to_le_bytes());
         arena.extend_from_slice(s.as_bytes());
     };
-    for (word, pos, meaning, ipa, rank) in words {
+    for &(word, pos, meaning, ipa, rank) in words {
         for s in [word, pos, meaning, ipa] {
             append(&mut bytes, &mut arena, s);
         }
@@ -428,13 +629,60 @@ pub(super) fn fixture() -> Lexicon {
         offset += hits.len() as u32;
     }
     for (_, hits) in keys {
-        for id in hits {
-            bytes.extend_from_slice(&id.to_le_bytes());
+        for &&(_, id, hanzi, reading, gloss, frequency, flags, ordinal) in hits.iter() {
+            bytes.extend_from_slice(&(id as u32).to_le_bytes());
+            for s in [hanzi, reading, gloss] {
+                append(&mut bytes, &mut arena, s);
+            }
+            for number in [frequency, flags, ordinal] {
+                bytes.extend_from_slice(&number.to_le_bytes());
+            }
         }
     }
     bytes[20..24].copy_from_slice(&(arena.len() as u32).to_le_bytes());
     bytes.extend_from_slice(&arena);
-    Lexicon::from_bytes(bytes).unwrap()
+    bytes
+}
+#[cfg(test)]
+pub(super) fn fixture() -> Lexicon {
+    let words = [
+        ("all", "pron.", "全部", "ɔːl", 9),
+        ("apple", "n.", "苹果；苹果树", "ˈæpəl", 1),
+        ("fragrant", "adj.", "芳香的", "ˈfreɪɡrənt", 8),
+        ("hello", "int.", "你好", "həˈləʊ", 2),
+        ("help", "v.", "帮助", "help", 3),
+        ("high", "adj.", "高的", "haɪ", 4),
+        ("like", "prep./v.", "像；喜欢", "laɪk", 5),
+        ("safe", "adj.", "安全的", "seɪf", 6),
+        ("same", "adj.", "相同的；同样的", "seɪm", 7),
+        ("school", "n.", "学校", "skuːl", 10),
+        ("think", "v.", "想；思考", "θɪŋk", 100),
+    ];
+    let relations = [
+        ("anquan", 7, "安全", "an1 quan2", "safe", 8000, 1, 0),
+        ("nihao", 3, "你好", "ni3 hao3", "hello", 5000, 1, 0),
+        ("pingguo", 1, "苹果", "ping2 guo3", "apple", 6000, 1, 0),
+        (
+            "pingguoshu",
+            1,
+            "苹果树",
+            "ping2 guo3 shu4",
+            "apple tree",
+            1000,
+            2,
+            1,
+        ),
+        ("quan", 0, "全", "quan2", "all", 9000, 1, 0),
+        ("tongyang", 8, "同样", "tong2 yang4", "same", 7000, 1, 0),
+        // Sense order deliberately differs from global English rank.
+        ("xiang", 10, "想", "xiang3", "to think", 9000, 1, 0),
+        ("xiang", 2, "香", "xiang1", "fragrant", 8000, 2, 1),
+        ("xiang", 5, "襄", "xiang1", "high (archaic)", 1, 5, 1),
+        ("xiang", 9, "庠", "xiang2", "school (archaic)", 0, 5, 0),
+        ("yiyang", 6, "一样", "yi1 yang4", "like", 8000, 1, 1),
+        ("yiyang", 8, "一样", "yi1 yang4", "same", 8000, 1, 0),
+    ];
+    Lexicon::from_bytes(fixture_bytes(&words, &relations)).unwrap()
 }
 #[cfg(test)]
 mod tests {
@@ -455,6 +703,218 @@ mod tests {
         assert!(lex.pinyin("pi", 5).1.is_empty());
         assert!(lex.pinyin("pingguo", 0).1.is_empty());
         assert!(lex.pinyin("ping-guo", 5).1.is_empty());
+    }
+    #[test]
+    fn sense_order_and_exact_prefix_evidence_survive_english_deduplication() {
+        let lex = fixture();
+        let (exact, hits) = lex.pinyin("xiang", 64);
+        assert!(exact);
+        assert_eq!(
+            hits.iter().map(|hit| hit.word).collect::<Vec<_>>(),
+            ["think", "fragrant", "high", "school"]
+        );
+        assert!(
+            hits[0].rank > hits[2].rank,
+            "English frequency must not reorder Chinese senses"
+        );
+        let annotation = hits[0].annotation(true);
+        assert_eq!(annotation.matched_chinese, "想");
+        assert_eq!(annotation.matched_pinyin, "xiang3");
+        assert!(annotation.pinyin_exact && annotation.pinyin_match);
+        assert_eq!(hits[0].gloss, "to think");
+        assert_eq!(hits[2].flags, 5);
+        let (_, prefix) = lex.pinyin("pingg", 64);
+        assert_eq!(
+            prefix.len(),
+            1,
+            "same English word across keys has one visible meaning"
+        );
+        assert_eq!(prefix[0].hanzi, "苹果");
+        assert_eq!(prefix[0].key, "pingguo");
+        assert!(!prefix[0].annotation(true).pinyin_exact);
+        let ordinary = lex.lookup("apple").unwrap().annotation(false);
+        assert!(ordinary.matched_chinese.is_empty() && ordinary.matched_pinyin.is_empty());
+        assert!(!ordinary.pinyin_exact);
+    }
+    #[test]
+    fn pinyin_work_is_bounded_before_duplicate_relations_and_key_expansion() {
+        let words = [("alpha", "n.", "甲", "", 2), ("beta", "n.", "乙", "", 1)];
+        let mut relations = Vec::new();
+        for ordinal in 0..QUERY_RELATIONS {
+            relations.push(("xiang", 0, "想", "xiang3", "alpha", 1, 1, ordinal as u32));
+        }
+        relations.push(("xiang", 1, "象", "xiang4", "beta", 1, 1, 0));
+        let lex = Lexicon::from_bytes(fixture_bytes(&words, &relations)).unwrap();
+        let (_, hits) = lex.pinyin("xiang", usize::MAX);
+        assert_eq!(
+            hits.iter().map(|hit| hit.word).collect::<Vec<_>>(),
+            ["alpha"]
+        );
+        let keys: Vec<_> = (0..=QUERY_KEYS)
+            .map(|i| {
+                format!(
+                    "abc{}{}",
+                    (b'a' + (i / 26) as u8) as char,
+                    (b'a' + (i % 26) as u8) as char
+                )
+            })
+            .collect();
+        let relations: Vec<_> = keys
+            .iter()
+            .enumerate()
+            .map(|(i, key)| {
+                (
+                    key.as_str(),
+                    usize::from(i == QUERY_KEYS),
+                    "词",
+                    key.as_str(),
+                    "fixture",
+                    1,
+                    1,
+                    0,
+                )
+            })
+            .collect();
+        let lex = Lexicon::from_bytes(fixture_bytes(&words, &relations)).unwrap();
+        let (exact, hits) = lex.pinyin("abc", usize::MAX);
+        assert!(!exact);
+        assert_eq!(
+            hits.iter().map(|hit| hit.word).collect::<Vec<_>>(),
+            ["alpha"]
+        );
+        assert_eq!(lex.pinyin("abc", 1).1.len(), 1);
+    }
+    #[test]
+    fn prefix_priority_reaches_late_keys_and_keeps_best_chinese_relation_before_dedup() {
+        let words = [("alpha", "n.", "甲", "", 1), ("beta", "n.", "乙", "", 100)];
+        let keys: Vec<_> = (0..QUERY_KEYS + 2)
+            .map(|i| {
+                format!(
+                    "abc{}{}",
+                    (b'a' + (i / 26) as u8) as char,
+                    (b'a' + (i % 26) as u8) as char
+                )
+            })
+            .collect();
+        let mut relations = Vec::new();
+        for (i, key) in keys.iter().enumerate() {
+            if i == keys.len() - 1 {
+                // Compiled local order intentionally differs from Chinese frequency.
+                relations.push((key.as_str(), 0, "优", key.as_str(), "alpha", 999, 1, 0));
+                relations.push((key.as_str(), 1, "常", key.as_str(), "beta", 1000, 1, 1));
+            } else {
+                let (hanzi, frequency, flags) = match i {
+                    62 => ("变体", u32::MAX, 9),
+                    63 => ("过时", u32::MAX, 5),
+                    _ => ("稀", 1, 1),
+                };
+                relations.push((
+                    key.as_str(),
+                    0,
+                    hanzi,
+                    key.as_str(),
+                    "alpha",
+                    frequency,
+                    flags,
+                    0,
+                ));
+            }
+        }
+        let lex = Lexicon::from_bytes(fixture_bytes(&words, &relations)).unwrap();
+        let (exact, hits) = lex.pinyin("abc", 64);
+        assert!(!exact);
+        assert_eq!(
+            hits.iter().map(|hit| hit.word).collect::<Vec<_>>(),
+            ["beta", "alpha"]
+        );
+        assert_eq!((hits[0].hanzi, hits[1].hanzi), ("常", "优"));
+        assert_eq!(hits[0].key, keys.last().unwrap().as_str());
+        assert!(!hits[0].annotation(true).pinyin_exact);
+        assert_eq!(lex.pinyin("abc", 1).1[0].word, "beta");
+        assert!(lex.pinyin("abc", 0).1.is_empty());
+        let (exact, hits) = lex.pinyin(keys.last().unwrap(), 64);
+        assert!(exact);
+        assert_eq!(
+            hits.iter().map(|hit| hit.word).collect::<Vec<_>>(),
+            ["alpha", "beta"],
+            "exact lookup must retain compiled order"
+        );
+        assert_eq!(lex.pinyin(&keys[63], 1).1[0].flags, 5);
+    }
+    #[test]
+    fn prefix_local_order_ties_and_relation_budgets_are_stable() {
+        let words = [("alpha", "n.", "甲", "", 100), ("beta", "n.", "乙", "", 1)];
+        let tied = [
+            ("abcaa", 0, "先", "abcaa", "alpha", 7, 1, 20),
+            ("abcaa", 1, "后", "abcaa", "beta", 7, 1, 0),
+        ];
+        let lex = Lexicon::from_bytes(fixture_bytes(&words, &tied)).unwrap();
+        assert_eq!(
+            lex.pinyin("abc", 1).1[0].word,
+            "alpha",
+            "compiled local order resolves equal Chinese priority"
+        );
+        let mut relations: Vec<_> = (0..QUERY_HITS)
+            .map(|i| ("abcaa", 0, "先", "abcaa", "alpha", 1, 1, i as u32))
+            .collect();
+        relations.push(("abcaa", 1, "后", "abcaa", "beta", 1, 1, 0));
+        let lex = Lexicon::from_bytes(fixture_bytes(&words, &relations)).unwrap();
+        assert_eq!(
+            lex.pinyin("abc", 64).1.len(),
+            1,
+            "prefix scans at most 64 relations per key"
+        );
+        assert_eq!(
+            lex.pinyin("abcaa", 64).1.len(),
+            2,
+            "exact keeps its independent 512-relation budget"
+        );
+        let keys: Vec<_> = (0..9)
+            .map(|i| format!("abc{}", (b'a' + i as u8) as char))
+            .collect();
+        let mut relations = Vec::new();
+        for (i, key) in keys.iter().enumerate() {
+            for local in 0..QUERY_HITS {
+                relations.push((
+                    key.as_str(),
+                    usize::from(i == 8),
+                    "词",
+                    key.as_str(),
+                    "fixture",
+                    if i == 8 { 1 } else { 2 },
+                    1,
+                    local as u32,
+                ));
+            }
+        }
+        let lex = Lexicon::from_bytes(fixture_bytes(&words, &relations)).unwrap();
+        assert_eq!(
+            lex.pinyin("abc", 64)
+                .1
+                .iter()
+                .map(|hit| hit.word)
+                .collect::<Vec<_>>(),
+            ["alpha"],
+            "duplicate relations still consume the global 512 budget"
+        );
+    }
+    #[test]
+    fn relation_corruption_and_obsolete_schema_are_rejected() {
+        let lex = fixture();
+        for offset in [0, 4, 8, 12, 16, 20, 24, 32, 36] {
+            let mut bytes = lex.image.as_ref().to_vec();
+            bytes[lex.hits_at + offset..lex.hits_at + offset + 4]
+                .copy_from_slice(&u32::MAX.to_le_bytes());
+            assert!(Lexicon::from_bytes(bytes).is_err(), "offset={offset}");
+        }
+        let mut bytes = lex.image.as_ref().to_vec();
+        bytes[7] = b'1';
+        assert!(Lexicon::from_bytes(bytes).is_err());
+        let mut bytes = lex.image.as_ref().to_vec();
+        bytes[lex.hits_at + 32..lex.hits_at + 36].fill(0);
+        assert!(Lexicon::from_bytes(bytes).is_err());
+        assert_eq!(reading_key("LÜ4 se4"), "lvse");
+        assert_eq!(reading_key("lu:4 se4"), "lvse");
     }
     #[test]
     fn explicit_personal_words_validate_before_publication_and_complete_stably() {
@@ -533,7 +993,8 @@ mod tests {
         }
         let lex = Lexicon::open(
             &std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-                .join("../../dist/english-dictionaries/english-lexicon-v1.bin"),
+                .join("../../dist/english-dictionaries")
+                .join(FILE_NAME),
         )
         .unwrap();
         assert!(lex.count() > 80_000);

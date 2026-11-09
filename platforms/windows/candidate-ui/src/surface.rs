@@ -96,6 +96,33 @@ fn painted_selection(state: &RenderState) -> Option<usize> {
         .filter(|&index| index < state.visible().len())
 }
 
+/// Bound lookup evidence to one short badge; never expose the stored reading as a word.
+fn english_source_badge(annotation: Option<&retype_types::EnglishAnnotation>) -> Option<String> {
+    let annotation = annotation?;
+    let (kind, evidence) = if !annotation.entity_kind.is_empty() {
+        ("现代", &annotation.entity_kind)
+    } else if annotation.pinyin_match {
+        (
+            if annotation.pinyin_exact { "拼音" } else { "扩展" },
+            &annotation.matched_chinese,
+        )
+    } else {
+        return None;
+    };
+    let mut characters = evidence
+        .chars()
+        .filter(|character| !character.is_whitespace() && !character.is_control());
+    let mut headword: String = characters.by_ref().take(6).collect();
+    if characters.next().is_some() {
+        headword.push('…');
+    }
+    Some(if headword.is_empty() {
+        kind.to_owned()
+    } else {
+        format!("{kind} · {headword}")
+    })
+}
+
 /// Explain a candidate's inferred boundary without changing the raw composition.
 fn english_header(state: &RenderState) -> String {
     let raw = &state.composition;
@@ -689,16 +716,20 @@ impl Surface {
                 );
                 let text_left = cell.left() + 39.0;
                 let max_width = (cell.right() - text_left - 10.0).max(1.0);
-                let pinyin = candidate
-                    .annotation
-                    .as_ref()
-                    .is_some_and(|a| a.pinyin_match);
-                if pinyin {
-                    painter.text(
-                        Pos2::new(cell.right() - 10.0, cell.top() + 15.0),
-                        egui::Align2::RIGHT_CENTER,
-                        "拼音",
-                        FontId::proportional(10.0),
+                let source_badge = english_source_badge(candidate.annotation.as_ref()).map(|label| {
+                    painter.layout_job(clipped_text(
+                        &label,
+                        10.0,
+                        muted,
+                        (max_width * 0.4).min(112.0),
+                        1,
+                    ))
+                });
+                let source_width = source_badge.as_ref().map_or(0.0, |badge| badge.size().x);
+                if let Some(badge) = source_badge {
+                    painter.galley(
+                        Pos2::new(cell.right() - 10.0 - source_width, cell.top() + 9.0),
+                        badge,
                         muted,
                     );
                 }
@@ -724,7 +755,8 @@ impl Surface {
                     &word_text,
                     word_size,
                     ink,
-                    (max_width - if pinyin { 34.0 } else { 0.0 }).max(1.0),
+                    (max_width - if source_width > 0.0 { source_width + 8.0 } else { 0.0 })
+                        .max(1.0),
                     1,
                 ));
                 painter.galley(Pos2::new(text_left, cell.top() + 5.0), word, ink);
@@ -1119,6 +1151,71 @@ mod tests {
         }
     }
     #[test]
+    fn pinyin_badge_distinguishes_exact_headwords_from_expansions_and_bounds_labels() {
+        let mut annotation = retype_types::EnglishAnnotation {
+            pinyin_match: true,
+            matched_chinese: "想".into(),
+            matched_pinyin: "xiang3".into(),
+            pinyin_exact: true,
+            ..Default::default()
+        };
+        assert_eq!(english_source_badge(Some(&annotation)).as_deref(), Some("拼音 · 想"));
+        annotation.matched_chinese = "想法".into();
+        annotation.matched_pinyin = "xiang3 fa3".into();
+        annotation.pinyin_exact = false;
+        assert_eq!(english_source_badge(Some(&annotation)).as_deref(), Some("扩展 · 想法"));
+        annotation.matched_chinese = "一二三四五六七八九十".into();
+        assert_eq!(english_source_badge(Some(&annotation)).as_deref(), Some("扩展 · 一二三四五六…"));
+        annotation.matched_chinese = " \n想\t法\r ".into();
+        assert_eq!(english_source_badge(Some(&annotation)).as_deref(), Some("扩展 · 想法"));
+        annotation.matched_chinese.clear();
+        assert_eq!(english_source_badge(Some(&annotation)).as_deref(), Some("扩展"));
+        annotation.pinyin_match = false;
+        assert_eq!(english_source_badge(Some(&annotation)), None);
+        assert_eq!(english_source_badge(None), None);
+    }
+
+    #[test]
+    fn modern_entity_badge_uses_bounded_kind_without_exposing_its_source() {
+        let mut annotation = retype_types::EnglishAnnotation {
+            entity_kind: "公司".into(),
+            entity_source: "https://www.anthropic.com/".into(),
+            ..Default::default()
+        };
+        assert_eq!(english_source_badge(Some(&annotation)).as_deref(), Some("现代 · 公司"));
+        annotation.entity_kind = "产品".into();
+        assert_eq!(english_source_badge(Some(&annotation)).as_deref(), Some("现代 · 产品"));
+        annotation.entity_kind = "一二三四五六七八九十".into();
+        assert_eq!(english_source_badge(Some(&annotation)).as_deref(), Some("现代 · 一二三四五六…"));
+        annotation.entity_kind.clear();
+        assert_eq!(english_source_badge(Some(&annotation)), None);
+    }
+
+    #[test]
+    fn mixed_pinyin_evidence_changes_the_badge_but_not_the_prefix_or_commit() {
+        for raw in ["iwilldotheyiyang", "iwilldothetongyang"] {
+            let mut current = state(&["I will do the same"]);
+            current.status = retype_types::StatusFlags::EMPTY;
+            current.composition = raw.into();
+            current.candidates[0].display_text = Some("same".into());
+            current.candidates[0].annotation = Some(retype_types::EnglishAnnotation {
+                pinyin_match: true,
+                matched_chinese: if raw.ends_with("yiyang") { "一样" } else { "同样" }.into(),
+                pinyin_exact: true,
+                ..Default::default()
+            });
+            let before = current.clone();
+            assert_eq!(english_header(&current), format!("I will do the · {}", &raw[10..]));
+            assert_eq!(current.candidates[0].display_text(), "same");
+            assert_eq!(current.candidates[0].text, "I will do the same");
+            assert!(english_source_badge(current.candidates[0].annotation.as_ref())
+                .unwrap()
+                .starts_with("拼音 · "));
+            assert_eq!(current, before);
+        }
+    }
+
+    #[test]
     fn inferred_english_header_requires_an_exact_raw_prefix_and_stays_display_only() {
         for (raw, commit, display, chinese, expected) in [
             ("iamg", "I am going", Some("going"), false, "I am · g"),
@@ -1131,6 +1228,34 @@ mod tests {
                 "I am · t",
             ),
             ("iamtr", "I am trying", Some("trying"), false, "I am · tr"),
+            (
+                "iwilldotheyiyang",
+                "I will do the same",
+                Some("same"),
+                false,
+                "I will do the · yiyang",
+            ),
+            (
+                "iwilldothetongyang",
+                "I will do the same",
+                Some("same"),
+                false,
+                "I will do the · tongyang",
+            ),
+            (
+                "iwilldotheyiyang",
+                "I will do a same",
+                Some("same"),
+                false,
+                "iwilldotheyiyang",
+            ),
+            (
+                "iwilldothetongyang",
+                "I will do the identical",
+                Some("same"),
+                false,
+                "iwilldothetongyang",
+            ),
             ("IAMG", "I am going", Some("going"), false, "I am · G"),
             (
                 "wearego",
@@ -1313,6 +1438,7 @@ mod tests {
             definition: "帮助；援助；有用的东西".into(),
             phonetic: "help".into(),
             pinyin_match: false,
+            ..Default::default()
         });
         for scale in [1.0, 1.25, 1.5, 1.75, 2.0] {
             let widths = surface.measure(&current, (472.0 * scale) as i32, scale);
@@ -1419,6 +1545,7 @@ mod tests {
             definition: "尝试".into(),
             phonetic: "traɪɪŋ".into(),
             pinyin_match: false,
+            ..Default::default()
         });
         let widths = surface.measure(&current, 472, 1.0);
         let suffix = surface.render(&current, &widths, 2, 480, 1.0);

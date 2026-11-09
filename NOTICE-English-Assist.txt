@@ -6,8 +6,9 @@ Copyright (c) 2026 retype contributors. See LICENSE for the complete code licens
 Internal retype-* filenames identify inherited components in this independent build.
 
 The English Assist Windows package contains the offline English frequency image
-and the separate English lexicon metadata file. It does not include the upstream
-Chinese base/classification dictionaries. Notices for data retained in the source
+and the separate English lexicon metadata file, including selected Chinese
+headwords/readings and word-frequency evidence. Complete upstream Chinese
+base/classification dictionary images are not installed. Notices for data retained in the source
 tree and the original upstream build are in the source distribution NOTICE.txt.
 
 ## English word frequencies
@@ -42,13 +43,41 @@ tree and the original upstream build are in the source distribution NOTICE.txt.
 
 ## English definitions, POS, IPA and pinyin lookup
 
-The separate english-lexicon-v1.bin data file is compiled from ECDICT (MIT),
-CC-CEDICT (CC BY-SA 3.0, 2017-11-17 snapshot) and the English frequency list above.
-Its data license is CC BY-SA 3.0. See NOTICE-English-Lexicon.txt for source authors,
-the original CC-CEDICT header, modification details and source/compiled hashes;
-see LICENSE-ECDICT and LICENSE-CC-CEDICT for the full respective licenses.
+The separate english-lexicon-v2.bin (RTENLX02) data file is compiled from ECDICT
+(MIT), CC-CEDICT (CC BY-SA 3.0, unchanged 2017-11-17 snapshot), the English frequency
+list above and Wanxiang Chinese frequencies (CC BY 4.0).
+It preserves Chinese headwords, numbered-tone readings, source glosses, Chinese
+frequencies and source/usage evidence. Reverse ECDICT links use exact complete
+Chinese gloss items; word-level ranking distinguishes exact pinyin from expansion.
+CC-CEDICT-derived adapted metadata retains CC BY-SA 3.0; the independent ECDICT
+MIT and Wanxiang CC BY 4.0 terms/attributions also remain applicable.
+Wanxiang inputs are zi.dict.yaml and jichu.dict.yaml from amzxyz/rime-wanxiang
+v18.0.14 (https://github.com/amzxyz/rime-wanxiang/releases/tag/v18.0.14).
+See NOTICE-English-Lexicon.txt for source authors, the original CC-CEDICT header,
+modification details and source/compiled hashes; see LICENSE-ECDICT,
+LICENSE-CC-CEDICT and the full installed LICENSE-Wanxiang for source licenses.
 The code license remains MIT. Sources and the independent compiler are included
 in the matching source distribution. No source project endorses this product.
+
+## Limited modern company/product names
+
+- A separate reviewed seed of 51 AI companies/products and developer-tool
+  names is embedded as EAMODEN1. It is not a complete modern-entity or Wikidata corpus.
+- Structured IDs, source descriptions and exact revisions come from Wikidata under
+  CC0-1.0 (https://www.wikidata.org/wiki/Wikidata:Licensing); the approved catalog
+  records each QID, revision URL and official-site reference. Chinese summaries
+  and normalized aliases are reviewed for this limited seed.
+- Example: Anthropic, Q116758847 revision 2562358338
+  (https://www.wikidata.org/w/index.php?title=Q116758847&oldid=2562358338),
+  official reference https://www.anthropic.com/company.
+- Official-site links document identity; their site prose, logos and other assets
+  are not declared CC0 or included merely because those links are recorded.
+- Approved JSON, runtime TSV and the frozen structured snapshot/provenance are
+  included in the matching source distribution under data/dict/modern-entities*
+  and data/dict/raw/modern-entities/. Installed build.json records the actual
+  approved count and JSON/TSV digests; the TSV is embedded in the native binary.
+- The independent catalog-checking and runtime code is MIT. Updates require an
+  explicit offline review/regeneration workflow; typing does not fetch live data.
 
 ## Build dependencies
 

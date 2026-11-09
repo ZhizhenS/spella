@@ -1,0 +1,42 @@
+English Assist reviewed modern-name seed, schema EAMODEN1
+
+This is a limited editorial seed of 51 AI companies/products and developer-tool
+brands, not a complete Wikidata dump or a comprehensive contemporary dictionary.
+Entity suggestions remain separate from ordinary English adjective/noun senses.
+No catalog lookup performs network requests or opens a file while typing.
+
+Structured source: Wikidata, https://www.wikidata.org/
+Data license: CC0 1.0 Universal, https://creativecommons.org/publicdomain/zero/1.0/
+Wikidata policy: https://www.wikidata.org/wiki/Wikidata:Licensing
+Data access: https://www.wikidata.org/wiki/Wikidata:Data_access
+
+wikidata-snapshot.json.gz is a small projection of real MediaWiki wbgetentities
+responses: IDs, last revision numbers, modification times, labels, descriptions,
+instance-of IDs and official-website claims. It records the original upstream
+response digest and the extraction date. It is not an original full response.
+Each approved entry also links its exact revision and an official company or
+product page. No Q identifiers were invented from names or inferred from a
+third-party search snippet.
+
+Short Chinese descriptions and normalized input aliases are reviewed editorial
+adaptations of the frozen structured facts, with supplementary official-site
+identity checks. These catalog contributions are also provided under CC0 1.0.
+Website links are factual provenance; website HTML, logos and marketing text are
+not incorporated. Names may be trademarks of their respective owners. No source
+project, company or product endorses English Assist.
+
+In particular, Codex refers to the software engineering agent Q138940795, not
+the older code-generating model Q108582200. OpenAI's entry avoids repeating the
+outdated nonprofit-only Chinese description in the Wikidata snapshot; its short
+company description is checked against https://openai.com/about/.
+
+Approved catalog: data/dict/modern-entities.json
+Embedded runtime projection: data/dict/modern-entities.tsv
+Offline consistency check: tools/english-assist/modern-entities.py --check
+Explicit upstream review proposal (does not change approved files):
+  tools/english-assist/modern-entities.py --propose-refresh <separate-review.json>
+
+Normal builds and typing never refresh upstream data automatically. A future
+update requires review of identity, revisions, aliases, official pages and
+Chinese descriptions, followed by explicit --write-runtime and --check.
+The independent Rust implementation retains the repository's MIT code license.

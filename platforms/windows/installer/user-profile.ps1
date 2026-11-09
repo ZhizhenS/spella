@@ -71,8 +71,8 @@ function Get-EnglishAssistSha256([string]$Path) {
 }
 
 function Test-EnglishAssistOfflineLexicon([string]$Root) {
-  $manifestPath = Join-Path $Root 'english-lexicon-v1.json'
-  $imagePath = Join-Path $Root 'english-lexicon-v1.bin'
+  $manifestPath = Join-Path $Root 'english-lexicon-v2.json'
+  $imagePath = Join-Path $Root 'english-lexicon-v2.bin'
   # An old package may omit both optional metadata files. A partly copied or
   # corrupt new package must fail before publishing its dictionary directory.
   if (-not (Test-Path -LiteralPath $manifestPath) -and -not (Test-Path -LiteralPath $imagePath)) { return $false }
@@ -83,8 +83,8 @@ function Test-EnglishAssistOfflineLexicon([string]$Root) {
     }
   }
   $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
-  if ($manifest.schema -ne 1 -or $manifest.format -cne 'RTENLX01' -or
-      $manifest.file -cne 'english-lexicon-v1.bin' -or
+  if ($manifest.schema -ne 2 -or $manifest.format -cne 'RTENLX02' -or
+      $manifest.file -cne 'english-lexicon-v2.bin' -or
       $manifest.sha256 -cnotmatch '^[a-f0-9]{64}$' -or
       [long]$manifest.bytes -lt 24 -or [long]$manifest.bytes -gt 67108864 -or
       (Get-Item -LiteralPath $imagePath).Length -ne [long]$manifest.bytes -or
@@ -94,7 +94,7 @@ function Test-EnglishAssistOfflineLexicon([string]$Root) {
   $stream = [IO.File]::OpenRead($imagePath)
   try {
     $magic = New-Object byte[] 8
-    if ($stream.Read($magic, 0, 8) -ne 8 -or [Text.Encoding]::ASCII.GetString($magic) -cne 'RTENLX01') {
+    if ($stream.Read($magic, 0, 8) -ne 8 -or [Text.Encoding]::ASCII.GetString($magic) -cne 'RTENLX02') {
       throw 'The installed offline English lexicon has an unexpected format.'
     }
   } finally { $stream.Dispose() }
