@@ -23,5 +23,10 @@ name = "retype-ai-host"
 path = "src/main.rs"
 required-features = ["service"]
 
+[[example]]
+name = "deepseek-check"
+path = "examples/deepseek-check.rs"
+required-features = ["service"]
+
 [lints]
 workspace = true

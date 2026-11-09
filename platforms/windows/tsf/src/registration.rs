@@ -88,7 +88,7 @@ pub fn register() -> Result<()> {
         .collect();
     // SAFETY: Valid output key and strings; COM interfaces stay on this thread.
     unsafe {
-        let profiles: ITfInputProcessorProfiles =
+        let profiles: ITfInputProcessorProfileMgr =
             CoCreateInstance(&CLSID_TF_InputProcessorProfiles, None, CLSCTX_INPROC_SERVER)?;
         let categories: ITfCategoryMgr =
             CoCreateInstance(&CLSID_TF_CategoryMgr, None, CLSCTX_INPROC_SERVER)?;
@@ -112,22 +112,22 @@ pub fn register() -> Result<()> {
             w!("ThreadingModel"),
             &"Apartment".encode_utf16().collect::<Vec<_>>(),
         )?;
-        profiles.Register(&CLSID_RETYPE_TIP)?;
         for (language, profile, name) in INPUT_PROFILES {
             let description: Vec<u16> = name.encode_utf16().chain([0]).collect();
-            profiles.AddLanguageProfile(
+            // Enabling this product is separate from choosing a default keyboard.
+            // A machine-disabled profile can appear enabled through the legacy
+            // per-user API yet remain disabled to the modern activation manager.
+            profiles.RegisterProfile(
                 &CLSID_RETYPE_TIP,
                 *language,
                 profile,
                 &description[..description.len() - 1],
                 &icon_path[..icon_path.len() - 1],
                 0,
-            )?;
-            profiles.EnableLanguageProfileByDefault(
-                &CLSID_RETYPE_TIP,
-                *language,
-                profile,
-                false,
+                windows::Win32::UI::Input::KeyboardAndMouse::HKL::default(),
+                0,
+                true,
+                0,
             )?;
         }
         for category in CATEGORIES {
@@ -168,6 +168,39 @@ pub fn unregister() -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use windows_core::Interface;
+
+    unsafe fn assert_modern_enabled(
+        manager: &ITfInputProcessorProfileMgr,
+        language: u16,
+        profile: &windows_core::GUID,
+    ) -> Result<()> {
+        let mut registered = TF_INPUTPROCESSORPROFILE::default();
+        // Preserve the native status rather than treating S_FALSE as success.
+        let hr = unsafe {
+            (Interface::vtable(manager).GetProfile)(
+                manager.as_raw(),
+                TF_PROFILETYPE_INPUTPROCESSOR,
+                language,
+                &CLSID_RETYPE_TIP,
+                profile,
+                windows::Win32::UI::Input::KeyboardAndMouse::HKL::default(),
+                &mut registered,
+            )
+        };
+        hr.ok()?;
+        assert_eq!(hr.0, 0, "modern profile query must return S_OK");
+        assert_eq!(registered.dwProfileType, TF_PROFILETYPE_INPUTPROCESSOR);
+        assert_eq!(registered.langid, language);
+        assert_eq!(registered.clsid, CLSID_RETYPE_TIP);
+        assert_eq!(registered.guidProfile, *profile);
+        assert_ne!(
+            registered.dwFlags & TF_IPP_FLAG_ENABLED,
+            0,
+            "legacy enablement alone is insufficient: the modern manager must also enable this profile"
+        );
+        Ok(())
+    }
 
     #[test]
     #[ignore = "requires installed and user-enabled retype; affects only this test process"]
@@ -224,22 +257,25 @@ mod tests {
                 assert!(profiles
                     .IsEnabledLanguageProfile(&CLSID_RETYPE_TIP, *language, profile)?
                     .as_bool());
+                assert_modern_enabled(&manager, *language, profile)?;
                 profiles
                     .ChangeCurrentLanguage(*language)
                     .inspect_err(|error| {
                         eprintln!("switching test host language failed: {error}")
                     })?;
                 assert_eq!(profiles.GetCurrentLanguage()?, *language);
-                manager
-                    .ActivateProfile(
-                        TF_PROFILETYPE_INPUTPROCESSOR,
-                        *language,
-                        &CLSID_RETYPE_TIP,
-                        profile,
-                        HKL::default(),
-                        TF_IPPMF_FORPROCESS,
-                    )
-                    .inspect_err(|error| eprintln!("activating installed TIP failed: {error}"))?;
+                let activation = (Interface::vtable(&manager).ActivateProfile)(
+                    manager.as_raw(),
+                    TF_PROFILETYPE_INPUTPROCESSOR,
+                    *language,
+                    &CLSID_RETYPE_TIP,
+                    profile,
+                    HKL::default(),
+                    TF_IPPMF_FORPROCESS,
+                );
+                eprintln!("ActivateProfile raw HRESULT=0x{:08X}", activation.0 as u32);
+                activation.ok()?;
+                assert_eq!(activation.0, 0, "S_FALSE means this profile is disabled");
                 let mut active = TF_INPUTPROCESSORPROFILE::default();
                 let deadline = std::time::Instant::now() + std::time::Duration::from_secs(2);
                 let result = loop {
@@ -310,6 +346,7 @@ mod tests {
             }
             let profiles: ITfInputProcessorProfiles =
                 CoCreateInstance(&CLSID_TF_InputProcessorProfiles, None, CLSCTX_INPROC_SERVER)?;
+            let modern: ITfInputProcessorProfileMgr = profiles.cast()?;
             for (language, profile, name) in INPUT_PROFILES {
                 let description = profiles.GetLanguageProfileDescription(
                     &CLSID_RETYPE_TIP,
@@ -324,6 +361,7 @@ mod tests {
                 assert!(profiles
                     .IsEnabledLanguageProfile(&CLSID_RETYPE_TIP, *language, profile)?
                     .as_bool());
+                assert_modern_enabled(&modern, *language, profile)?;
                 let enumeration = profiles.EnumLanguageProfiles(*language)?;
                 let mut found = false;
                 loop {

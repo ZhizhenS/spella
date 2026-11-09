@@ -25,8 +25,6 @@ pub(crate) const DANGER: Color32 = Color32::from_rgb(209, 61, 61);
 pub(crate) const MUTED: Color32 = Color32::from_rgb(101, 119, 129);
 const BACKGROUND: Color32 = Color32::from_rgb(246, 249, 250);
 pub(crate) const BORDER: Color32 = Color32::from_rgb(227, 233, 236);
-#[cfg(test)]
-const PREFERENCES: &str = "Software\\EnglishAssist";
 
 type AppResult<T> = backend::Result<T>;
 
@@ -49,7 +47,7 @@ impl Options {
             screenshot: None,
             exit_after: None,
             updates: false,
-            page: Page::Input,
+            page: Page::General,
             idle_exit: Duration::ZERO,
             hide_after: None,
         };
@@ -76,6 +74,8 @@ impl Options {
                 options.page = Page::About;
             } else if let Some(value) = argument.strip_prefix("--page=") {
                 options.page = match value {
+                    "general" => Page::General,
+                    "appearance" => Page::Appearance,
                     "input" => Page::Input,
                     "dictionary" => Page::Dictionary,
                     "statistics" => Page::Statistics,
@@ -161,7 +161,9 @@ pub(crate) fn chinese_fonts(ctx: &egui::Context) -> AppResult<()> {
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 enum Page {
+    General,
     Input,
+    Appearance,
     Dictionary,
     Providers,
     Translation,
@@ -176,7 +178,8 @@ enum Page {
 // Unsupported legacy pages cannot start sync, microphone or updater services.
 fn english_page(page: Page) -> Page {
     match page {
-        Page::Voice | Page::Statistics | Page::Cloud | Page::Lan => Page::Input,
+        Page::Voice | Page::Statistics | Page::Cloud | Page::Lan => Page::General,
+        Page::Translation => Page::Providers,
         other => other,
     }
 }
@@ -218,6 +221,13 @@ struct SettingsApp {
     error: Option<String>,
     logo: egui::TextureHandle,
     screenshot_requested: bool,
+    manual_words: Vec<backend::ManualWord>,
+    word_input: String,
+    word_comment: String,
+    word_filter: String,
+    editing_word: Option<usize>,
+    word_status: String,
+    confirm_clear_words: bool,
 }
 
 impl SettingsApp {
@@ -227,7 +237,10 @@ impl SettingsApp {
         self.page = page;
         match page {
             Page::Dictionary => {
-                let _ = self.tasks.send(Task::Packs);
+                match backend::load_manual_words() {
+                    Ok(words) => self.manual_words = words,
+                    Err(error) => self.manual_words_error(format!("读取个人词库失败：{error}")),
+                }
                 if !self.base_busy {
                     let _ = self.tasks.send(Task::BaseStatus);
                 }
@@ -868,6 +881,17 @@ impl SettingsApp {
         });
         ui.add_space(12.0);
         card(ui, |ui| {
+            ui.label(RichText::new("本地数据与诊断").strong());
+            ui.label("诊断日志保存在本机 EnglishAssist/logs 目录，不记录候选或输入正文。");
+            if ui.button("打开本地数据目录").clicked() {
+                match backend::local_root() {
+                    Ok(path) => self.open(&path.to_string_lossy()),
+                    Err(error) => self.error = Some(error.to_string()),
+                }
+            }
+        });
+        ui.add_space(12.0);
+        card(ui, |ui| {
             ui.label(RichText::new("卸载").strong());
             ui.label("请在 Windows 设置 → 应用 → 已安装的应用中卸载 English Assist。");
             ui.label("卸载会移除本项目英语入口和密钥；使用中的组件可能需重启后清理。");
@@ -898,9 +922,394 @@ impl SettingsApp {
             );
         });
         ui.add_space(12.0);
+        self.manual_words_ui(ui);
+    }
+
+    fn general_page(&mut self, ui: &mut egui::Ui) {
+        card(ui, |ui| {
+            ui.label(
+                RichText::new("English Assist · 让英文输入更顺手")
+                    .size(19.0)
+                    .strong(),
+            );
+            ui.label("离线补词、中文释义、拼音查英文；AI 编辑由你主动触发。");
+            ui.add_space(8.0);
+            ui.horizontal(|ui| {
+                if ui.button("Windows 语言与键盘设置").clicked() {
+                    self.open("ms-settings:regionlanguage");
+                }
+                if ui.button("查看离线词库").clicked() {
+                    self.select_page(Page::Dictionary);
+                }
+            });
+            ui.label(
+                RichText::new(
+                    "用 Win+Space 选择 English Assist 英文助手。设置自动保存，回到输入框后生效。",
+                )
+                .color(MUTED),
+            );
+        });
+        ui.add_space(14.0);
+        card(ui, |ui| {
+            ui.label(RichText::new("当前状态").strong());
+            ui.label(if self.preferences.english.0 {
+                "单词补全：开启"
+            } else {
+                "单词补全：关闭"
+            });
+            ui.label(if self.preferences.english_pinyin {
+                "拼音查英文：开启"
+            } else {
+                "拼音查英文：关闭"
+            });
+            ui.label(format!("手动词库：{} 个词条", self.manual_words.len()));
+            ui.label("自动学习：关闭。只有你手动添加或导入的词会进入个人词库。");
+        });
+        ui.add_space(14.0);
+        card(ui, |ui| {
+            ui.label(RichText::new("本地数据").strong());
+            ui.label("个人词库、界面偏好和连接配置保存在本机；API Key 存在 Windows 凭据管理器中。");
+            if ui.button("打开用户数据文件夹").clicked() {
+                match backend::local_root() {
+                    Ok(path) => self.open(&path.to_string_lossy()),
+                    Err(error) => self.error = Some(error.to_string()),
+                }
+            }
+        });
+    }
+
+    fn appearance_page(&mut self, ui: &mut egui::Ui) {
+        use retype_types::CandidateTheme;
+        let previous = self.preferences.appearance;
+        card(ui, |ui| {
+            ui.label(RichText::new("候选窗口").strong());
+            ui.horizontal(|ui| {
+                ui.label("主题");
+                egui::ComboBox::from_id_salt("candidate-theme")
+                    .selected_text(match self.preferences.appearance.theme {
+                        CandidateTheme::System => "跟随系统",
+                        CandidateTheme::Light => "浅色",
+                        CandidateTheme::Dark => "深色",
+                    })
+                    .show_ui(ui, |ui| {
+                        for (value, label) in [
+                            (CandidateTheme::System, "跟随系统"),
+                            (CandidateTheme::Light, "浅色"),
+                            (CandidateTheme::Dark, "深色"),
+                        ] {
+                            ui.selectable_value(
+                                &mut self.preferences.appearance.theme,
+                                value,
+                                label,
+                            );
+                        }
+                    });
+            });
+            ui.add(
+                egui::Slider::new(&mut self.preferences.appearance.font_size, 14..=22).text("字号"),
+            );
+            ui.add(
+                egui::Slider::new(&mut self.preferences.appearance.width, 320..=460)
+                    .text("宽度")
+                    .suffix(" px"),
+            );
+            switch_row(ui, &mut self.preferences.appearance.compact, "紧凑行距");
+        });
+        ui.add_space(14.0);
+        card(ui, |ui| {
+            ui.label(RichText::new("候选内容").strong());
+            switch_row(
+                ui,
+                &mut self.preferences.appearance.show_meanings,
+                "显示中文释义",
+            );
+            switch_row(
+                ui,
+                &mut self.preferences.appearance.show_part_of_speech,
+                "显示词性",
+            );
+            switch_row(
+                ui,
+                &mut self.preferences.appearance.show_phonetics,
+                "显示音标",
+            );
+            switch_row(
+                ui,
+                &mut self.preferences.appearance.show_key_hints,
+                "显示选词与翻页提示",
+            );
+            ui.label(
+                RichText::new("每页 5 个候选，支持 1–5 选词和 − / + 翻页。")
+                    .size(12.0)
+                    .color(MUTED),
+            );
+        });
+        ui.add_space(14.0);
+        let view = self.preferences.appearance;
+        let dark = view.theme == CandidateTheme::Dark
+            || view.theme == CandidateTheme::System && backend::system_dark();
+        let ink = if dark {
+            Color32::from_rgb(234, 239, 245)
+        } else {
+            INK
+        };
+        let bg = if dark {
+            Color32::from_rgb(30, 38, 49)
+        } else {
+            Color32::WHITE
+        };
+        ui.label(RichText::new("即时预览").strong());
+        egui::Frame::new()
+            .fill(bg)
+            .corner_radius(12)
+            .inner_margin(if view.compact { 10 } else { 16 })
+            .show(ui, |ui| {
+                ui.set_max_width((view.width as f32 - 32.0).min(ui.available_width()));
+                ui.label(
+                    RichText::new("1   environment")
+                        .size(view.font_size as f32)
+                        .color(ink)
+                        .strong(),
+                );
+                let mut description = String::new();
+                if view.show_part_of_speech {
+                    description.push_str("n.  ");
+                }
+                if view.show_meanings {
+                    description.push_str("环境；周围状况");
+                }
+                if !description.is_empty() {
+                    ui.label(RichText::new(description).color(ink));
+                }
+                if view.show_phonetics {
+                    ui.label(RichText::new("/ɪnˈvaɪrənmənt/").color(ink));
+                }
+                if view.show_key_hints {
+                    ui.label(
+                        RichText::new("1–5 选词   − / + 翻页   Esc 保留原词")
+                            .size(12.0)
+                            .color(ink),
+                    );
+                }
+            });
+        if ui.button("恢复外观默认值").clicked() {
+            self.preferences.appearance = Default::default();
+        }
+        if self.preferences.appearance != previous {
+            if let Err(error) = backend::save_appearance(self.preferences.appearance) {
+                self.preferences.appearance = previous;
+                self.error = Some(format!("保存外观失败：{error}"));
+            }
+        }
+    }
+
+    fn persist_manual_words(&mut self, mut words: Vec<backend::ManualWord>) -> bool {
+        words.sort_by_key(|entry| entry.word.to_ascii_lowercase());
+        match backend::save_manual_words(&words) {
+            Ok(()) => {
+                self.manual_words = words;
+                self.word_input.clear();
+                self.word_comment.clear();
+                self.editing_word = None;
+                self.confirm_clear_words = false;
+                self.word_status = "已保存，返回输入框后使用新词库。".into();
+                self.error = None;
+                true
+            }
+            Err(error) => {
+                self.manual_words_error(format!("保存个人词库失败：{error}"));
+                false
+            }
+        }
+    }
+
+    fn manual_words_error(&mut self, error: String) {
+        self.word_status.clear();
+        self.error = Some(error);
+    }
+
+    fn manual_words_ui(&mut self, ui: &mut egui::Ui) {
         card(ui, |ui| {
             ui.label(RichText::new("个人词库").strong());
-            ui.label("此开发版先验证基础英文输入；手动词条管理将在后续版本加入。");
+            ui.label("手动保存专业术语、姓名或常用词。这里的内容只在本机补全；不会自动学习你键入的文字。");
+            ui.add(
+                egui::TextEdit::singleline(&mut self.word_input)
+                    .hint_text("英文单词，例如 Codex")
+                    .desired_width(f32::INFINITY),
+            );
+            ui.add(
+                egui::TextEdit::singleline(&mut self.word_comment)
+                    .hint_text("词性和中文释义 / 备注（可选）")
+                    .desired_width(f32::INFINITY),
+            );
+            ui.horizontal(|ui| {
+                if ui
+                    .button(if self.editing_word.is_some() {
+                        "保存修改"
+                    } else {
+                        "添加词条"
+                    })
+                    .clicked()
+                {
+                    let entry = backend::ManualWord {
+                        word: self.word_input.trim().into(),
+                        comment: self.word_comment.trim().into(),
+                    };
+                    let mut words = self.manual_words.clone();
+                    if let Some(index) = self.editing_word.filter(|&i| i < words.len()) {
+                        words[index] = entry;
+                    } else {
+                        words.push(entry);
+                    }
+                    self.persist_manual_words(words);
+                }
+                if self.editing_word.is_some() && ui.button("取消编辑").clicked() {
+                    self.editing_word = None;
+                    self.word_input.clear();
+                    self.word_comment.clear();
+                }
+            });
+            ui.label(
+                RichText::new("单词最多 64 个英文字母，可包含内部撇号；释义最多 256 个字符。")
+                    .size(12.0)
+                    .color(MUTED),
+            );
+        });
+        ui.add_space(14.0);
+        card(ui, |ui| {
+            ui.horizontal(|ui| {
+                if ui.button("导入词库").clicked() {
+                    match backend::choose_manual_words_file(false) {
+                        Ok(Some(path)) => match backend::import_manual_words(&path) {
+                            Ok(imported) => {
+                                let count = imported.len();
+                                let mut words = self.manual_words.clone();
+                                for entry in imported {
+                                    if let Some(old) = words
+                                        .iter_mut()
+                                        .find(|old| old.word.eq_ignore_ascii_case(&entry.word))
+                                    {
+                                        *old = entry;
+                                    } else {
+                                        words.push(entry);
+                                    }
+                                }
+                                if self.persist_manual_words(words) {
+                                    self.word_status = format!("已导入并合并 {count} 个词条。");
+                                }
+                            }
+                            Err(error) => self.manual_words_error(format!("导入失败：{error}")),
+                        },
+                        Ok(None) => {}
+                        Err(error) => self.manual_words_error(error.to_string()),
+                    }
+                }
+                if ui.button("导出词库").clicked() {
+                    match backend::choose_manual_words_file(true) {
+                        Ok(Some(path)) => {
+                            match backend::export_manual_words(&path, &self.manual_words) {
+                                Ok(()) => self.word_status = "词库已导出为 JSON 文件。".into(),
+                                Err(error) => self.manual_words_error(format!("导出失败：{error}")),
+                            }
+                        }
+                        Ok(None) => {}
+                        Err(error) => self.manual_words_error(error.to_string()),
+                    }
+                }
+                if ui.button("清空词库").clicked() {
+                    self.confirm_clear_words = true;
+                }
+            });
+            ui.label(
+                RichText::new(
+                    "支持 JSON，或 UTF-8 TXT/TSV：每行“单词<Tab>释义”。同名单词以导入内容更新。",
+                )
+                .size(12.0)
+                .color(MUTED),
+            );
+            if self.confirm_clear_words {
+                ui.colored_label(DANGER, "清空会移除全部手动词条，原文件会保留为备份。");
+                ui.horizontal(|ui| {
+                    if ui.button("确认清空").clicked() {
+                        self.persist_manual_words(Vec::new());
+                    }
+                    if ui.button("取消").clicked() {
+                        self.confirm_clear_words = false;
+                    }
+                });
+            }
+        });
+        ui.add_space(14.0);
+        ui.add(
+            egui::TextEdit::singleline(&mut self.word_filter)
+                .hint_text("搜索单词或释义")
+                .desired_width(f32::INFINITY),
+        );
+        let query = self.word_filter.to_lowercase();
+        let rows: Vec<_> = self
+            .manual_words
+            .iter()
+            .enumerate()
+            .filter(|(_, entry)| {
+                entry.word.to_lowercase().contains(&query)
+                    || entry.comment.to_lowercase().contains(&query)
+            })
+            .map(|(index, _)| index)
+            .collect();
+        ui.label(format!("{} 个词条", rows.len()));
+        let mut edit = None;
+        let mut remove = None;
+        egui::ScrollArea::vertical()
+            .id_salt("manual-words-list")
+            .max_height(260.0)
+            .show_rows(ui, 38.0, rows.len(), |ui, range| {
+                for row in range {
+                    let index = rows[row];
+                    let entry = &self.manual_words[index];
+                    ui.horizontal(|ui| {
+                        ui.add_sized(
+                            [120.0, 30.0],
+                            egui::Label::new(RichText::new(&entry.word).strong()).truncate(),
+                        );
+                        let shown: String = entry.comment.chars().take(28).collect();
+                        ui.add_sized(
+                            [(ui.available_width() - 110.0).max(60.0), 30.0],
+                            egui::Label::new(shown).truncate(),
+                        )
+                        .on_hover_text(&entry.comment);
+                        if ui.button("编辑").clicked() {
+                            edit = Some(index);
+                        }
+                        if ui.button("删除").clicked() {
+                            remove = Some(index);
+                        }
+                    });
+                }
+            });
+        if let Some(index) = edit {
+            self.word_input = self.manual_words[index].word.clone();
+            self.word_comment = self.manual_words[index].comment.clone();
+            self.editing_word = Some(index);
+        }
+        if let Some(index) = remove {
+            let mut words = self.manual_words.clone();
+            words.remove(index);
+            self.persist_manual_words(words);
+        }
+        if !self.word_status.is_empty() {
+            ui.colored_label(ONLINE, &self.word_status);
+        }
+        ui.add_space(12.0);
+        card(ui, |ui| {
+            ui.label(RichText::new("本地文件与备份").strong());
+            ui.label("词库保存在 EnglishAssist/words/manual.json；每次保存前保留上一个版本 manual.json.bak。导出可保存独立备份。");
+            ui.label("个人词条保存在本机，供各应用中的输入法读取；保存前保留上一个版本备份。");
+            if ui.button("打开本地数据目录").clicked() {
+                match backend::local_root() {
+                    Ok(path) => self.open(&path.to_string_lossy()),
+                    Err(error) => self.error = Some(error.to_string()),
+                }
+            }
         });
     }
     fn new(
@@ -967,7 +1376,10 @@ impl SettingsApp {
         );
         let preferences = backend::preferences()?;
         crate::settings_log::event("app", "preferences_ready", options.request_id, "loaded");
-        let error = None;
+        let (manual_words, error) = match backend::load_manual_words() {
+            Ok(words) => (words, None),
+            Err(error) => (Vec::new(), Some(format!("读取个人词库失败：{error}"))),
+        };
         let page = options.page;
         let (tasks, events, busy) = backend::worker(cc.egui_ctx.clone());
         let _ = tasks.send(Task::BaseStatus);
@@ -993,9 +1405,6 @@ impl SettingsApp {
             options.request_id,
             "initialized; no values recorded",
         );
-        if page == Page::Dictionary {
-            let _ = tasks.send(Task::Packs);
-        }
         if page == Page::Statistics {
             let _ = tasks.send(Task::Statistics);
         }
@@ -1045,6 +1454,13 @@ impl SettingsApp {
                 .egui_ctx
                 .load_texture("retype-logo", image, egui::TextureOptions::LINEAR),
             screenshot_requested: false,
+            manual_words,
+            word_input: String::new(),
+            word_comment: String::new(),
+            word_filter: String::new(),
+            editing_word: None,
+            word_status: String::new(),
+            confirm_clear_words: false,
             options,
         })
     }
@@ -1075,6 +1491,21 @@ impl SettingsApp {
                 }
             }
             ui.separator();
+            if switch_row(ui, &mut self.preferences.english_pinyin, "拼音查英文") {
+                if let Err(error) = backend::set(
+                    "EnglishPinyinDisabled",
+                    u32::from(!self.preferences.english_pinyin),
+                ) {
+                    self.preferences.english_pinyin = !self.preferences.english_pinyin;
+                    self.error = Some(format!("保存设置失败：{error}"));
+                }
+            }
+            ui.label(
+                RichText::new("例如输入 nihao、pingguo 查找对应英文；不影响已知英文词的正常补全。")
+                    .size(12.0)
+                    .color(MUTED),
+            );
+            ui.separator();
             ui.add_enabled_ui(self.preferences.english.0, |ui| {
                 if switch_row(ui, &mut self.preferences.english.1, "英文拼写建议") {
                     if let Err(error) = backend::set(
@@ -1102,14 +1533,13 @@ impl SettingsApp {
         ui.add_space(14.0);
         card(ui, |ui| {
             ui.label(RichText::new("键盘操作").strong());
-            ui.label("Tab 接受候选，不自动加空格；↑↓ 选择其他候选。");
+            ui.label("输入英文可看中文释义和词性；输入拼音可查找对应英文。");
+            ui.label("每页 5 个候选，1–5 直接选词；Tab 接受首选，不自动加空格。");
+            ui.label("− / + 翻页（也支持 =、_ 和 PageUp / PageDown）；↑↓ 选择候选。");
             ui.label("空格默认保留原词；明确选择后才接受候选。");
             ui.label("明确选词后，Enter 只接受候选；再次 Enter 才换行或发送。");
-            ui.label("Esc 保留原词；数字始终按原样输入，例如 python3。");
+            ui.label("Esc 保留原词；没有候选时，数字和翻页符号按原样输入。");
         });
-        if let Some(error) = &self.error {
-            ui.colored_label(Color32::DARK_RED, error);
-        }
     }
 }
 
@@ -1154,7 +1584,9 @@ fn navigation(ui: &mut egui::Ui, page: Page, title: &str, selected: bool, height
     let color = if selected { ACCENT } else { INK };
     let origin = rect.left_center() + Vec2::new(26.0, 0.0);
     let name = match page {
+        Page::General => "sliders-horizontal",
         Page::Input => "keyboard",
+        Page::Appearance => "sun",
         Page::Dictionary => "book-open",
         Page::Statistics => "chart-no-axes-column",
         Page::Providers => "cpu",
@@ -1444,7 +1876,7 @@ impl eframe::App for SettingsApp {
     fn ui(&mut self, root: &mut egui::Ui, _frame: &mut eframe::Frame) {
         let ctx = root.ctx().clone();
         egui::Panel::left("sidebar")
-            .exact_size(200.0)
+            .exact_size(220.0)
             .resizable(false)
             .frame(
                 egui::Frame::new()
@@ -1461,9 +1893,7 @@ impl eframe::App for SettingsApp {
                     ctx.send_viewport_cmd(egui::ViewportCommand::StartDrag);
                 }
                 ui.add_space(20.0);
-                // Fit all ten destinations at normal/minimum window heights. Very
-                // short displays retain wheel scrolling as a fallback.
-                let row_height = ((ui.available_height() - 9.0 * 4.0) / 10.0).clamp(30.0, 40.0);
+                let row_height = ((ui.available_height() - 6.0 * 4.0) / 7.0).clamp(34.0, 44.0);
                 egui::ScrollArea::vertical()
                     .id_salt("sidebar-pages")
                     .scroll_bar_visibility(egui::scroll_area::ScrollBarVisibility::AlwaysHidden)
@@ -1471,11 +1901,12 @@ impl eframe::App for SettingsApp {
                     .show(ui, |ui| {
                         ui.spacing_mut().item_spacing.y = 4.0;
                         for (page, title) in [
-                            (Page::Input, "输入"),
-                            (Page::Dictionary, "词库"),
-                            (Page::Providers, "AI 提供商"),
-                            (Page::Translation, "AI 纠错与补句"),
+                            (Page::General, "常规"),
+                            (Page::Input, "输入与查词"),
+                            (Page::Appearance, "候选外观"),
                             (Page::Shortcuts, "快捷键"),
+                            (Page::Dictionary, "个人词库与数据"),
+                            (Page::Providers, "AI 服务与编辑"),
                             (Page::About, "关于"),
                         ] {
                             if navigation(ui, page, title, self.page == page, row_height) {
@@ -1487,12 +1918,15 @@ impl eframe::App for SettingsApp {
         egui::CentralPanel::default()
             .frame(egui::Frame::new().fill(BACKGROUND).inner_margin(40))
             .show(root, |ui| {
+                let previous_error = self.error.clone();
                 heading(
                     ui,
                     match self.page {
-                        Page::Input => "输入",
-                        Page::Dictionary => "词库",
-                        Page::Providers => "AI 提供商",
+                        Page::General => "常规",
+                        Page::Input => "输入与查词",
+                        Page::Appearance => "候选外观",
+                        Page::Dictionary => "个人词库与数据",
+                        Page::Providers => "AI 服务与编辑",
                         Page::Translation => "AI 纠错与补句",
                         Page::Voice => "语音输入",
                         Page::Shortcuts => "快捷键",
@@ -1502,6 +1936,10 @@ impl eframe::App for SettingsApp {
                         Page::About => "关于",
                     },
                 );
+                if let Some(error) = &self.error {
+                    ui.colored_label(Color32::DARK_RED, error);
+                    ui.add_space(8.0);
+                }
                 ui.scope(|ui| {
                     let content_style = Arc::clone(ui.style());
                     let style = ui.style_mut();
@@ -1538,7 +1976,9 @@ impl eframe::App for SettingsApp {
                     style.visuals.widgets.active.fg_stroke.color = Color32::from_rgb(159, 183, 197);
                     egui::ScrollArea::vertical()
                         .id_salt(match self.page {
+                            Page::General => "general-content",
                             Page::Input => "input-content",
+                            Page::Appearance => "appearance-content",
                             Page::Dictionary => "dictionary-content",
                             Page::Providers => "providers-content",
                             Page::Translation => "translation-content",
@@ -1556,9 +1996,17 @@ impl eframe::App for SettingsApp {
                             // Scrollbar colors must not change page text or controls.
                             ui.set_style(content_style);
                             match self.page {
+                                Page::General => self.general_page(ui),
                                 Page::Input => self.input_page(ui),
+                                Page::Appearance => self.appearance_page(ui),
                                 Page::Dictionary => self.english_dictionary_page(ui),
-                                Page::Providers => self.ai.providers(ui),
+                                Page::Providers => {
+                                    self.ai.providers(ui);
+                                    ui.add_space(16.0);
+                                    egui::CollapsingHeader::new("语法修正与句子补全")
+                                        .default_open(true)
+                                        .show(ui, |ui| self.ai.translation(ui));
+                                }
                                 Page::Translation => {
                                     self.ai.translation(ui);
                                     if self.ai.config.selected().is_err()
@@ -1568,7 +2016,17 @@ impl eframe::App for SettingsApp {
                                     }
                                 }
                                 Page::Voice => self.ai.voice_page(ui),
-                                Page::Shortcuts => self.ai.shortcuts_page(ui),
+                                Page::Shortcuts => {
+                                    card(ui, |ui| {
+                                        ui.label(RichText::new("候选键盘操作").strong());
+                                        ui.label("1–5 选择当前页；Tab 接受首选或已选择项。");
+                                        ui.label("− / _ 上一页；= / + 下一页；也支持 PageUp / PageDown。");
+                                        ui.label("↑↓ 移动选择；明确选词后 Enter 只确认；Esc 保留原词。");
+                                        ui.label(RichText::new("这些是固定候选操作，AI 触发键可在下方设置。").size(12.0).color(MUTED));
+                                    });
+                                    ui.add_space(14.0);
+                                    self.ai.shortcuts_page(ui);
+                                }
                                 Page::Statistics => self.statistics_page(ui),
                                 Page::Cloud => {
                                     if let Some(cloud) = &mut self.cloud {
@@ -1582,10 +2040,10 @@ impl eframe::App for SettingsApp {
                             }
                         });
                 });
-                if self.page != Page::Input {
-                    if let Some(error) = &self.error {
-                        ui.colored_label(Color32::DARK_RED, error);
-                    }
+                if self.error != previous_error {
+                    // Actions inside the scroll area can fail during this frame.
+                    // Reserve banner space before laying out the next frame.
+                    ctx.request_repaint();
                 }
             });
         // Foreground areas keep controls visible above every scrollable page.

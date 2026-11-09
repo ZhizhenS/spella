@@ -53,6 +53,7 @@ pub fn chinese_punctuation(c: char) -> Option<&'static str> {
 pub struct KernelConfig {
     pub english_enabled: bool,
     pub english_spelling: bool,
+    pub english_pinyin: bool,
     pub pinyin_scheme: retype_types::PinyinScheme,
     pub decode: DecodeOptions,
     /// 是否启用二刷（断网/未配置云端时应关掉，省掉无谓的等待与打点）
@@ -69,6 +70,7 @@ impl Default for KernelConfig {
         Self {
             english_enabled: true,
             english_spelling: true,
+            english_pinyin: true,
             pinyin_scheme: retype_types::PinyinScheme::Full,
             decode: DecodeOptions::default(),
             rerank_enabled: true,
@@ -269,7 +271,7 @@ impl Kernel {
                 syllables: Vec::new(),
                 candidates,
                 selected: 0,
-                page_size: self.cfg.decode.page_size,
+                page_size: self.page_capacity(),
                 page_start: 0,
                 page_starts: Vec::new(),
                 status: self.status,
@@ -296,6 +298,14 @@ impl Kernel {
         let mut actions: Vec<KernelAction> = Vec::with_capacity(4);
         match ev {
             InputEvent::SetEnglishPrediction(enabled) => self.english_prediction = enabled,
+            InputEvent::SetEnglishPinyin(enabled) => {
+                if self.cfg.english_pinyin != enabled {
+                    self.cfg.english_pinyin = enabled;
+                    if !self.is_chinese() && self.has_composition() {
+                        self.refresh_english(&mut actions);
+                    }
+                }
+            }
             InputEvent::ResetComposition => self.cancel_composition(&mut actions),
             InputEvent::SetEnglishOptions { enabled, spelling } => {
                 if !self.is_chinese() && self.has_composition() {
@@ -870,13 +880,18 @@ impl Kernel {
             return;
         }
         self.page_starts.clear();
+        if !self.is_chinese() {
+            // English uses a vertical five-row panel. Row widths must never be
+            // added horizontally, or each wide row would become its own page.
+            self.page_starts
+                .extend((0..self.candidates.len()).step_by(self.page_capacity()));
+            self.set_selected(self.selected);
+            return;
+        }
         let mut used = 0;
         let mut count = 0;
         for (index, &width) in widths.iter().enumerate() {
-            if count == 0
-                || count >= self.cfg.decode.page_size.max(1)
-                || used + gap + width > available
-            {
+            if count == 0 || count >= self.page_capacity() || used + gap + width > available {
                 self.page_starts.push(index);
                 used = width;
                 count = 1;
@@ -888,9 +903,18 @@ impl Kernel {
         self.set_selected(self.selected);
     }
 
+    fn page_capacity(&self) -> usize {
+        let configured = self.cfg.decode.page_size.max(1);
+        if self.is_chinese() {
+            configured
+        } else {
+            5
+        }
+    }
+
     fn current_page_size(&self) -> usize {
         if self.page_starts.is_empty() {
-            return self.cfg.decode.page_size.max(1);
+            return self.page_capacity();
         }
         self.page_starts
             .iter()
@@ -918,7 +942,7 @@ impl Kernel {
                 .unwrap_or(&0);
             return;
         }
-        let size = self.cfg.decode.page_size.max(1);
+        let size = self.page_capacity();
         if self.selected < self.page_start {
             self.page_start = self.selected;
         } else if self.selected >= self.page_start + size {
@@ -954,7 +978,7 @@ impl Kernel {
             actions.push(KernelAction::Render(self.render_state()));
             return;
         }
-        let size = self.cfg.decode.page_size.max(1) as i32;
+        let size = self.page_capacity() as i32;
         let pages = ((self.candidates.len() as i32) + size - 1) / size;
         let cur = (self.page_start as i32) / size;
         let next = (cur + delta).clamp(0, (pages - 1).max(0)) as usize;

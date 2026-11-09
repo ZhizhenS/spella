@@ -247,24 +247,14 @@ impl Edit_Impl {
                         .backend
                         .with_kernel(|k| (!k.is_chinese() && !cancel).then(|| k.composition_text()))
                 });
-                let allow_learning = english.is_some() && learnable(&self.context, ec);
                 end(state, ec, cancel)?;
                 state.reset_kernel();
                 if let Some(text) = english {
                     if countable(&self.context) {
                         stats::commit(&state.stats_clock, &text, true);
                     }
-                    if allow_learning
-                        && text.len() >= 2
-                        && text.len() <= 64
-                        && text.bytes().all(|c| c.is_ascii_alphabetic() || c == b'\'')
-                    {
-                        if let Some(session) = state.session() {
-                            session
-                                .backend
-                                .record_learning(retype_types::LearningEvent::EnglishWord { text });
-                        }
-                    }
+                    // Finishing on blur/navigation is still an English commit.
+                    // Like explicit acceptance, it must not learn typed words.
                 }
                 lock(&state.stats_clock).reset();
             }
@@ -300,6 +290,14 @@ impl Edit_Impl {
                 replace(state, &self.context, ec, &text, false)?;
             }
             return Ok(());
+        }
+        if matches!(self.work, Work::Translate)
+            && session.backend.with_kernel(|k| k.has_composition())
+        {
+            // Selected-text assistance must not capture a snapshot in the same
+            // write transaction that commits a word. Its end-edit notification
+            // would invalidate that snapshot after a network request had started.
+            return crate::translation::selection_required(state, &self.context, ec);
         }
         if matches!(self.work, Work::Translate | Work::Voice(_))
             && !session.backend.with_kernel(|k| k.has_composition())

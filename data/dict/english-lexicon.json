@@ -1,0 +1,29 @@
+{
+  "bytes": 9504865,
+  "counts": {
+    "mappings": 75463,
+    "pinyin": 33724,
+    "words": 83369
+  },
+  "file": "english-lexicon-v1.bin",
+  "format": "RTENLX01",
+  "schema": 1,
+  "sha256": "05ac7881ad2ea58001045584a46a8b67d0da728cce5beea551e3ad4df49f9458",
+  "sources": {
+    "cedict": {
+      "content_sha256": "27699e200e87b10950711a979382c041d01136a3bcef4bf4c1c0f86bbf3cdcf4",
+      "file": "cedict.txt.gz",
+      "sha256": "8c6c011dcc0202e87b813e5416904e684fdb7223c0fba47e8e3d5de7c6bd0335"
+    },
+    "ecdict": {
+      "content_sha256": "1a6947e04785db63613a92e14903cdae7954f7e84860b10e68e5c7cbb3f9c3cf",
+      "file": "ecdict.csv.gz",
+      "sha256": "daa72349712f85c4a287196935c89d0ffaf17e798ce2e72825c10fc71e7a6df7"
+    },
+    "frequency": {
+      "content_sha256": "34d7e924fed49a52cf7b6765ebba989c2ec66cda9f76a052158d1b017a0da8b8",
+      "file": "frequency.txt",
+      "sha256": "34d7e924fed49a52cf7b6765ebba989c2ec66cda9f76a052158d1b017a0da8b8"
+    }
+  }
+}

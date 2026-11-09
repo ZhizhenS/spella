@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "sources": {
+    "ecdict": {
+      "file": "ecdict.csv.gz",
+      "bytes": 22483297,
+      "sha256": "daa72349712f85c4a287196935c89d0ffaf17e798ce2e72825c10fc71e7a6df7",
+      "uncompressedBytes": 65933428,
+      "uncompressedSha256": "1a6947e04785db63613a92e14903cdae7954f7e84860b10e68e5c7cbb3f9c3cf",
+      "gitBlob": "c4ade63ea08cf39d9c3475e96929036d64d94c94",
+      "repository": "https://github.com/skywind3000/ECDICT",
+      "commit": "bc015ed2e24a7abef49fc6dbbb7fe32c1dadaf8b",
+      "path": "ecdict.csv",
+      "url": "https://raw.githubusercontent.com/skywind3000/ECDICT/bc015ed2e24a7abef49fc6dbbb7fe32c1dadaf8b/ecdict.csv",
+      "license": "MIT"
+    },
+    "cedict": {
+      "file": "cedict.txt.gz",
+      "bytes": 3531873,
+      "sha256": "8c6c011dcc0202e87b813e5416904e684fdb7223c0fba47e8e3d5de7c6bd0335",
+      "uncompressedBytes": 8912902,
+      "uncompressedSha256": "27699e200e87b10950711a979382c041d01136a3bcef4bf4c1c0f86bbf3cdcf4",
+      "gitBlob": "00e8f1ce218851880caba934b54d5efb295923ac",
+      "repository": "https://github.com/dongyuwei/hallelujahIM",
+      "commit": "8be294f70a4dc7b24a93f07c41df6c34add07a07",
+      "path": "dictionary/cedict_1_0_ts_utf-8_mdbg.txt",
+      "url": "https://raw.githubusercontent.com/dongyuwei/hallelujahIM/8be294f70a4dc7b24a93f07c41df6c34add07a07/dictionary/cedict_1_0_ts_utf-8_mdbg.txt",
+      "license": "CC-BY-SA-3.0"
+    }
+  },
+  "licenses": {
+    "LICENSE-ECDICT": {
+      "bytes": 1063,
+      "sha256": "f8552dd246f61a4e064569eae6194a01c6b3d63b03bf27c6ca863593c549ed0f",
+      "url": "https://raw.githubusercontent.com/skywind3000/ECDICT/bc015ed2e24a7abef49fc6dbbb7fe32c1dadaf8b/LICENSE"
+    },
+    "LICENSE-CC-CEDICT": {
+      "bytes": 22240,
+      "sha256": "3f941b3b89cf7b8370ceb83cc76d2120d471b58735d8ca60238a751a48d7f72f",
+      "url": "https://creativecommons.org/licenses/by-sa/3.0/legalcode.txt"
+    }
+  },
+  "cedictSnapshot": {
+    "date": "2017-11-17T23:06:02Z",
+    "entries": 115687,
+    "publisher": "MDBG",
+    "originalAuthor": "Paul Andrew Denisowski (1997, 1998) and CC-CEDICT contributors",
+    "license": "CC-BY-SA-3.0"
+  }
+}

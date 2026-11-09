@@ -146,11 +146,10 @@ impl KernelBackend for InlineBackend {
             for a in acts {
                 match a {
                     KernelAction::Side(SideEffect::EnglishSuggest { gen, input }) => {
+                        let vocabulary = { lock_or_recover(&self.kernel).english_dictionary() };
                         pending.push_back(InputEvent::EnglishCompleted {
                             gen,
-                            candidates: lock_or_recover(&self.kernel)
-                                .english_dictionary()
-                                .correct(&input, 8),
+                            candidates: vocabulary.correct(&input, 8),
                         });
                     }
                     KernelAction::Side(SideEffect::Rerank(job)) => {
@@ -221,6 +220,7 @@ pub struct LocalBackend {
     jobs: Sender<RerankJob>,
     english_jobs: Sender<(u64, String)>,
     english_pending: Receiver<(u64, String)>,
+    english_dispatch: Mutex<()>,
     learns: Sender<LearningEvent>,
     me: OnceLock<Weak<Self>>,
 }
@@ -256,6 +256,7 @@ impl LocalBackend {
             jobs: jobs_tx,
             english_jobs,
             english_pending: english_rx.clone(),
+            english_dispatch: Mutex::new(()),
             learns: learn_tx,
             me: OnceLock::new(),
         });
@@ -381,6 +382,26 @@ impl KernelBackend for LocalBackend {
     }
 }
 
+fn queue_latest_english(
+    kernel: &Mutex<Kernel>,
+    dispatch: &Mutex<()>,
+    sender: &Sender<(u64, String)>,
+    pending: &Receiver<(u64, String)>,
+    gen: u64,
+    input: String,
+) {
+    // submit releases its kernel guard before reaching here. The only nested
+    // order is dispatch -> kernel; workers never acquire dispatch. Serializing
+    // this check with queue replacement prevents an older caller from removing
+    // a newer job after concurrent submit calls leave the kernel lock.
+    let _dispatch = lock_or_recover(dispatch);
+    if lock_or_recover(kernel).generation() != gen {
+        return;
+    }
+    let _ = pending.try_recv();
+    let _ = sender.try_send((gen, input));
+}
+
 impl LocalBackend {
     /// The platform can suppress learning for password, hidden or unknown input contexts.
     pub fn submit_with_learning(&self, ev: InputEvent, allow_learning: bool) -> Vec<KernelAction> {
@@ -410,8 +431,14 @@ impl LocalBackend {
                 KernelAction::Side(SideEffect::EnglishSuggest { gen, input }) => {
                     // Keep only the latest queued word; generation validation also
                     // drops a result if typing advanced during the calculation.
-                    let _ = self.english_pending.try_recv();
-                    let _ = self.english_jobs.try_send((gen, input));
+                    queue_latest_english(
+                        &self.kernel,
+                        &self.english_dispatch,
+                        &self.english_jobs,
+                        &self.english_pending,
+                        gen,
+                        input,
+                    );
                 }
                 KernelAction::Side(SideEffect::Rerank(job)) => {
                     // 投递失败（worker 已退出）就静默放弃二刷，首刷结果照常可用
@@ -439,6 +466,61 @@ mod english_async_tests {
     use super::*;
     use crate::{offline_cloud, KernelConfig};
     use retype_types::{InputSource, Key, Modifiers};
+
+    #[test]
+    fn older_submit_cannot_replace_a_newer_queued_spelling_job() {
+        use std::sync::Barrier;
+        let cloud = offline_cloud(Duration::from_millis(10));
+        let user = Arc::new(retype_dict::UserDict::new());
+        let kernel = Mutex::new(Kernel::new(
+            KernelConfig {
+                chinese_on_start: false,
+                ..Default::default()
+            },
+            Arc::new(retype_dict::single_char_fallback()),
+            Arc::new(retype_dict::Learner::new(user)),
+            cloud,
+        ));
+        let key = |c| InputEvent::Key {
+            key: Key::Char(c),
+            mods: Modifiers::NONE,
+            source: InputSource::Keyboard,
+        };
+        let older_gen = {
+            let mut k = lock_or_recover(&kernel);
+            k.handle(key('h'));
+            k.generation()
+        };
+        let dispatch = Mutex::new(());
+        let (sender, pending) = crossbeam_channel::bounded(1);
+        let older_ready = Barrier::new(2);
+        let resume_older = Barrier::new(2);
+        std::thread::scope(|scope| {
+            let older = scope.spawn(|| {
+                older_ready.wait();
+                resume_older.wait();
+                queue_latest_english(&kernel, &dispatch, &sender, &pending, older_gen, "h".into());
+            });
+            older_ready.wait();
+            let newer_gen = {
+                let mut k = lock_or_recover(&kernel);
+                k.handle(key('e'));
+                k.generation()
+            };
+            queue_latest_english(
+                &kernel,
+                &dispatch,
+                &sender,
+                &pending,
+                newer_gen,
+                "he".into(),
+            );
+            resume_older.wait();
+            older.join().unwrap();
+            assert_eq!(pending.try_recv().unwrap(), (newer_gen, "he".into()));
+            assert!(pending.try_recv().is_err());
+        });
+    }
 
     #[test]
     fn queued_spelling_render_cannot_restore_an_old_word() {

@@ -1,22 +1,20 @@
-; English Assist development installer; requires separately built x64/x86 payloads.
+﻿; English Assist development installer; requires separately built x64/x86 payloads.
 ; This fork never installs upstream update/sync tasks or changes the default keyboard.
 #ifndef RepoRoot
   #error RepoRoot must be the absolute repository directory
 #endif
 #ifndef MyAppVersion
-  #define MyAppVersion "0.1.0"
+  #error MyAppVersion must come from the verified frozen payload
 #endif
-#ifndef BaseDir
-  #define BaseDir "target\release"
-#endif
-#ifndef X86Dir
-  #define X86Dir "target\i686-pc-windows-msvc\release"
+#ifndef PayloadRoot
+  #error PayloadRoot must be an absolute verified production freeze; use repack-english-assist.ps1
 #endif
 #ifndef OutDir
   #define OutDir "dist"
 #endif
 #define MyAppName "English Assist 英文助手"
 #define ProductKey "Software\EnglishAssist"
+#define ProductId "{F981F16C-7472-4F3F-99C5-7C0E47956624}"
 #define TipCLSID "{9257DCE8-EC1B-4D4A-8EA0-8795A9FD881D}"
 
 [Setup]
@@ -35,13 +33,13 @@ DisableDirPage=yes
 PrivilegesRequired=admin
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
-SourceDir={#RepoRoot}
+SourceDir={#PayloadRoot}
 OutputDir={#RepoRoot}\{#OutDir}
 OutputBaseFilename=english-assist-{#MyAppVersion}-windows-x64-setup
 UninstallDisplayName={#MyAppName}
 UninstallDisplayIcon={code:GetPayloadDir}\retype.ico
-SetupIconFile={#RepoRoot}\assets\retype.ico
-LicenseFile={#RepoRoot}\LICENSE
+SetupIconFile={#PayloadRoot}\retype.ico
+LicenseFile={#PayloadRoot}\LICENSE
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
@@ -50,23 +48,41 @@ CloseApplications=no
 RestartApplications=no
 
 [Files]
-Source: "{#BaseDir}\retype_ime.dll"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion regserver 64bit uninsrestartdelete
-Source: "{#X86Dir}\retype_ime.dll"; DestDir: "{code:GetPayloadDir}\x86"; Flags: ignoreversion regserver 32bit uninsrestartdelete
-Source: "{#BaseDir}\retype-learning-host.exe"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
-Source: "{#BaseDir}\retype-ai-host.exe"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
-Source: "{#BaseDir}\retype-settings-egui.exe"; DestDir: "{code:GetPayloadDir}\settings"; DestName: "retype.exe"; Flags: ignoreversion
-Source: "{#BaseDir}\retype-diag.exe"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
-Source: "assets\retype.ico"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
-Source: "platforms\windows\installer\user-profile.ps1"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
-Source: "platforms\windows\installer\cleanup-english-assist.ps1"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
-Source: "dist\english-dictionaries\english-*.bin"; DestDir: "{code:GetPayloadDir}\dictionaries"; Flags: ignoreversion
+Source: "retype_ime.dll"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion regserver 64bit uninsrestartdelete
+Source: "x86\retype_ime.dll"; DestDir: "{code:GetPayloadDir}\x86"; Flags: ignoreversion regserver 32bit uninsrestartdelete
+Source: "retype-learning-host.exe"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
+Source: "retype-ai-host.exe"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
+Source: "settings\retype.exe"; DestDir: "{code:GetPayloadDir}\settings"; DestName: "retype.exe"; Flags: ignoreversion
+Source: "retype-diag.exe"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
+Source: "retype.ico"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
+Source: "user-profile.ps1"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
+Source: "cleanup-english-assist.ps1"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
+Source: "install-state.ps1"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
+Source: "manual-words-access.ps1"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
+Source: "powershell-environment.ps1"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
+Source: "dictionaries\english-e1098fbaa665d52788f6ed1fde2a00eb8145e459c41583f5e59f4678db7619bc.bin"; DestDir: "{code:GetPayloadDir}\dictionaries"; Flags: ignoreversion
+Source: "dictionaries\english-lexicon-v1.bin"; DestDir: "{code:GetPayloadDir}\dictionaries"; Flags: ignoreversion
+Source: "dictionaries\english-lexicon-v1.json"; DestDir: "{code:GetPayloadDir}\dictionaries"; Flags: ignoreversion
 Source: "LICENSE"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
-Source: "NOTICE.txt"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
-Source: "data\dict\raw\english\LICENSE-*"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
+Source: "NOTICE.txt"; DestDir: "{code:GetPayloadDir}"; DestName: "NOTICE.txt"; Flags: ignoreversion
+Source: "LICENSE-Google-Ngram"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
+Source: "LICENSE-SCOWL"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
+Source: "LICENSE-SymSpell"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
+Source: "LICENSE-ECDICT"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
+Source: "LICENSE-CC-CEDICT"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
+Source: "NOTICE-English-Lexicon.txt"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
+Source: "english-lexicon-sources.json"; DestDir: "{code:GetPayloadDir}"; DestName: "english-lexicon-sources.json"; Flags: ignoreversion
+
+Source: "build.json"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
 
 [Registry]
+; Logged first so it runs last during reverse-order uninstall.
+Root: HKLM64; Subkey: "{#ProductKey}"; Flags: uninsdeletekeyifempty
 Root: HKLM64; Subkey: "{#ProductKey}"; ValueType: string; ValueName: "ActiveDir"; ValueData: "{code:GetPayloadDir}"; Flags: uninsdeletevalue
-Root: HKLM64; Subkey: "{#ProductKey}"; ValueType: string; ValueName: "Version"; ValueData: "{#MyAppVersion}"; Flags: uninsdeletevalue uninsdeletekeyifempty
+Root: HKLM64; Subkey: "{#ProductKey}"; ValueType: string; ValueName: "Version"; ValueData: "{#MyAppVersion}"; Flags: uninsdeletevalue
+Root: HKLM64; Subkey: "{#ProductKey}"; ValueType: string; ValueName: "ProductId"; ValueData: "{{F981F16C-7472-4F3F-99C5-7C0E47956624}"; Flags: uninsdeletevalue
+Root: HKLM64; Subkey: "{#ProductKey}"; ValueType: string; ValueName: "TipClsid"; ValueData: "{{9257DCE8-EC1B-4D4A-8EA0-8795A9FD881D}"; Flags: uninsdeletevalue
+Root: HKLM64; Subkey: "{#ProductKey}"; ValueType: dword; ValueName: "FreshInstall"; ValueData: "{code:GetFreshInstall}"; Flags: uninsdeletevalue
 
 [Icons]
 Name: "{group}\英文助手设置"; Filename: "{code:GetPayloadDir}\settings\retype.exe"
@@ -77,11 +93,21 @@ Name: "{group}\卸载英文助手"; Filename: "{uninstallexe}"
 [Code]
 var
   PayloadSuffix, Previous64, Previous32, PreviousPayload: String;
+  PreviousVersion, PreviousProductId, PreviousTipClsid: String;
+  PreviousFreshInstall: Cardinal;
+  PreviousFreshExists: Boolean;
   ProfileAdded, InstallCommitted, RegistrationStarted, DeletePersonalData: Boolean;
 
 function GetPayloadDir(Param: String): String;
 begin
   Result := ExpandConstant('{app}\versions\{#MyAppVersion}-') + PayloadSuffix;
+end;
+
+function GetFreshInstall(Param: String): String;
+begin
+  Result := '0';
+  if (PreviousPayload = '') and (Previous64 = '') and (Previous32 = '') then
+    Result := '1';
 end;
 
 function InitializeSetup: Boolean;
@@ -90,31 +116,71 @@ begin
   RegQueryStringValue(HKLM64, 'Software\Classes\CLSID\{#TipCLSID}\InprocServer32', '', Previous64);
   RegQueryStringValue(HKLM32, 'Software\Classes\CLSID\{#TipCLSID}\InprocServer32', '', Previous32);
   RegQueryStringValue(HKLM64, '{#ProductKey}', 'ActiveDir', PreviousPayload);
+  RegQueryStringValue(HKLM64, '{#ProductKey}', 'Version', PreviousVersion);
+  RegQueryStringValue(HKLM64, '{#ProductKey}', 'ProductId', PreviousProductId);
+  RegQueryStringValue(HKLM64, '{#ProductKey}', 'TipClsid', PreviousTipClsid);
+  PreviousFreshExists := RegQueryDWordValue(HKLM64, '{#ProductKey}', 'FreshInstall', PreviousFreshInstall);
   Result := True;
 end;
 
 function PrepareToInstall(var NeedsRestart: Boolean): String;
-var Pending: String;
+var InstallPath, ExpectedPath, Params: String; Code: Integer;
 begin
   Result := '';
-  if RegQueryMultiStringValue(HKLM64, 'SYSTEM\CurrentControlSet\Control\Session Manager',
-    'PendingFileRenameOperations', Pending) then
-    if Pos(Lowercase(ExpandConstant('{app}\')), Lowercase(Pending)) > 0 then
-      Result := '英文助手还有文件等待重启处理。请保存工作并重启后再安装。';
+  InstallPath := RemoveBackslash(ExpandFileName(ExpandConstant('{app}')));
+  ExpectedPath := RemoveBackslash(ExpandFileName(ExpandConstant('{commonpf64}\EnglishAssist')));
+  if CompareText(InstallPath, ExpectedPath) <> 0 then begin
+    Result := '英文助手必须安装到独立目录：' + ExpectedPath + '。请移除 /DIR 覆盖参数后重试。';
+    Exit;
+  end;
+  // The existing product may have old, loaded TIP DLLs queued only for deletion.
+  // A fresh unique payload can coexist with those files. All other operations
+  // touching this product remain blocked; the guard never edits the OS queue.
+  ExtractTemporaryFile('powershell-environment.ps1');
+  ExtractTemporaryFile('install-state.ps1');
+  Params := '-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "' +
+    ExpandConstant('{tmp}\install-state.ps1') + '" -CheckPendingRenames -PendingPolicyInstallRoot "' +
+    InstallPath + '" -PendingPolicyNewPayload "' + GetPayloadDir('') + '"';
+  if not Exec(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'), Params,
+      '', SW_HIDE, ewWaitUntilTerminated, Code) then
+    Result := '无法验证英文助手的待重启文件队列，安装尚未开始。'
+  else if Code <> 0 then
+    Result := '待重启队列包含无法安全忽略的英文助手操作，或安装路径存在重解析。请重启后重试。';
 end;
 
 procedure CurStepChanged(Step: TSetupStep);
-var Code: Integer;
+var Code: Integer; ActiveReport: String;
 begin
   if Step = ssInstall then RegistrationStarted := True;
   if Step = ssPostInstall then begin
-    ProfileAdded := ExecAsOriginalUser(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'),
-      '-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "' + GetPayloadDir('') + '\user-profile.ps1"',
-      '', SW_HIDE, ewWaitUntilTerminated, Code);
-    ProfileAdded := ProfileAdded and (Code = 0);
-    Log(Format('English keyboard enrollment: %d', [Code]));
+    // Inno has already committed machine installation at ssPostInstall.
+    // A user-enrollment failure is recoverable; it must not partially restore
+    // only COM/ActiveDir while leaving the new uninstall log in place.
     InstallCommitted := True;
+    ProfileAdded := False;
+    Code := -1;
+    try
+      ProfileAdded := ExecAsOriginalUser(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'),
+        '-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "' + GetPayloadDir('') + '\user-profile.ps1"',
+        '', SW_HIDE, ewWaitUntilTerminated, Code);
+      ProfileAdded := ProfileAdded and (Code = 0);
+    except
+      Log('English keyboard enrollment exception: ' + GetExceptionMessage);
+    end;
+    Log(Format('English keyboard enrollment: %d', [Code]));
+    if not RegQueryStringValue(HKLM64, '{#ProductKey}', 'ActiveDir', ActiveReport) then
+      ActiveReport := '<missing>';
+    Log('English Assist install report: SourceVersion={#MyAppVersion}; ActualActiveDir=' + ActiveReport);
   end;
+end;
+
+procedure RestoreMachineString(Name, Value: String);
+begin
+  if Value <> '' then begin
+    if not RegWriteStringValue(HKLM64, '{#ProductKey}', Name, Value) then
+      Log('Could not restore previous installation value: ' + Name);
+  end else
+    RegDeleteValue(HKLM64, '{#ProductKey}', Name);
 end;
 
 procedure DeinitializeSetup;
@@ -125,8 +191,15 @@ begin
       Exec(ExpandConstant('{sys}\regsvr32.exe'), '/s "' + Previous64 + '"', '', SW_HIDE, ewWaitUntilTerminated, Code);
     if FileExists(Previous32) then
       Exec(ExpandConstant('{syswow64}\regsvr32.exe'), '/s "' + Previous32 + '"', '', SW_HIDE, ewWaitUntilTerminated, Code);
-    if PreviousPayload <> '' then
-      RegWriteStringValue(HKLM64, '{#ProductKey}', 'ActiveDir', PreviousPayload);
+    RestoreMachineString('ActiveDir', PreviousPayload);
+    RestoreMachineString('Version', PreviousVersion);
+    RestoreMachineString('ProductId', PreviousProductId);
+    RestoreMachineString('TipClsid', PreviousTipClsid);
+    if PreviousFreshExists then
+      RegWriteDWordValue(HKLM64, '{#ProductKey}', 'FreshInstall', PreviousFreshInstall)
+    else
+      RegDeleteValue(HKLM64, '{#ProductKey}', 'FreshInstall');
+    RegDeleteKeyIfEmpty(HKLM64, '{#ProductKey}');
   end;
 end;
 
@@ -142,7 +215,7 @@ begin
     if ProfileAdded then
       WizardForm.FinishedLabel.Caption := '英文助手已加入当前用户的英语键盘列表。' + #13#10 + #13#10 +
         '请用 Win+Space 选择 English Assist 英文助手。英文词库已经随包安装，可离线补词。' + #13#10 +
-        '安装不会改变默认键盘。应用仍使用旧版本时，保存工作并重新打开该应用。' + #13#10 + #13#10 +
+        '升级后，请保存工作并重新打开要使用英文助手的应用，以加载新版。' + #13#10 + #13#10 +
         '此为开发验证版，真实应用兼容性仍需按验证记录确认。'
     else
       WizardForm.FinishedLabel.Caption := '文件已安装，但英语键盘入口未能自动启用。' + #13#10 +
@@ -153,9 +226,12 @@ end;
 
 function InitializeUninstall: Boolean;
 begin
-  DeletePersonalData := MsgBox('是否同时删除英文助手的个人词库？' + #13#10 +
-    '选“否”会保留个人词库。API 凭据、配置和缓存始终删除。',
-    mbConfirmation, MB_YESNO or MB_DEFBUTTON1) = IDYES;
+  if UninstallSilent then
+    DeletePersonalData := ExpandConstant('{param:DELETEPERSONALDATA|0}') = '1'
+  else
+    DeletePersonalData := MsgBox('是否同时删除英文助手的个人词库？' + #13#10 +
+      '选“否”会保留个人词库。API 凭据、配置和缓存始终删除。',
+      mbConfirmation, MB_YESNO or MB_DEFBUTTON1) = IDYES;
   Result := True;
 end;
 

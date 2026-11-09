@@ -34,9 +34,12 @@ impl Kernel {
         self.selected = 0;
         self.page_start = 0;
         self.page_starts.clear();
-        self.candidates = self
-            .english
-            .complete(&self.buffer, self.learner.as_ref(), 24);
+        self.candidates = self.english.complete_with_pinyin(
+            &self.buffer,
+            self.learner.as_ref(),
+            24,
+            self.cfg.english_pinyin,
+        );
         actions.push(KernelAction::Render(self.render_state()));
         if self.cfg.english_spelling && self.buffer.len() >= 3 {
             actions.push(KernelAction::Side(SideEffect::EnglishSuggest {
@@ -91,6 +94,14 @@ impl Kernel {
                 self.refresh_english(actions);
             }
             Key::Escape if self.has_composition() => self.commit_english(None, "", actions),
+            Key::Char(d @ '1'..='5')
+                if self.has_composition()
+                    && (d as usize - '1' as usize) < self.current_page_size()
+                    && self.page_start + (d as usize - '1' as usize) < self.candidates.len() =>
+            {
+                let index = self.page_start + (d as usize - '1' as usize);
+                self.commit_english(Some(index), "", actions);
+            }
             Key::Tab if !mods.contains(Modifiers::SHIFT) && !self.candidates.is_empty() => {
                 self.commit_english(Some(self.selected), "", actions)
             }
@@ -119,18 +130,26 @@ impl Kernel {
                     .copied()
                     .take_while(|start| *start <= self.selected)
                     .last()
-                    .unwrap_or_else(|| {
-                        self.selected / self.cfg.decode.page_size.max(1)
-                            * self.cfg.decode.page_size.max(1)
-                    });
+                    .unwrap_or_else(|| self.selected / self.page_capacity() * self.page_capacity());
                 actions.push(KernelAction::Render(self.render_state()));
             }
-            Key::PageUp | Key::PageDown if self.english_selected => {
-                self.page(if key == Key::PageUp { -1 } else { 1 }, actions)
+            Key::PageUp | Key::PageDown | Key::Char('-' | '_' | '=' | '+')
+                if self.has_composition() && !self.candidates.is_empty() =>
+            {
+                self.english_selected = true;
+                self.status = self.status.union(StatusFlags::ENGLISH_SELECTED);
+                self.page(
+                    if matches!(key, Key::PageUp | Key::Char('-' | '_')) {
+                        -1
+                    } else {
+                        1
+                    },
+                    actions,
+                );
             }
             _ => {
-                // Digits and punctuation finish the literal spelling. They are
-                // never candidate shortcuts, even after explicit navigation.
+                // Without a matching visible candidate, digits and punctuation
+                // finish the literal spelling and retain their native meaning.
                 self.commit_english(None, "", actions);
                 actions.push(KernelAction::PassThrough);
             }

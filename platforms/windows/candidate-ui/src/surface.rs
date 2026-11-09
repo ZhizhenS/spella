@@ -59,6 +59,7 @@ struct Texture {
 /// One cache per TSF apartment, retained across compositions. Fonts and atlas are
 /// initialized lazily; idle windows do not run frames or timers.
 pub struct Surface {
+    appearance: retype_types::CandidateAppearance,
     context: egui::Context,
     textures: HashMap<egui::TextureId, Texture>,
     initialized: bool,
@@ -74,6 +75,11 @@ const WIDTH_CACHE_BYTES: usize = 128 * 1024;
 
 struct PaintKey {
     texts: Vec<String>,
+    comments: Vec<String>,
+    annotations: Vec<Option<retype_types::EnglishAnnotation>>,
+    composition: String,
+    page_start: usize,
+    page_count: usize,
     selected: Option<usize>,
     numbered: bool,
     widths: Vec<i32>,
@@ -83,13 +89,10 @@ struct PaintKey {
 }
 
 fn painted_selection(state: &RenderState) -> Option<usize> {
-    (state.status.contains(retype_types::StatusFlags::CHINESE)
-        || state
-            .status
-            .contains(retype_types::StatusFlags::ENGLISH_SELECTED))
-    .then(|| state.selected.checked_sub(state.page_start))
-    .flatten()
-    .filter(|&index| index < state.visible().len())
+    state
+        .selected
+        .checked_sub(state.page_start)
+        .filter(|&index| index < state.visible().len())
 }
 
 impl PaintKey {
@@ -101,8 +104,22 @@ impl PaintKey {
         viewport: i32,
         scale: f32,
     ) -> bool {
+        let english = !state.status.contains(retype_types::StatusFlags::CHINESE);
         self.selected == painted_selection(state)
             && self.numbered == state.status.contains(retype_types::StatusFlags::CHINESE)
+            && (!english
+                || (self.composition == state.composition
+                    && self.page_start == state.page_start
+                    && self.page_count == state.page_count()
+                    && self
+                        .comments
+                        .iter()
+                        .map(String::as_str)
+                        .eq(state.visible().iter().map(|c| c.comment.as_str()))
+                    && self
+                        .annotations
+                        .iter()
+                        .eq(state.visible().iter().map(|c| &c.annotation))))
             && self.widths == widths
             && self.gap == gap
             && self.viewport == viewport
@@ -135,6 +152,7 @@ impl Default for Surface {
         }
         context.set_fonts(fonts);
         Self {
+            appearance: retype_types::CandidateAppearance::default(),
             context,
             textures: HashMap::new(),
             initialized: false,
@@ -148,6 +166,21 @@ impl Default for Surface {
 }
 
 impl Surface {
+    pub fn set_appearance(&mut self, appearance: retype_types::CandidateAppearance) {
+        let appearance = appearance.normalized();
+        if self.appearance != appearance {
+            self.appearance = appearance;
+            self.context
+                .set_theme(if appearance.theme == retype_types::CandidateTheme::Dark {
+                    egui::Theme::Dark
+                } else {
+                    egui::Theme::Light
+                });
+            self.last_frame = None;
+            self.widths.clear();
+            self.width_bytes = 0;
+        }
+    }
     fn input(&self, width: f32, height: f32, scale: f32) -> egui::RawInput {
         self.context.set_pixels_per_point(scale);
         egui::RawInput {
@@ -233,6 +266,16 @@ impl Surface {
     }
 
     pub fn measure(&mut self, state: &RenderState, available: i32, scale: f32) -> Vec<i32> {
+        if !state.status.contains(retype_types::StatusFlags::CHINESE) {
+            // English entries are vertical dictionary rows. Width is independent
+            // of page capacity; the kernel keeps five entries on each page.
+            return vec![
+                ((self.appearance.width as f32 * scale).round() as i32)
+                    .min(available)
+                    .max(1);
+                state.candidates.len()
+            ];
+        }
         if self.width_scale != scale.to_bits() {
             self.widths.clear();
             self.width_bytes = 0;
@@ -307,6 +350,9 @@ impl Surface {
             }
         }
         self.initialize(scale);
+        if !state.status.contains(retype_types::StatusFlags::CHINESE) {
+            return self.render_english(state, widths, gap, viewport, scale);
+        }
         let pad = (4.0 * scale).round();
         let chinese = state.status.contains(retype_types::StatusFlags::CHINESE);
         // English digits are literal input, so only Chinese candidates advertise
@@ -423,6 +469,11 @@ impl Surface {
         self.last_frame = Some((
             PaintKey {
                 texts: state.visible().iter().map(|c| c.text.clone()).collect(),
+                comments: Vec::new(),
+                annotations: Vec::new(),
+                composition: String::new(),
+                page_start: 0,
+                page_count: 0,
                 selected: painted_selection(state),
                 numbered: chinese,
                 widths: widths.to_vec(),
@@ -434,6 +485,291 @@ impl Surface {
         ));
         bitmap
     }
+
+    fn render_english(
+        &mut self,
+        state: &RenderState,
+        widths: &[i32],
+        gap: i32,
+        viewport: i32,
+        scale: f32,
+    ) -> Arc<Bitmap> {
+        let pad = 6.0;
+        let header = 32.0;
+        let appearance = self.appearance;
+        let word_size = appearance.font_size as f32;
+        let gloss_size = (word_size - 5.0).max(11.0);
+        let row_height = if !appearance.show_meanings && !appearance.show_part_of_speech {
+            word_size + 16.0
+        } else {
+            word_size + if appearance.compact { 27.0 } else { 45.0 }
+        };
+        let footer = if appearance.show_key_hints { 28.0 } else { 6.0 };
+        let dark = appearance.theme == retype_types::CandidateTheme::Dark;
+        let background = if dark {
+            Color32::from_rgb(30, 38, 44)
+        } else {
+            BACKGROUND
+        };
+        let ink = if dark {
+            Color32::from_rgb(235, 242, 246)
+        } else {
+            INK
+        };
+        let muted = if dark {
+            Color32::from_rgb(155, 173, 184)
+        } else {
+            MUTED
+        };
+        let gloss_ink = if dark {
+            Color32::from_rgb(177, 196, 207)
+        } else {
+            Color32::from_rgb(92, 111, 120)
+        };
+        let row_width = (appearance.width as f32 * scale)
+            .min(viewport as f32 - 2.0 * pad * scale)
+            .max(1.0);
+        let width = (row_width + pad * 2.0 * scale)
+            .min(viewport as f32)
+            .max(1.0)
+            .ceil() as usize;
+        let logical_width = width as f32 / scale;
+        let height = ((header + row_height * state.visible().len() as f32 + footer + pad) * scale)
+            .ceil()
+            .max(1.0) as usize;
+        let cells = state
+            .visible()
+            .iter()
+            .enumerate()
+            .map(|(i, _)| {
+                Rect::from_min_size(
+                    Pos2::new(pad * scale, (header + i as f32 * row_height) * scale),
+                    Vec2::new(
+                        (logical_width - pad * 2.0).max(1.0) * scale,
+                        row_height * scale,
+                    ),
+                )
+            })
+            .collect::<Vec<_>>();
+        let geometry = Geometry {
+            cells,
+            width,
+            height,
+        };
+        let input = self.input(logical_width, height as f32 / scale, scale);
+        let mut output = self.context.run_ui(input, |ctx| {
+            let painter = ctx.layer_painter(egui::LayerId::background());
+            let bounds =
+                Rect::from_min_size(Pos2::ZERO, Vec2::new(logical_width, height as f32 / scale));
+            painter.rect_filled(bounds, 9, background);
+            painter.rect_stroke(
+                bounds,
+                9,
+                egui::Stroke::new(
+                    1.0,
+                    if dark {
+                        Color32::from_rgb(63, 80, 89)
+                    } else {
+                        Color32::from_rgb(216, 228, 231)
+                    },
+                ),
+                egui::StrokeKind::Inside,
+            );
+            let mut label = state.composition.clone();
+            if label.chars().count() > 30 {
+                label = label.chars().take(29).chain(['…']).collect();
+            }
+            painter.text(
+                Pos2::new(14.0, 16.0),
+                egui::Align2::LEFT_CENTER,
+                label,
+                FontId::proportional(13.0),
+                if dark {
+                    Color32::from_rgb(96, 209, 207)
+                } else {
+                    ACCENT
+                },
+            );
+            let page = state
+                .page_starts
+                .iter()
+                .take_while(|&&start| start <= state.page_start)
+                .count()
+                .max(1);
+            let page = if state.page_starts.is_empty() {
+                state.page_start / state.page_size.max(1) + 1
+            } else {
+                page
+            };
+            painter.text(
+                Pos2::new(logical_width - 14.0, 16.0),
+                egui::Align2::RIGHT_CENTER,
+                format!("{page} / {}", state.page_count().max(1)),
+                FontId::proportional(11.0),
+                muted,
+            );
+            for (i, (physical, candidate)) in geometry.cells.iter().zip(state.visible()).enumerate()
+            {
+                let cell = Rect::from_min_max(physical.min / scale, physical.max / scale);
+                let selected = state.page_start + i == state.selected;
+                if selected {
+                    painter.rect_filled(
+                        cell.shrink(1.0),
+                        6,
+                        if dark {
+                            Color32::from_rgb(35, 70, 73)
+                        } else {
+                            Color32::from_rgb(232, 245, 245)
+                        },
+                    );
+                }
+                let badge = Rect::from_min_size(
+                    Pos2::new(cell.left() + 7.0, cell.top() + 9.0),
+                    Vec2::new(22.0, 22.0),
+                );
+                painter.rect_filled(
+                    badge,
+                    5,
+                    if selected {
+                        ACCENT
+                    } else if dark {
+                        Color32::from_rgb(47, 59, 68)
+                    } else {
+                        Color32::from_rgb(237, 241, 244)
+                    },
+                );
+                painter.text(
+                    badge.center(),
+                    egui::Align2::CENTER_CENTER,
+                    (i + 1).to_string(),
+                    FontId::proportional(12.0),
+                    if selected { Color32::WHITE } else { muted },
+                );
+                let text_left = cell.left() + 39.0;
+                let max_width = (cell.right() - text_left - 10.0).max(1.0);
+                let pinyin = candidate
+                    .annotation
+                    .as_ref()
+                    .is_some_and(|a| a.pinyin_match);
+                if pinyin {
+                    painter.text(
+                        Pos2::new(cell.right() - 10.0, cell.top() + 15.0),
+                        egui::Align2::RIGHT_CENTER,
+                        "拼音",
+                        FontId::proportional(10.0),
+                        muted,
+                    );
+                }
+                let word_text = if appearance.show_phonetics {
+                    candidate
+                        .annotation
+                        .as_ref()
+                        .filter(|a| !a.phonetic.is_empty())
+                        .map_or_else(
+                            || candidate.text.clone(),
+                            |a| format!("{}   /{}/", candidate.text, a.phonetic.trim_matches('/')),
+                        )
+                } else {
+                    candidate.text.clone()
+                };
+                let word = painter.layout_job(clipped_text(
+                    &word_text,
+                    word_size,
+                    ink,
+                    (max_width - if pinyin { 34.0 } else { 0.0 }).max(1.0),
+                    1,
+                ));
+                painter.galley(Pos2::new(text_left, cell.top() + 5.0), word, ink);
+                let mut gloss = candidate.annotation_text(
+                    appearance.show_meanings,
+                    appearance.show_part_of_speech,
+                    false,
+                );
+                if gloss.is_empty() && appearance.show_meanings {
+                    gloss = "暂无中文释义".into();
+                }
+                let meaning = painter.layout_job(clipped_text(
+                    &gloss,
+                    gloss_size,
+                    gloss_ink,
+                    max_width,
+                    if appearance.compact { 1 } else { 2 },
+                ));
+                painter.galley(
+                    Pos2::new(text_left, cell.top() + word_size + 11.0),
+                    meaning,
+                    gloss_ink,
+                );
+            }
+            if appearance.show_key_hints {
+                painter.text(
+                    Pos2::new(14.0, height as f32 / scale - 15.0),
+                    egui::Align2::LEFT_CENTER,
+                    "1–5 选词   ·   Tab 首选   ·   − / + 翻页",
+                    FontId::proportional(10.5),
+                    muted,
+                );
+            }
+        });
+        self.apply_textures(&mut output.textures_delta);
+        let primitives = self
+            .context
+            .tessellate(output.shapes, output.pixels_per_point);
+        let mut pixels = vec![if dark { 0x001e262c } else { 0x00fcfcfd }; width * height];
+        for primitive in primitives {
+            if let epaint::Primitive::Mesh(mesh) = primitive.primitive {
+                if let Some(texture) = self.textures.get(&mesh.texture_id) {
+                    rasterize(
+                        &mut pixels,
+                        width,
+                        height,
+                        &mesh,
+                        primitive.clip_rect,
+                        scale,
+                        texture,
+                    );
+                }
+            }
+        }
+        self.free_textures(&mut output.textures_delta);
+        let bitmap = Arc::new(Bitmap { geometry, pixels });
+        self.last_frame = Some((
+            PaintKey {
+                texts: state.visible().iter().map(|c| c.text.clone()).collect(),
+                comments: state.visible().iter().map(|c| c.comment.clone()).collect(),
+                annotations: state
+                    .visible()
+                    .iter()
+                    .map(|c| c.annotation.clone())
+                    .collect(),
+                composition: state.composition.clone(),
+                page_start: state.page_start,
+                page_count: state.page_count(),
+                selected: painted_selection(state),
+                numbered: false,
+                widths: widths.to_vec(),
+                gap,
+                viewport,
+                scale: scale.to_bits(),
+            },
+            Arc::clone(&bitmap),
+        ));
+        bitmap
+    }
+}
+
+fn clipped_text(
+    text: &str,
+    size: f32,
+    color: Color32,
+    width: f32,
+    rows: usize,
+) -> egui::text::LayoutJob {
+    let mut job =
+        egui::text::LayoutJob::simple(text.to_owned(), FontId::proportional(size), color, width);
+    job.wrap.max_rows = rows;
+    job.wrap.overflow_character = Some('…');
+    job
 }
 
 #[inline(always)]
@@ -826,103 +1162,104 @@ mod tests {
         }
     }
     #[test]
-    fn english_completion_words_stay_on_one_row_at_multiple_scales() {
+    fn english_dictionary_rows_keep_click_targets_at_every_scale() {
         let mut surface = Surface::default();
-        let mut state = state(&[
-            "article",
-            "articles",
-            "artist",
-            "artists",
-            "artificial",
-            "artistic",
-            "artillery",
-        ]);
-        state.status = retype_types::StatusFlags::default();
+        let mut current = state(&["help", "hello", "helpful", "helper", "helping"]);
+        current.status = retype_types::StatusFlags::EMPTY;
+        current.candidates[0].annotation = Some(retype_types::EnglishAnnotation {
+            part_of_speech: "v. / n.".into(),
+            definition: "帮助；援助；有用的东西".into(),
+            phonetic: "help".into(),
+            pinyin_match: false,
+        });
         for scale in [1.0, 1.25, 1.5, 1.75, 2.0] {
-            let widths = surface.measure(&state, (472.0 * scale) as i32, scale);
+            let widths = surface.measure(&current, (472.0 * scale) as i32, scale);
             let bitmap = surface.render(
-                &state,
+                &current,
                 &widths,
                 (2.0 * scale) as i32,
                 (480.0 * scale) as i32,
                 scale,
             );
-            let single_line_height = surface.context.fonts_mut(|fonts| {
-                state
-                    .candidates
-                    .iter()
-                    .map(|candidate| {
-                        let galley = fonts.layout_no_wrap(
-                            candidate.text.clone(),
-                            FontId::proportional(CANDIDATE_FONT_SIZE),
-                            INK,
-                        );
-                        (galley.size().y * scale).ceil() + (10.0 * scale).round()
-                    })
-                    .fold((30.0 * scale).round(), f32::max)
-            });
-            let expected_height = single_line_height + 2.0 * (4.0 * scale).round();
-            assert_eq!(bitmap.geometry.height, expected_height as usize);
+            assert_eq!(bitmap.geometry.cells.len(), 5);
+            assert!(bitmap.geometry.width <= (480.0 * scale) as usize);
+            assert!(bitmap.geometry.height > (250.0 * scale) as usize);
             for (i, cell) in bitmap.geometry.cells.iter().enumerate() {
-                let text_width = surface.context.fonts_mut(|fonts| {
-                    fonts
-                        .layout_no_wrap(
-                            state.candidates[i].text.clone(),
-                            FontId::proportional(CANDIDATE_FONT_SIZE),
-                            INK,
-                        )
-                        .size()
-                        .x
-                });
-                assert!(text_width <= cell.width() / scale - 12.0);
                 assert_eq!(
                     bitmap.geometry.hit_test(cell.center().x, cell.center().y),
                     Some(i)
                 );
+                if i > 0 {
+                    assert!(cell.top() >= bitmap.geometry.cells[i - 1].bottom());
+                }
             }
         }
     }
 
     #[test]
-    fn english_has_no_numeric_shortcut_glyphs_and_mode_changes_invalidate_bitmap() {
+    fn dictionary_metadata_and_page_headers_invalidate_the_painted_frame() {
         let mut surface = Surface::default();
-        // Empty text isolates the shortcut glyph from the candidate's own text.
-        // No selection is painted in either mode, so the mode is the only
-        // visual input that changes while the measured geometry stays equal.
-        let mut current = state(&[""]);
-        current.selected = usize::MAX;
+        let mut current = state(&["apple", "application"]);
         current.status = retype_types::StatusFlags::EMPTY;
+        current.candidates[0].annotation = Some(retype_types::EnglishAnnotation {
+            part_of_speech: "n.".into(),
+            definition: "苹果；苹果树".into(),
+            ..Default::default()
+        });
         let widths = surface.measure(&current, 472, 1.0);
-        let english = surface.render(&current, &widths, 2, 480, 1.0);
-        let cell = english.geometry.cells[0];
-        let interior = |bitmap: &Bitmap| {
-            (cell.top() as usize + 2..cell.bottom() as usize - 2)
-                .flat_map(|y| {
-                    (cell.left() as usize + 2..cell.right() as usize - 2)
-                        .map(move |x| bitmap.pixels[y * bitmap.geometry.width + x])
-                })
-                .collect::<Vec<_>>()
-        };
-        assert!(interior(&english).iter().all(|&pixel| pixel == 0x00fcfcfd));
-        current.status = retype_types::StatusFlags::CHINESE;
-        let chinese = surface.render(&current, &widths, 2, 480, 1.0);
-        assert!(!Arc::ptr_eq(&english, &chinese));
-        assert!(interior(&chinese).iter().any(|&pixel| pixel != 0x00fcfcfd));
+        let first = surface.render(&current, &widths, 2, 480, 1.0);
+        current.candidates[0]
+            .annotation
+            .as_mut()
+            .unwrap()
+            .definition = "应用；申请；用途".into();
+        let changed = surface.render(&current, &widths, 2, 480, 1.0);
+        assert!(!Arc::ptr_eq(&first, &changed));
+        assert!(
+            first.pixels != changed.pixels,
+            "a changed definition must repaint"
+        );
+        current.composition = "pingguo".into();
+        let pinyin = surface.render(&current, &widths, 2, 480, 1.0);
+        assert!(
+            changed.pixels != pinyin.pixels,
+            "the query header must repaint"
+        );
+        let cached = surface.render(&current, &widths, 2, 480, 1.0);
+        assert!(Arc::ptr_eq(&pinyin, &cached));
     }
 
     #[test]
-    fn english_words_do_not_reserve_the_chinese_number_gutter() {
+    fn appearance_changes_apply_to_existing_candidates() {
+        use retype_types::{CandidateAppearance, CandidateTheme};
         let mut surface = Surface::default();
-        let mut current = state(&["environmental"]);
-        for scale in [1.0, 1.25, 1.5, 1.75, 2.0] {
-            current.status = retype_types::StatusFlags::CHINESE;
-            let chinese = surface.measure(&current, (472.0 * scale) as i32, scale);
-            current.status = retype_types::StatusFlags::EMPTY;
-            let english = surface.measure(&current, (472.0 * scale) as i32, scale);
-            assert!(english[0] < chinese[0]);
-        }
+        let mut current = state(&["example", "examples"]);
+        current.status = retype_types::StatusFlags::EMPTY;
+        current.candidates[0].comment = "n. 例子；榜样".into();
+        let widths = surface.measure(&current, 472, 1.0);
+        let light = surface.render(&current, &widths, 2, 480, 1.0);
+        surface.set_appearance(CandidateAppearance {
+            theme: CandidateTheme::Dark,
+            ..Default::default()
+        });
+        let dark = surface.render(&current, &widths, 2, 480, 1.0);
+        assert!(
+            light.pixels != dark.pixels,
+            "theme must change actual pixels"
+        );
+        surface.set_appearance(CandidateAppearance {
+            compact: true,
+            show_meanings: false,
+            show_part_of_speech: false,
+            show_key_hints: false,
+            width: 320,
+            ..Default::default()
+        });
+        let widths = surface.measure(&current, 472, 1.0);
+        let compact = surface.render(&current, &widths, 2, 480, 1.0);
+        assert!(compact.geometry.height < dark.geometry.height);
+        assert!(compact.geometry.width < dark.geometry.width);
     }
-
     #[test]
     fn long_phrase_wraps_without_ellipsis_and_atlas_survives_updates() {
         let mut surface = Surface::default();

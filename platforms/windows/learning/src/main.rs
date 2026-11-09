@@ -3,6 +3,8 @@
 #[cfg(windows)]
 #[path = "../../common/base_resources.rs"]
 mod base_resources;
+#[cfg(windows)]
+mod enrollment_guard;
 
 #[cfg(windows)]
 fn serve() -> Result<(), Box<dyn std::error::Error>> {
@@ -36,6 +38,12 @@ fn serve() -> Result<(), Box<dyn std::error::Error>> {
         transport::exchange(&name, &serde_json::to_vec(&request)?)?;
         return Ok(());
     }
+    let executable = std::env::current_exe()?;
+    if custom_db.is_none() {
+        // An old DLL may try to reconnect after uninstall. Reject before pipe,
+        // directory, database or sync-host creation unless this install owns it.
+        enrollment_guard::require_current(&sid, &executable)?;
+    }
     // Exclusivity is acquired before opening SQLite, including during an upgrade handoff.
     let listener = transport::Listener::new(&name, &sid)?;
     let db_path = if let Some(path) = custom_db.clone() {
@@ -54,7 +62,7 @@ fn serve() -> Result<(), Box<dyn std::error::Error>> {
             std::fs::create_dir_all(parent)?;
         }
     }
-    let directory = std::env::current_exe()?
+    let directory = executable
         .parent()
         .ok_or("executable directory")?
         .to_path_buf();
@@ -189,10 +197,12 @@ fn main() {
     if let Err(error) = serve() {
         // No modal error windows in an application's input path; the client keeps its cache.
         // --db diagnostics are isolated and may opt into a log path.
-        if let Some(path) = std::env::args()
-            .collect::<Vec<_>>()
+        let args: Vec<_> = std::env::args().collect();
+        let isolated = args.windows(2).any(|pair| pair[0] == "--db")
+            && args.windows(2).any(|pair| pair[0] == "--pipe");
+        if let Some(path) = args
             .windows(2)
-            .find(|pair| pair[0] == "--error-log")
+            .find(|pair| isolated && pair[0] == "--error-log")
             .map(|pair| pair[1].clone())
         {
             let _ = std::fs::write(path, error.to_string());

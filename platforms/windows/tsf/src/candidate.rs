@@ -23,6 +23,7 @@ pub struct CandidateWindow {
     reads: Arc<CandidateReads>,
     context: Option<ITfContext>,
     pending_notification: u32,
+    appearance: Option<retype_types::CandidateAppearance>,
 }
 
 #[derive(Default)]
@@ -73,8 +74,11 @@ fn updated_flags(old: &RenderState, new: &RenderState, selection: Option<(u64, u
     if !old
         .candidates
         .iter()
-        .map(|c| c.text.as_str())
-        .eq(new.candidates.iter().map(|c| c.text.as_str()))
+        .map(|c| (&c.text, &c.comment, &c.annotation))
+        .eq(new
+            .candidates
+            .iter()
+            .map(|c| (&c.text, &c.comment, &c.annotation)))
     {
         flags |= TF_CLUIE_STRING;
     }
@@ -153,6 +157,9 @@ impl CandidateWindow {
             self.updated_flags = Arc::default();
             self.reads = Arc::default();
         }
+        let appearance = crate::preferences::candidate_appearance();
+        let appearance_changed = self.appearance != Some(appearance);
+        self.appearance = Some(appearance);
         let flags = {
             let mut data = self.data.lock().unwrap_or_else(|e| e.into_inner());
             let selection = *self.selection.lock().unwrap_or_else(|e| e.into_inner());
@@ -166,7 +173,12 @@ impl CandidateWindow {
                 *data = state.clone();
             }
             flags
-        } | self.pending_notification;
+        } | self.pending_notification
+            | if appearance_changed {
+                TF_CLUIE_STRING
+            } else {
+                0
+            };
         // Keep the last notification's flags available to hosts which query
         // after UpdateUIElement returns; a caret-only refresh must not erase it.
         if flags != 0 {
@@ -392,10 +404,10 @@ impl Candidates_Impl {
 }
 impl ITfUIElement_Impl for Candidates_Impl {
     fn GetDescription(&self) -> Result<BSTR> {
-        Ok(BSTR::from("retype candidates"))
+        Ok(BSTR::from("English Assist 英文候选"))
     }
     fn GetGUID(&self) -> Result<GUID> {
-        Ok(crate::ids::GUID_PROFILE_RETYPE)
+        Ok(crate::ids::GUID_PROFILE_ENGLISH)
     }
     fn Show(&self, show: BOOL) -> Result<()> {
         let window = {
@@ -451,7 +463,20 @@ impl ITfCandidateListUIElement_Impl for Candidates_Impl {
         self.state()
             .candidates
             .get(index as usize)
-            .map(|c| BSTR::from(c.text.as_str()))
+            .map(|c| {
+                let appearance = crate::preferences::candidate_appearance();
+                let annotation = c.annotation_text(
+                    appearance.show_meanings,
+                    appearance.show_part_of_speech,
+                    appearance.show_phonetics,
+                );
+                if c.language == retype_types::CandidateLanguage::English && !annotation.is_empty()
+                {
+                    BSTR::from(format!("{}  {}", c.text, annotation))
+                } else {
+                    BSTR::from(c.text.as_str())
+                }
+            })
             .ok_or_else(|| E_INVALIDARG.into())
     }
     fn GetPageIndex(&self, indexes: *mut u32, size: u32, count: *mut u32) -> Result<()> {
@@ -534,11 +559,7 @@ impl ITfIntegratableCandidateListUIElement_Impl for Candidates_Impl {
     }
 
     fn ShowCandidateNumbers(&self) -> Result<BOOL> {
-        Ok(self
-            .state()
-            .status
-            .contains(retype_types::StatusFlags::CHINESE)
-            .into())
+        Ok(BOOL(1))
     }
 
     fn FinalizeExactCompositionString(&self) -> Result<()> {

@@ -29,6 +29,15 @@ pub enum CandidateLanguage {
     English,
 }
 
+/// Dictionary fields shown alongside an English candidate.
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct EnglishAnnotation {
+    pub part_of_speech: String,
+    pub definition: String,
+    pub phonetic: String,
+    pub pinyin_match: bool,
+}
+
 /// 一条候选。
 #[derive(Debug, Clone, PartialEq)]
 pub struct Candidate {
@@ -36,8 +45,10 @@ pub struct Candidate {
     pub language: CandidateLanguage,
     /// 上屏文字
     pub text: String,
-    /// 展示用拼音注释，如 `ni'hao`
+    /// Fallback display note, such as pinyin or a spelling hint.
     pub comment: String,
+    /// Display-only dictionary fields; never included in committed text.
+    pub annotation: Option<EnglishAnnotation>,
     pub source: CandidateSource,
     /// 这条候选消费了几个音节
     pub syllable_len: usize,
@@ -59,12 +70,34 @@ impl Candidate {
             language: CandidateLanguage::Chinese,
             text: text.into(),
             comment: String::new(),
+            annotation: None,
             source,
             syllable_len: 0,
             consumed: 0,
             syllables: Vec::new(),
             score: 0.0,
         }
+    }
+
+    pub fn annotation_text(&self, meanings: bool, part_of_speech: bool, phonetics: bool) -> String {
+        let Some(annotation) = &self.annotation else {
+            return if meanings {
+                self.comment.clone()
+            } else {
+                String::new()
+            };
+        };
+        let mut parts = Vec::new();
+        if part_of_speech && !annotation.part_of_speech.is_empty() {
+            parts.push(annotation.part_of_speech.clone());
+        }
+        if phonetics && !annotation.phonetic.is_empty() {
+            parts.push(format!("/{}/", annotation.phonetic.trim_matches('/')));
+        }
+        if meanings && !annotation.definition.is_empty() {
+            parts.push(annotation.definition.clone());
+        }
+        parts.join(" ")
     }
 }
 

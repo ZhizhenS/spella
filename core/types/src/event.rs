@@ -136,6 +136,8 @@ pub enum InputEvent {
     /// Whether the selected input entry supports predictive English. Set at
     /// entry/session boundaries; mode toggles do not change the selected entry.
     SetEnglishPrediction(bool),
+    /// Enable/disable local Pinyin-to-English lookup independently of spelling.
+    SetEnglishPinyin(bool),
     SetPinyinScheme(PinyinScheme),
     SetEnglishOptions {
         enabled: bool,

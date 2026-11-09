@@ -202,19 +202,46 @@ fn explicit_public_scope(context: &ITfContext, ec: u32, range: &ITfRange) -> boo
 fn read_selected(range: &ITfRange, ec: u32) -> Result<Vec<u16>> {
     // SAFETY: bounded clone-based range read; the original anchors are never moved.
     unsafe {
+        let expected_length = if let Ok(acp) = range.cast::<ITfRangeACP>() {
+            let mut start = 0;
+            let mut length = 0;
+            acp.GetExtent(&mut start, &mut length)?;
+            if length < 0 || length as usize > MAX_ASSIST_TEXT {
+                return Err(E_INVALIDARG.into());
+            }
+            Some(length as usize)
+        } else {
+            None
+        };
         let cursor = range.Clone()?;
         let mut text = Vec::new();
         loop {
             let mut buffer = [0u16; 512];
             let mut count = 0;
-            cursor.GetText(ec, TF_TF_MOVESTART, &mut buffer, &mut count)?;
+            // Do not let a short read implicitly move the start anchor. Advance
+            // by the actual returned UTF-16 count and verify that movement.
+            cursor.GetText(ec, 0, &mut buffer, &mut count)?;
             if count == 0 {
+                // A zero-length response is not proof that the selected range
+                // was read completely. A truncated host must never let a prefix
+                // authorize replacement of the entire original range.
+                if !cursor.IsEmpty(ec)?.as_bool() {
+                    return Err(E_FAIL.into());
+                }
                 break;
             }
             if count as usize > buffer.len() || text.len() + count as usize > MAX_ASSIST_TEXT {
                 return Err(E_INVALIDARG.into());
             }
             text.extend_from_slice(&buffer[..count as usize]);
+            let mut moved = 0;
+            cursor.ShiftStart(ec, count as i32, &mut moved, std::ptr::null())?;
+            if moved != count as i32 || cursor.CompareEnd(ec, range, TF_ANCHOR_END)? != 0 {
+                return Err(E_FAIL.into());
+            }
+        }
+        if expected_length.is_some_and(|length| length != text.len()) {
+            return Err(E_FAIL.into());
         }
         Ok(text)
     }
@@ -256,8 +283,25 @@ pub(crate) fn dismiss(state: &TipState) {
     }
 }
 pub(crate) fn capture(state: &Arc<TipState>, context: &ITfContext, ec: u32) -> Result<()> {
+    capture_or_notice(state, context, ec, false)
+}
+pub(crate) fn selection_required(
+    state: &Arc<TipState>,
+    context: &ITfContext,
+    ec: u32,
+) -> Result<()> {
+    capture_or_notice(state, context, ec, true)
+}
+fn capture_or_notice(
+    state: &Arc<TipState>,
+    context: &ITfContext,
+    ec: u32,
+    composing: bool,
+) -> Result<()> {
     dismiss(state);
-    let snapshot = if state.session().is_some_and(|session| session.shadow) {
+    let snapshot = if composing {
+        Err("请先完成当前单词，再选中要处理的英文句子".into())
+    } else if state.session().is_some_and(|session| session.shadow) {
         Err("此输入框暂不支持 AI 选区编辑".into())
     } else {
         SelectedText::capture(context, ec)

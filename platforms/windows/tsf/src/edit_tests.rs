@@ -25,6 +25,8 @@ struct Data {
     defer: bool,
     hidden: bool,
     no_text_extent: bool,
+    text_read_stop: Option<usize>,
+    truncated_reads: usize,
     input_scope: Option<InputScope>,
     scope_after_end: Option<InputScope>,
     requested_scope: bool,
@@ -226,7 +228,7 @@ impl ITextStoreACP_Impl for Store_Impl {
         pcruninforet: *mut u32,
         pacpnext: *mut i32,
     ) -> windows_core::Result<()> {
-        let d = lock(&self.data);
+        let mut d = lock(&self.data);
         let end = if acpend < 0 {
             d.text.len()
         } else {
@@ -236,7 +238,23 @@ impl ITextStoreACP_Impl for Store_Impl {
         if start > end || end > d.text.len() {
             return Err(E_INVALIDARG.into());
         }
-        let n = (end - start).min(cchplainreq as usize);
+        // Simulate a host that returns a valid prefix, then a successful empty
+        // read although its selection/document anchors still include more text.
+        let readable_end = end.min(d.text_read_stop.unwrap_or(end));
+        let available = readable_end.saturating_sub(start);
+        let n = available.min(cchplainreq as usize);
+        // Run-only requests still describe the available text. An empty read
+        // has no TS_RUNINFO record and acpNext remains at the unread position.
+        let referenced = if cchplainreq > 0 {
+            n
+        } else if cruninforeq > 0 {
+            available
+        } else {
+            0
+        };
+        if d.text_read_stop.is_some() {
+            d.truncated_reads += 1;
+        }
         unsafe {
             if n > 0 {
                 std::ptr::copy_nonoverlapping(d.text[start..].as_ptr(), pchplain.0, n);
@@ -245,14 +263,18 @@ impl ITextStoreACP_Impl for Store_Impl {
                 *pcchplainret = n as u32;
             }
             if !pacpnext.is_null() {
-                *pacpnext = (start + n) as i32;
+                *pacpnext = (start + referenced) as i32;
             }
             if !pcruninforet.is_null() {
-                *pcruninforet = if cruninforeq > 0 { 1 } else { 0 };
+                *pcruninforet = if cruninforeq > 0 && referenced > 0 {
+                    1
+                } else {
+                    0
+                };
             }
-            if cruninforeq > 0 {
+            if cruninforeq > 0 && referenced > 0 {
                 *prgruninfo = TS_RUNINFO {
-                    uCount: n as u32,
+                    uCount: referenced as u32,
                     r#type: TS_RT_PLAIN,
                 };
             }
@@ -691,6 +713,156 @@ fn whole_word_selections_learn_in_normal_fields_with_or_without_hidden_text_supp
     .map_err(|_| E_FAIL)?
 }
 
+/// Exercise the key sink, not only Work::Key, so a broad capability guard cannot
+/// silently bypass valid English input before the edit-session privacy check.
+#[test]
+fn english_key_sink_composes_in_rich_text_and_keeps_private_fields_literal() -> Result<()> {
+    std::thread::spawn(|| -> Result<()> {
+        // SAFETY: Isolated STA and in-memory text store; no keys are injected into
+        // user applications and no installed profile or user registry is changed.
+        unsafe {
+            CoInitializeEx(None, COINIT_APARTMENTTHREADED).ok()?;
+            let result = (|| -> Result<()> {
+                let manager: ITfThreadMgr =
+                    CoCreateInstance(&CLSID_TF_ThreadMgr, None, CLSCTX_INPROC_SERVER)?;
+                let tid = manager.Activate()?;
+                let document = manager.CreateDocumentMgr()?;
+                let data = Arc::new(Mutex::new(Data {
+                    hidden: true, // Supports hidden text; this is NOT a private-field declaration.
+                    no_text_extent: true,
+                    input_scope: Some(IS_DEFAULT),
+                    ..Default::default()
+                }));
+                let store: ITextStoreACP = Store {
+                    data: Arc::clone(&data),
+                }
+                .into();
+                let mut context = None;
+                let mut cookie = 0;
+                document.CreateContext(tid, 0, &store, &mut context, &mut cookie)?;
+                let context = context.ok_or(E_FAIL)?;
+                document.Push(&context)?;
+                manager.SetFocus(&document)?;
+                assert_eq!(context.GetStatus()?.dwStaticFlags & TS_SS_NOHIDDENTEXT, 0);
+
+                let state = TipState::new();
+                state.tid.store(tid, Ordering::SeqCst);
+                state.activated.store(true, Ordering::SeqCst);
+                state.set_shortcuts_for_test(retype_ai::config::Shortcuts::default());
+                *lock(&state.thread_mgr) = Some(manager.clone());
+                let session = crate::session::Session::start_with("Z:/retype-test/no-dict".into());
+                session.submit(InputEvent::SetEnglishOptions {
+                    enabled: true,
+                    spelling: true,
+                });
+                *lock(&state.session) = Some(Arc::clone(&session));
+                crate::profiles::apply(&state, false)?;
+                let keys: ITfKeyEventSink = crate::tip::KeyEventSink {
+                    state: Arc::downgrade(&state),
+                }
+                .into();
+                let lp = windows::Win32::Foundation::LPARAM(0);
+
+                for vk in ['H', 'E', 'L'] {
+                    let key = windows::Win32::Foundation::WPARAM(vk as usize);
+                    assert!(keys.OnTestKeyDown(&context, key, lp)?.as_bool());
+                    assert!(keys.OnKeyDown(&context, key, lp)?.as_bool());
+                }
+                assert_eq!(
+                    session
+                        .backend
+                        .with_kernel(|k| k.composition_text())
+                        .to_ascii_lowercase(),
+                    "hel"
+                );
+                assert!(session.backend.with_kernel(|k| k
+                    .render_state()
+                    .candidates
+                    .iter()
+                    .any(|candidate| candidate.text.eq_ignore_ascii_case("hello"))));
+                assert!(lock(&state.composition).is_some());
+                request(&state, &context, Work::Finish(false))?;
+                assert_eq!(
+                    String::from_utf16_lossy(&lock(&data).text).to_ascii_lowercase(),
+                    "hel"
+                );
+
+                for scope in [IS_PASSWORD, IS_PRIVATE, IS_NUMERIC_PIN] {
+                    lock(&data).input_scope = Some(scope);
+                    let before = lock(&data).text.len();
+                    let key = windows::Win32::Foundation::WPARAM('S' as usize);
+                    // TestKey may claim the letter before a read lock exists.
+                    // The write session still checks scope, inserts it literally
+                    // and never builds a candidate or learns the private text.
+                    assert!(keys.OnTestKeyDown(&context, key, lp)?.as_bool());
+                    assert!(keys.OnKeyDown(&context, key, lp)?.as_bool());
+                    assert_eq!(lock(&data).text.len(), before + 1);
+                    assert!(String::from_utf16_lossy(&lock(&data).text)
+                        .to_ascii_lowercase()
+                        .ends_with('s'));
+                    assert!(!session
+                        .backend
+                        .with_kernel(|k| k.has_composition() || k.has_candidates()));
+                    assert!(lock(&state.composition).is_none());
+                    assert!(
+                        !keys
+                            .OnTestKeyDown(&context, windows::Win32::Foundation::WPARAM(0x08), lp)?
+                            .as_bool(),
+                        "private-field Backspace remains native"
+                    );
+                }
+
+                // A host refusing the edit must receive the real key itself.
+                lock(&data).input_scope = Some(IS_DEFAULT);
+                lock(&data).reject = true;
+                let before = lock(&data).text.clone();
+                let letter = windows::Win32::Foundation::WPARAM('H' as usize);
+                assert!(keys.OnTestKeyDown(&context, letter, lp)?.as_bool());
+                assert!(!keys.OnKeyDown(&context, letter, lp)?.as_bool());
+                assert_eq!(lock(&data).text, before);
+                assert!(!session
+                    .backend
+                    .with_kernel(|k| k.has_composition() || k.has_candidates()));
+                lock(&data).reject = false;
+
+                // Blur/Finish must not bypass the no-learning policy that explicit
+                // commits enforce. Three finishes would promote this novel spelling
+                // if the old direct record_learning path were still present.
+                let novel = "qzxvfixture";
+                assert!(!session
+                    .backend
+                    .with_kernel(|k| k.english_dictionary().contains_word(novel)));
+                for _ in 0..3 {
+                    for ch in novel.chars() {
+                        request(&state, &context, Work::Key(Key::Char(ch), Modifiers::NONE))?;
+                    }
+                    request(&state, &context, Work::Finish(false))?;
+                }
+                for ch in novel.chars() {
+                    request(&state, &context, Work::Key(Key::Char(ch), Modifiers::NONE))?;
+                }
+                assert!(
+                    !session.backend.with_kernel(|k| k
+                        .render_state()
+                        .candidates
+                        .iter()
+                        .any(|candidate| candidate.text == novel)),
+                    "finishing a word must not add it to personal suggestions"
+                );
+                request(&state, &context, Work::Finish(false))?;
+                state.deactivate()?;
+                document.Pop(TF_POPF_ALL)?;
+                manager.Deactivate()?;
+                Ok(())
+            })();
+            CoUninitialize();
+            result
+        }
+    })
+    .join()
+    .map_err(|_| E_FAIL)?
+}
+
 type TranslationReadResult = std::result::Result<Vec<u16>, String>;
 #[implement(ITfEditSession)]
 struct TranslationProbe {
@@ -1065,7 +1237,7 @@ fn run_host() -> Result<()> {
             .and_then(crate::candidate::CandidateWindow::element_for_test)
             .ok_or(E_FAIL)?;
         let integrated: ITfIntegratableCandidateListUIElement = english_list.cast()?;
-        assert!(!integrated.ShowCandidateNumbers()?.as_bool());
+        assert!(integrated.ShowCandidateNumbers()?.as_bool());
         request(&state, &context, Work::Key(Key::Tab, Modifiers::NONE))?;
         assert!(String::from_utf16_lossy(&lock(&data).text).ends_with(&first));
         assert_eq!(
@@ -1073,22 +1245,88 @@ fn run_host() -> Result<()> {
             1,
             "accepting a candidate without a trailing space counts one word"
         );
-        // Printable digits must survive the complete TSF edit transaction,
-        // even while a visible candidate could previously consume 1-8.
+        // UI-less hosts display the Chinese/POS comment, but accepting the
+        // displayed row must submit only its original English commit text.
+        let before_annotated = String::from_utf16_lossy(&lock(&data).text);
+        for ch in "hel".chars() {
+            request(&state, &context, Work::Key(Key::Char(ch), Modifiers::NONE))?;
+        }
+        let mut annotated = session.backend.with_kernel(|k| k.render_state());
+        let expected_word = annotated.candidates[0].text.clone();
+        annotated.candidates[0].language = retype_types::CandidateLanguage::English;
+        annotated.candidates[0].comment = "n. 测试释义".into();
+        let layout = crate::popup::measure(&annotated, None, None);
+        let mut window = lock(&state.window).take().ok_or(E_FAIL)?;
+        window.update(&state, &manager, &context, &annotated, None, &layout)?;
+        let list = window.element_for_test().ok_or(E_FAIL)?;
+        *lock(&state.window) = Some(window);
+        assert!(list.GetString(0)?.to_string().contains("测试释义"));
+        list.SetSelection(0)?;
+        list.Finalize()?;
+        assert_eq!(
+            String::from_utf16_lossy(&lock(&data).text),
+            format!("{before_annotated}{expected_word}"),
+            "Finalize must not write a number, POS label or Chinese meaning"
+        );
+        assert!(lock(&state.composition).is_none());
+        let _ = stats::take_test_words();
+        // 1-5 choose an existing visible row; other digits (and missing rows)
+        // remain literal in the complete TSF edit transaction.
         for digit in '0'..='9' {
-            for ch in "python".chars() {
+            for ch in "art".chars() {
                 request(&state, &context, Work::Key(Key::Char(ch), Modifiers::NONE))?;
             }
+            let render = session.backend.with_kernel(|k| k.render_state());
+            let expected = if ('1'..='5').contains(&digit) {
+                render
+                    .visible()
+                    .get(digit as usize - '1' as usize)
+                    .map(|candidate| candidate.text.clone())
+                    .unwrap_or_else(|| format!("art{digit}"))
+            } else {
+                format!("art{digit}")
+            };
             request(
                 &state,
                 &context,
                 Work::Key(Key::Char(digit), Modifiers::NONE),
             )?;
-            assert!(
-                String::from_utf16_lossy(&lock(&data).text).ends_with(&format!("python{digit}"))
-            );
+            assert!(String::from_utf16_lossy(&lock(&data).text).ends_with(&expected));
             request(&state, &context, Work::Key(Key::Space, Modifiers::NONE))?;
         }
+        for ch in "art".chars() {
+            request(&state, &context, Work::Key(Key::Char(ch), Modifiers::NONE))?;
+        }
+        assert!(state.wants(Key::PageDown, Modifiers::NONE));
+        assert!(state.wants(Key::Char('+'), Modifiers::SHIFT));
+        let text_before_page = lock(&data).text.clone();
+        request(&state, &context, Work::Key(Key::Char('='), Modifiers::NONE))?;
+        assert!(session
+            .backend
+            .with_kernel(|k| k.render_state().page_start > 0));
+        assert_eq!(lock(&data).text, text_before_page);
+        request(
+            &state,
+            &context,
+            Work::Key(Key::Char('_'), Modifiers::SHIFT),
+        )?;
+        assert_eq!(
+            session.backend.with_kernel(|k| k.render_state().page_start),
+            0
+        );
+        assert_eq!(lock(&data).text, text_before_page);
+        request(&state, &context, Work::Finish(false))?;
+        for ch in "qzxvfixture".chars() {
+            request(&state, &context, Work::Key(Key::Char(ch), Modifiers::NONE))?;
+        }
+        assert!(!state.wants(Key::PageDown, Modifiers::NONE));
+        assert!(!state.wants(Key::Char('+'), Modifiers::SHIFT));
+        request(
+            &state,
+            &context,
+            Work::Boundary(Key::Char('+'), Modifiers::SHIFT),
+        )?;
+        assert!(String::from_utf16_lossy(&lock(&data).text).ends_with("qzxvfixture"));
         let _ = stats::take_test_words();
         let before = String::from_utf16_lossy(&lock(&data).text);
         for ch in "hel".chars() {
@@ -1114,7 +1352,9 @@ fn run_host() -> Result<()> {
             request(&state, &context, Work::Key(Key::Char(ch), Modifiers::NONE))?;
         }
         let deadline = std::time::Instant::now() + std::time::Duration::from_secs(2);
-        while !lock(&seen_candidates).iter().any(|word| word == "hello")
+        while !lock(&seen_candidates)
+            .iter()
+            .any(|word| word.split_whitespace().next() == Some("hello"))
             && std::time::Instant::now() < deadline
         {
             use windows::Win32::UI::WindowsAndMessaging::*;
@@ -1125,7 +1365,9 @@ fn run_host() -> Result<()> {
             std::thread::sleep(std::time::Duration::from_millis(5));
         }
         assert!(
-            lock(&seen_candidates).iter().any(|word| word == "hello"),
+            lock(&seen_candidates)
+                .iter()
+                .any(|word| word.split_whitespace().next() == Some("hello")),
             "background spelling suggestions must reach UI-less hosts without another key"
         );
         assert!(String::from_utf16_lossy(&lock(&data).text).ends_with("hellp"));
@@ -1169,6 +1411,21 @@ fn run_host() -> Result<()> {
         .into();
         let shift = WPARAM(0x10);
         let lp = LPARAM(0);
+        // The product leaves bare Shift to the host by default. This fixture
+        // must not inherit a user's saved binding or assume the upstream Shift
+        // default that the English-only product deliberately removed.
+        state.set_shortcuts_for_test(retype_ai::config::Shortcuts::default());
+        assert!(!keys.OnTestKeyDown(&context, shift, lp)?.as_bool());
+        assert!(!keys.OnKeyDown(&context, shift, lp)?.as_bool());
+        assert!(!keys.OnTestKeyUp(&context, shift, lp)?.as_bool());
+        assert!(!keys.OnKeyUp(&context, shift, lp)?.as_bool());
+        assert!(session.backend.with_kernel(|k| k.is_chinese()));
+        // Keep the legacy Chinese/ASCII routing covered as an explicitly
+        // configured fixture; it is never enabled by the production default.
+        state.set_shortcuts_for_test(retype_ai::config::Shortcuts {
+            mode: retype_ai::config::Shortcut::SHIFT,
+            ..Default::default()
+        });
         let tap_shift = || -> Result<()> {
             assert!(keys.OnTestKeyDown(&context, shift, lp)?.as_bool());
             assert!(!keys.OnKeyDown(&context, shift, lp)?.as_bool());
@@ -1366,6 +1623,21 @@ fn run_host() -> Result<()> {
         );
         assert!(String::from_utf16_lossy(&lock(&data).text).ends_with('你'));
         assert!(lock(&state.composition).is_none());
+        // Symbol pairing is off in the product by default. Cover that mode
+        // explicitly, then opt this fixture into pairing for the retained
+        // nesting/deletion/Chromium regressions, without changing user settings.
+        {
+            let _disabled = crate::preferences::symbol_completion_for_test(false);
+            let before = String::from_utf16_lossy(&lock(&data).text);
+            request(&state, &context, Work::Key(Key::Char('('), Modifiers::NONE))?;
+            assert_eq!(
+                String::from_utf16_lossy(&lock(&data).text),
+                format!("{before}（")
+            );
+            assert!(lock(&state.symbol_pairs).is_empty());
+            request(&state, &context, Work::Key(Key::Char(')'), Modifiers::NONE))?;
+        }
+        let _enabled = crate::preferences::symbol_completion_for_test(true);
         check_symbol_completion(&state, &context, &data)?;
         // Run the same nesting, deletion, closer-skip and Pinyin/English cases
         // against a host that applies Chromium's post-lock caret behavior.
@@ -1787,6 +2059,154 @@ fn assistance_selection_refuses_change_then_undo_and_keeps_neighbor_text() -> Re
                 );
                 lock(&saved).take();
                 document.Pop(TF_POPF_ALL)?;
+                manager.Deactivate()?;
+                Ok(())
+            })();
+            CoUninitialize();
+            result
+        }
+    })
+    .join()
+    .map_err(|_| E_FAIL)?
+}
+
+#[test]
+fn assistance_selection_rejects_a_fresh_truncated_text_store() -> Result<()> {
+    std::thread::spawn(|| -> Result<()> {
+        unsafe {
+            CoInitializeEx(None, COINIT_APARTMENTTHREADED).ok()?;
+            let result = (|| -> Result<()> {
+                let manager: ITfThreadMgr =
+                    CoCreateInstance(&CLSID_TF_ThreadMgr, None, CLSCTX_INPROC_SERVER)?;
+                let tid = manager.Activate()?;
+                let document = manager.CreateDocumentMgr()?;
+                let original: Vec<u16> = "prefix OLD suffix".encode_utf16().collect();
+                // Set the host's read limitation before TSF can cache any text.
+                let data = Arc::new(Mutex::new(Data {
+                    text: original.clone(),
+                    start: 7,
+                    end: 10,
+                    input_scope: Some(IS_DEFAULT),
+                    text_read_stop: Some(8),
+                    ..Default::default()
+                }));
+                let store: ITextStoreACP = Store {
+                    data: Arc::clone(&data),
+                }
+                .into();
+                let mut context = None;
+                let mut cookie = 0;
+                document.CreateContext(tid, 0, &store, &mut context, &mut cookie)?;
+                let context = context.ok_or(E_FAIL)?;
+                document.Push(&context)?;
+                let saved = Arc::new(Mutex::new(None));
+                let session: ITfEditSession = AssistSelectionProbe {
+                    context: context.clone(),
+                    saved: Arc::clone(&saved),
+                    work: AssistProbeWork::Capture,
+                    applied: Arc::new(Mutex::new(None)),
+                }
+                .into();
+                // Rejected reads may be returned as the outer request error or
+                // as the edit-session HRESULT; neither may produce a snapshot.
+                let result = context
+                    .RequestEditSession(tid, &session, TF_ES_SYNC | TF_ES_READWRITE)
+                    .and_then(|status| status.ok());
+                assert!(
+                    result.is_err(),
+                    "a prefix must not authorize replacing the entire selected range"
+                );
+                assert!(
+                    lock(&data).truncated_reads > 0,
+                    "fixture must exercise the truncated host, not an earlier full-text cache"
+                );
+                assert!(lock(&saved).is_none());
+                assert_eq!(lock(&data).text, original);
+                document.Pop(TF_POPF_ALL)?;
+                manager.Deactivate()?;
+                Ok(())
+            })();
+            CoUninitialize();
+            result
+        }
+    })
+    .join()
+    .map_err(|_| E_FAIL)?
+}
+
+#[test]
+fn assistance_focus_events_close_notices_without_a_composition_or_timer_poll() -> Result<()> {
+    use windows::Win32::UI::WindowsAndMessaging::*;
+    use windows_core::w;
+    std::thread::spawn(|| -> Result<()> {
+        unsafe {
+            CoInitializeEx(None, COINIT_APARTMENTTHREADED).ok()?;
+            let result = (|| -> Result<()> {
+                let manager: ITfThreadMgr =
+                    CoCreateInstance(&CLSID_TF_ThreadMgr, None, CLSCTX_INPROC_SERVER)?;
+                let tid = manager.Activate()?;
+                let first = manager.CreateDocumentMgr()?;
+                let second = manager.CreateDocumentMgr()?;
+                let store: ITextStoreACP = Store {
+                    data: Arc::new(Mutex::new(Data::default())),
+                }
+                .into();
+                let mut context = None;
+                let mut cookie = 0;
+                first.CreateContext(tid, 0, &store, &mut context, &mut cookie)?;
+                let context = context.ok_or(E_FAIL)?;
+                first.Push(&context)?;
+                let state = TipState::new();
+                let events = crate::tip::focus_sink_for_test(&state);
+                let thread_events: ITfThreadFocusSink = events.cast()?;
+                let key_events: ITfKeyEventSink = crate::tip::KeyEventSink {
+                    state: Arc::downgrade(&state),
+                }
+                .into();
+                for action in 0..5 {
+                    assert!(lock(&state.composition).is_none());
+                    // Real hidden windows, no timer, input injection, application
+                    // activation or network. Only the focus callback can close them.
+                    let notice = || -> Result<HWND> {
+                        CreateWindowExW(
+                            WINDOW_EX_STYLE::default(),
+                            w!("STATIC"),
+                            w!("assist focus test"),
+                            WS_OVERLAPPED,
+                            0,
+                            0,
+                            1,
+                            1,
+                            Some(HWND_MESSAGE),
+                            None,
+                            None,
+                            None,
+                        )
+                    };
+                    let ai = notice()?;
+                    let voice = notice()?;
+                    *lock(&state.translation_window) = Some(ai.0 as usize);
+                    *lock(&state.voice_window) = Some(voice.0 as usize);
+                    match action {
+                        0 => {
+                            // Redundant focus notification must keep the request.
+                            events.OnSetFocus(&first, &first)?;
+                            assert!(IsWindow(Some(ai)).as_bool());
+                            // No message pump between A -> B -> A.
+                            events.OnSetFocus(&second, &first)?;
+                            events.OnSetFocus(&first, &second)?;
+                        }
+                        1 => events.OnPushContext(&context)?,
+                        2 => events.OnPopContext(&context)?,
+                        3 => thread_events.OnKillThreadFocus()?,
+                        _ => key_events.OnSetFocus(false)?,
+                    }
+                    assert!(lock(&state.translation_window).is_none());
+                    assert!(lock(&state.voice_window).is_none());
+                    assert!(!IsWindow(Some(ai)).as_bool());
+                    assert!(!IsWindow(Some(voice)).as_bool());
+                }
+                first.Pop(TF_POPF_ALL)?;
                 manager.Deactivate()?;
                 Ok(())
             })();

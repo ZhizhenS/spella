@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
   Build the independent English Assist Windows development installer.
 .DESCRIPTION
@@ -11,10 +11,15 @@ param(
   [switch]$NoTest,
   [switch]$Installer,
   [string]$IsccPath,
-  [ValidatePattern('^\d+\.\d+\.\d+(\.\d+)?$')][string]$Version = '0.1.0'
+  [string]$PythonPath = $env:ENGLISH_ASSIST_PYTHON,
+  [ValidatePattern('^\d+\.\d+\.\d+(\.\d+)?$')][string]$Version
 )
 $ErrorActionPreference = 'Stop'
 $taskRepo = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
+. (Join-Path $PSScriptRoot 'frozen-payload.ps1')
+$taskSourceVersion = Get-EnglishAssistSourceVersion $taskRepo
+if (-not $Version) { $Version = $taskSourceVersion }
+if ($Version -ne $taskSourceVersion) { throw 'Installer version must equal Cargo.toml workspace.package.version.' }
 . (Join-Path $taskRepo 'tools\english-assist\enter-env.ps1')
 Push-Location $taskRepo
 try {
@@ -25,69 +30,61 @@ try {
   if ($LASTEXITCODE -ne 0 -or $taskTargets -notcontains 'i686-pc-windows-msvc') {
     throw 'The i686-pc-windows-msvc Rust target is required.'
   }
+  $taskStage = Join-Path $taskRepo ('dist\.english-assist-freeze-' + [Guid]::NewGuid().ToString('N'))
+  $taskDistRoot = Join-Path $taskRepo 'dist'
+  if ([IO.Directory]::Exists($taskDistRoot) -and
+      (([IO.File]::GetAttributes($taskDistRoot) -band [IO.FileAttributes]::ReparsePoint) -ne 0)) {
+    throw 'The build output directory must not be a reparse point.'
+  }
+  New-Item -ItemType Directory -Path $taskStage -Force | Out-Null
   & cargo build --release --locked -p retype-tsf -p retype-diag -p retype-settings-egui
   if ($LASTEXITCODE -ne 0) { throw 'Windows x64 build failed.' }
+  Copy-EnglishAssistProductionGroup $taskRepo $taskStage 'x64'
   & cargo build --release --locked -p retype-learning --features broker
   if ($LASTEXITCODE -ne 0) { throw 'Learning broker build failed.' }
+  Copy-EnglishAssistProductionGroup $taskRepo $taskStage 'learning'
   & cargo build --release --locked -p retype-ai --features service
   if ($LASTEXITCODE -ne 0) { throw 'AI helper build failed.' }
+  Copy-EnglishAssistProductionGroup $taskRepo $taskStage 'ai'
   & cargo build --release --locked --target i686-pc-windows-msvc -p retype-tsf
   if ($LASTEXITCODE -ne 0) { throw 'Windows x86 TSF build failed.' }
+  Copy-EnglishAssistProductionGroup $taskRepo $taskStage 'x86'
   & cargo run --release --locked -p retype-resource-build -- --english-only --out dist/english-dictionaries
   if ($LASTEXITCODE -ne 0) { throw 'Offline English vocabulary build/check failed.' }
+  & (Join-Path $taskRepo 'tools\english-assist\build-english-lexicon.ps1') -PythonPath $PythonPath -Test:(-not $NoTest)
+  Copy-EnglishAssistProductionGroup $taskRepo $taskStage 'support'
+  Complete-EnglishAssistPayload $taskRepo $taskStage $Version
+  $taskDist = Publish-EnglishAssistFrozenPayload $taskRepo $taskStage $Version
+  # The production DLL/EXE files are now frozen. Tests/tools may rebuild target/.
+
   if (-not $NoTest) {
-    & cargo test --release --locked -p retype-tsf -p retype-english -p retype-engine -p retype-ai-core -p retype-ai -p retype-candidate-ui -p retype-learning --features retype-ai-core/service,retype-ai/service,retype-learning/broker
+    & (Join-Path $PSScriptRoot 'tests\install-state.tests.ps1')
+    & (Join-Path $PSScriptRoot 'tests\pending-renames.tests.ps1')
+    & (Join-Path $PSScriptRoot 'tests\frozen-payload.tests.ps1')
+    foreach ($taskShell in @('System32', 'SysWOW64')) {
+      foreach ($taskMode in @('Missing','CoreOnly','Foreign')) {
+        & (Join-Path $env:SystemRoot "$taskShell\WindowsPowerShell\v1.0\powershell.exe") -NoProfile -NonInteractive -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'tests\powershell-bootstrap.tests.ps1') -Mode $taskMode -CoreModulePath (Join-Path $PSHOME 'Modules')
+        if ($LASTEXITCODE -ne 0) { throw "PowerShell bootstrap tests failed ($taskMode, $taskShell)." }
+      }
+      & (Join-Path $env:SystemRoot "$taskShell\WindowsPowerShell\v1.0\powershell.exe") -NoProfile -NonInteractive -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'tests\profile-interop.tests.ps1')
+      if ($LASTEXITCODE -ne 0) { throw "Profile ABI/scope tests failed in $taskShell Windows PowerShell." }
+      & (Join-Path $env:SystemRoot "$taskShell\WindowsPowerShell\v1.0\powershell.exe") -NoProfile -NonInteractive -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'tests\offline-resources.tests.ps1')
+      if ($LASTEXITCODE -ne 0) { throw "Offline resource integrity tests failed in $taskShell Windows PowerShell." }
+      & (Join-Path $env:SystemRoot "$taskShell\WindowsPowerShell\v1.0\powershell.exe") -NoProfile -NonInteractive -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'tests\manual-words-access.tests.ps1')
+      if ($LASTEXITCODE -ne 0) { throw "Manual dictionary scope/ACL tests failed in $taskShell Windows PowerShell." }
+      & (Join-Path $env:SystemRoot "$taskShell\WindowsPowerShell\v1.0\powershell.exe") -NoProfile -NonInteractive -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'tests\cleanup-process.tests.ps1')
+      if ($LASTEXITCODE -ne 0) { throw "Cleanup process identity/race and own-TIP tombstone tests failed in $taskShell Windows PowerShell." }
+    }
+    & (Join-Path $PSScriptRoot 'tests\profile-interop.tests.ps1')
+    & (Join-Path $PSScriptRoot 'tests\user-profile-diagnostics.tests.ps1')
+    & cargo test --release --locked -p retype-tsf -p retype-english -p retype-engine -p retype-ai-core -p retype-ai -p retype-candidate-ui -p retype-learning -p retype-settings-egui --features retype-ai-core/service,retype-ai/service,retype-learning/broker
     if ($LASTEXITCODE -ne 0) { throw 'Core/TSF tests failed.' }
     & cargo test --release --locked --target i686-pc-windows-msvc -p retype-tsf
     if ($LASTEXITCODE -ne 0) { throw 'x86 TSF tests failed.' }
   }
-  $taskDist = Join-Path $taskRepo 'dist\english-assist'
-  New-Item -ItemType Directory -Path $taskDist -Force | Out-Null
-  New-Item -ItemType Directory -Path (Join-Path $taskDist 'x86') -Force | Out-Null
-  New-Item -ItemType Directory -Path (Join-Path $taskDist 'settings') -Force | Out-Null
-  New-Item -ItemType Directory -Path (Join-Path $taskDist 'dictionaries') -Force | Out-Null
-  foreach ($taskFile in @('retype_ime.dll','retype-diag.exe','retype-learning-host.exe','retype-ai-host.exe')) {
-    Copy-Item -LiteralPath (Join-Path $taskRepo "target\release\$taskFile") -Destination $taskDist -Force
-  }
-  Copy-Item -LiteralPath (Join-Path $taskRepo 'target\i686-pc-windows-msvc\release\retype_ime.dll') -Destination (Join-Path $taskDist 'x86') -Force
-  Copy-Item -LiteralPath (Join-Path $taskRepo 'target\release\retype-settings-egui.exe') -Destination (Join-Path $taskDist 'settings\retype.exe') -Force
-  Get-ChildItem -LiteralPath (Join-Path $taskRepo 'dist\english-dictionaries') -Filter 'english-*.bin' |
-    Copy-Item -Destination (Join-Path $taskDist 'dictionaries') -Force
-  foreach ($taskFile in @('LICENSE','NOTICE.txt','assets\retype.ico','platforms\windows\installer\user-profile.ps1','platforms\windows\installer\cleanup-english-assist.ps1')) {
-    Copy-Item -LiteralPath (Join-Path $taskRepo $taskFile) -Destination $taskDist -Force
-  }
-  Get-ChildItem -LiteralPath (Join-Path $taskRepo 'data\dict\raw\english') -Filter 'LICENSE-*' |
-    Copy-Item -Destination $taskDist -Force
-  $taskMetadata = [ordered]@{
-    product = 'English Assist'
-    version = $Version
-    upstreamCommit = '902e35e06ee4f744320cf995c39b1f64693034cf'
-    tipClsid = '{9257DCE8-EC1B-4D4A-8EA0-8795A9FD881D}'
-    englishProfile = '{F395A724-DC88-4E75-B3D4-9063A552B8F4}'
-    languageId = '0409'
-    note = 'Build output; application compatibility must be tested separately.'
-  }
-  $taskMetadata | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $taskDist 'build.json') -Encoding UTF8
+  $null = Assert-EnglishAssistFrozenPayload $taskDist $Version
   if ($Installer) {
-    if (-not $IsccPath) {
-      $taskCandidates = @(
-        'C:\Program Files (x86)\Inno Setup 6\ISCC.exe',
-        'C:\Program Files\Inno Setup 6\ISCC.exe',
-        (Join-Path $env:LOCALAPPDATA 'Programs\Inno Setup 6\ISCC.exe')
-      )
-      $IsccPath = $taskCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
-    }
-    if (-not $IsccPath -or -not (Test-Path -LiteralPath $IsccPath)) {
-      throw 'Inno Setup 6 is required to create the installer; pass -IsccPath.'
-    }
-    & $IsccPath "/DRepoRoot=$taskRepo" "/DMyAppVersion=$Version" (Join-Path $PSScriptRoot 'english-assist.iss')
-    if ($LASTEXITCODE -ne 0) { throw 'English Assist installer compilation failed.' }
-    $taskSetup = Join-Path $taskRepo "dist\english-assist-$Version-windows-x64-setup.exe"
-    $taskHash = (Get-FileHash -LiteralPath $taskSetup -Algorithm SHA256).Hash.ToLowerInvariant()
-    [IO.File]::WriteAllText($taskSetup + '.sha256',
-      $taskHash + '  ' + [IO.Path]::GetFileName($taskSetup) + [Environment]::NewLine,
-      [Text.UTF8Encoding]::new($false))
-    Write-Output $taskSetup
+    & (Join-Path $PSScriptRoot 'repack-english-assist.ps1') -PayloadRoot $taskDist -IsccPath $IsccPath
   }
   Write-Output $taskDist
 } finally {

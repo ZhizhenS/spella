@@ -3,7 +3,22 @@
 use retype_types::{Candidate, CandidateLanguage, CandidateSource, LearningStore};
 use std::collections::{BinaryHeap, HashSet};
 mod image;
-pub use image::{compile, current, install, Vocabulary, MAGIC, MAX_BYTES};
+pub mod lexicon;
+pub use image::{compile, current, Vocabulary, MAGIC, MAX_BYTES};
+pub use lexicon::set_manual_words;
+/// Resource-worker entry point. A missing sidecar supports older installations.
+/// Lookup methods below never open files or execute SQL.
+pub fn install(path: &std::path::Path) -> Result<(), String> {
+    let sidecar = path.with_file_name(lexicon::FILE_NAME);
+    let annotations = if sidecar.try_exists().map_err(|error| error.to_string())? {
+        lexicon::Lexicon::open(&sidecar)?
+    } else {
+        std::sync::Arc::new(lexicon::Lexicon::empty())
+    };
+    image::install(path)?;
+    lexicon::publish(annotations);
+    Ok(())
+}
 pub fn valid_word(input: &str) -> bool {
     !input.is_empty()
         && input.len() <= 64
@@ -60,11 +75,15 @@ impl Vocabulary {
     pub fn contains_word(&self, input: &str) -> bool {
         self.find(&input.to_ascii_lowercase()).is_some()
     }
-    fn candidate(&self, id: usize, input: &str) -> Candidate {
+    fn candidate(&self, id: usize, input: &str, lexicon: &lexicon::Lexicon) -> Candidate {
         let mut c = Candidate::new(casing(self.word(id), input), CandidateSource::Local);
         c.language = CandidateLanguage::English;
         c.consumed = input.len();
         c.score = (self.frequency(id) as f64).ln() as f32;
+        if let Some(entry) = lexicon.lookup(self.word(id)) {
+            c.comment = entry.comment();
+            c.annotation = Some(entry.annotation(false));
+        }
         c
     }
     /// Top-frequency prefix results via a precompiled range-max tree.
@@ -74,7 +93,37 @@ impl Vocabulary {
         learner: &dyn LearningStore,
         limit: usize,
     ) -> Vec<Candidate> {
-        if !valid_word(input) {
+        self.complete_with_pinyin(input, learner, limit, true)
+    }
+    pub fn complete_with_pinyin(
+        &self,
+        input: &str,
+        learner: &dyn LearningStore,
+        limit: usize,
+        enabled: bool,
+    ) -> Vec<Candidate> {
+        if limit == 0 || !valid_word(input) {
+            return Vec::new();
+        }
+        self.complete_from(
+            input,
+            learner,
+            limit,
+            enabled,
+            &lexicon::current(),
+            &lexicon::manual(),
+        )
+    }
+    fn complete_from(
+        &self,
+        input: &str,
+        learner: &dyn LearningStore,
+        limit: usize,
+        enabled: bool,
+        lexicon: &lexicon::Lexicon,
+        manual: &lexicon::ManualWords,
+    ) -> Vec<Candidate> {
+        if limit == 0 || !valid_word(input) {
             return Vec::new();
         }
         let key = input.to_ascii_lowercase();
@@ -106,7 +155,7 @@ impl Vocabulary {
                 break;
             };
             if node >= self.size() {
-                hits.push(self.candidate(node - self.size(), input));
+                hits.push(self.candidate(node - self.size(), input, lexicon));
             } else {
                 push(&mut heap, node * 2);
                 push(&mut heap, node * 2 + 1);
@@ -140,13 +189,110 @@ impl Vocabulary {
                 hits.push(c);
             }
         }
+        for entry in lexicon.supplementary(input, limit, |word| self.find(word).is_none()) {
+            if hits
+                .iter()
+                .any(|candidate| candidate.text.eq_ignore_ascii_case(entry.word))
+            {
+                continue;
+            }
+            let mut candidate = Candidate::new(casing(entry.word, input), CandidateSource::Local);
+            candidate.language = CandidateLanguage::English;
+            candidate.consumed = input.len();
+            candidate.comment = entry.comment();
+            candidate.annotation = Some(entry.annotation(false));
+            candidate.score = -20. - (entry.rank as f64).ln() as f32;
+            hits.push(candidate);
+        }
         hits.sort_by(|a, b| {
             b.score
                 .total_cmp(&a.score)
                 .then_with(|| a.text.cmp(&b.text))
         });
-        hits.truncate(limit);
-        hits
+        if self.find(&key).is_none() && lexicon.lookup(&key).is_some() {
+            hits.sort_by_key(|candidate| !candidate.text.eq_ignore_ascii_case(input));
+        }
+        let mut personal = manual.complete(input, limit);
+        let personal_keys: HashSet<_> = personal
+            .iter()
+            .map(|candidate| candidate.text.to_ascii_lowercase())
+            .collect();
+        hits.retain(|candidate| !personal_keys.contains(&candidate.text.to_ascii_lowercase()));
+        personal.extend(hits);
+        self.assist(input, personal, limit, enabled, lexicon)
+    }
+
+    fn assist(
+        &self,
+        input: &str,
+        mut hits: Vec<Candidate>,
+        limit: usize,
+        enabled: bool,
+        lexicon: &lexicon::Lexicon,
+    ) -> Vec<Candidate> {
+        for candidate in &mut hits {
+            if candidate.source == CandidateSource::User && !candidate.comment.is_empty() {
+                continue;
+            }
+            if let Some(entry) = lexicon.lookup(&candidate.text) {
+                candidate.comment = entry.comment();
+                candidate.annotation = Some(entry.annotation(false));
+            }
+        }
+        if !enabled {
+            hits.truncate(limit);
+            return hits;
+        }
+        let (exact, pinyin) = lexicon.pinyin(input, limit);
+        if pinyin.is_empty() {
+            hits.truncate(limit);
+            return hits;
+        }
+        let pinyin: Vec<_> = pinyin
+            .into_iter()
+            .map(|entry| {
+                let mut candidate =
+                    Candidate::new(casing(entry.word, input), CandidateSource::Local);
+                candidate.language = CandidateLanguage::English;
+                candidate.consumed = input.len();
+                candidate.comment = entry.comment();
+                candidate.annotation = Some(entry.annotation(true));
+                candidate.score = self
+                    .find(entry.word)
+                    .map_or(-20., |id| (self.frequency(id) as f64).ln() as f32);
+                candidate
+            })
+            .collect();
+        let mut combined = Vec::new();
+        // Preserve actual English words (he/an/you) when they are also pinyin.
+        // Complete pinyin such as nihao/pingguo must reach its English meanings.
+        let known_english = self.contains_word(input)
+            || lexicon.lookup(input).is_some()
+            || hits.iter().any(|candidate| {
+                candidate.source == CandidateSource::User
+                    && candidate.text.eq_ignore_ascii_case(input)
+            });
+        if exact && !known_english {
+            combined.extend(pinyin);
+            combined.extend(hits);
+        } else {
+            // Keep English first, reserving a small tail for prefix lookup so a
+            // large English prefix list cannot permanently hide pinyin results.
+            let reserved = pinyin.len().min(4).min(limit);
+            let english_slots = if hits.is_empty() {
+                0
+            } else {
+                limit.saturating_sub(reserved).max(1)
+            };
+            let tail = hits.split_off(hits.len().min(english_slots));
+            combined.extend(hits);
+            combined.extend(pinyin);
+            combined.extend(tail);
+        }
+        let mut seen = HashSet::new();
+        combined.retain(|candidate| seen.insert(candidate.text.to_ascii_lowercase()));
+        combined.truncate(limit);
+        combined
     }
 
     /// A small mixed-language stream, exact spelling before frequency-ranked completions.
@@ -158,7 +304,7 @@ impl Vocabulary {
         let mut hits = self.complete(input, learner, limit);
         if let Some(id) = self.find(&input.to_ascii_lowercase()) {
             if !hits.iter().any(|c| c.text.eq_ignore_ascii_case(input)) {
-                hits.push(self.candidate(id, input));
+                hits.push(self.candidate(id, input, &lexicon::current()));
             }
         }
         hits.sort_by_key(|c| !c.text.eq_ignore_ascii_case(input));
@@ -168,9 +314,10 @@ impl Vocabulary {
     /// One-edit spelling suggestions (insertion/deletion/substitution/transposition).
     /// Called on the background worker, never while holding the kernel lock.
     pub fn correct(&self, input: &str, limit: usize) -> Vec<Candidate> {
-        if !valid_word(input) || input.len() < 3 {
+        if limit == 0 || !valid_word(input) || input.len() < 3 {
             return Vec::new();
         }
+        let lexicon = lexicon::current();
         let key = input.to_ascii_lowercase();
         let mut ids = HashSet::new();
         let mut add = |s: &str| {
@@ -207,8 +354,10 @@ impl Vocabulary {
         ids.into_iter()
             .take(limit)
             .map(|id| {
-                let mut c = self.candidate(id, input);
-                c.comment = "spelling".into();
+                let mut c = self.candidate(id, input, &lexicon);
+                if c.comment.is_empty() {
+                    c.comment = "拼写纠正".into();
+                }
                 c
             })
             .collect()
@@ -246,6 +395,114 @@ mod tests {
     struct Empty;
     impl LearningStore for Empty {
         fn record(&self, _: retype_types::LearningEvent) {}
+    }
+    fn small_vocabulary(source: &[u8]) -> Vocabulary {
+        let mut bytes = Vec::new();
+        compile(source, &mut bytes).unwrap();
+        Vocabulary::from_bytes(bytes).unwrap()
+    }
+    #[test]
+    fn known_english_keeps_a_slot_even_with_one_or_two_candidate_limits() {
+        let vocabulary = small_vocabulary(b"nihao 100\nnihaoz 10\n");
+        let lexicon = lexicon::fixture();
+        for limit in [1, 2, 5] {
+            let hits = vocabulary.complete_from(
+                "nihao",
+                &Empty,
+                limit,
+                true,
+                &lexicon,
+                &lexicon::ManualWords::default(),
+            );
+            assert_eq!(hits[0].text, "nihao");
+            assert!(hits.len() <= limit);
+        }
+    }
+    #[test]
+    fn supplemental_words_manual_overrides_missing_metadata_and_zero_limits() {
+        let vocabulary = small_vocabulary(b"hello 100\nhelp 50\n");
+        let lexicon = lexicon::fixture();
+        for (input, word) in [("app", "apple"), ("APPLE", "APPLE")] {
+            let hits = vocabulary.complete_from(
+                input,
+                &Empty,
+                5,
+                false,
+                &lexicon,
+                &lexicon::ManualWords::default(),
+            );
+            assert_eq!(hits[0].text, word);
+            assert!(hits[0].comment.contains("苹果"));
+        }
+        let manual =
+            lexicon::ManualWords::validate(vec![("Apple".into(), "显式个人备注".into())]).unwrap();
+        let hits = vocabulary.complete_from("app", &Empty, 5, true, &lexicon, &manual);
+        assert_eq!(
+            hits.iter()
+                .filter(|candidate| candidate.text.eq_ignore_ascii_case("apple"))
+                .count(),
+            1
+        );
+        assert_eq!(hits[0].comment, "显式个人备注");
+        assert_eq!(
+            hits[0].annotation.as_ref().unwrap().definition,
+            "显式个人备注"
+        );
+        let hits = vocabulary.complete_from(
+            "hel",
+            &Empty,
+            5,
+            true,
+            &lexicon::Lexicon::empty(),
+            &lexicon::ManualWords::default(),
+        );
+        assert_eq!(hits[0].text, "hello");
+        assert!(hits[0].annotation.is_none());
+        struct NoRead;
+        impl LearningStore for NoRead {
+            fn record(&self, _: retype_types::LearningEvent) {}
+            fn english_words(&self, _: &str, _: usize) -> Vec<(String, u64)> {
+                panic!("zero-limit requests must not read personal data");
+            }
+        }
+        assert!(vocabulary
+            .complete_from("hel", &NoRead, 0, true, &lexicon, &manual)
+            .is_empty());
+        assert!(vocabulary.correct("hellp", 0).is_empty());
+    }
+    #[test]
+    fn pinyin_meanings_merge_with_english_without_entering_committed_text() {
+        let lexicon = lexicon::fixture();
+        let vocabulary = current();
+        for (input, expected) in [("nihao", "hello"), ("pingguo", "apple"), ("pingg", "apple")] {
+            let english = vocabulary.complete_with_pinyin(input, &Empty, 24, false);
+            let hits = vocabulary.assist(input, english.clone(), 24, true, &lexicon);
+            assert!(hits.iter().any(|candidate| candidate.text == expected));
+            assert_eq!(hits[0].text, expected);
+            assert!(hits
+                .iter()
+                .all(|candidate| candidate.consumed == input.len()));
+            assert!(hits
+                .iter()
+                .all(|candidate| !candidate.text.chars().any(|c| c > '\u{7f}')));
+            assert_eq!(
+                vocabulary
+                    .assist(input, english.clone(), 24, false, &lexicon)
+                    .len(),
+                english.len()
+            );
+        }
+        let mut candidate = Candidate::new("apple", CandidateSource::Local);
+        candidate.language = CandidateLanguage::English;
+        let hits = vocabulary.assist("pingguo", vec![candidate], 24, true, &lexicon);
+        assert_eq!(
+            hits.iter()
+                .filter(|candidate| candidate.text == "apple")
+                .count(),
+            1
+        );
+        assert_eq!(hits[0].comment, "n. 苹果；苹果树");
+        assert_eq!(hits[0].text, "apple");
     }
     #[test]
     fn mixed_stream_keeps_exact_spelling_case_and_personal_words() {

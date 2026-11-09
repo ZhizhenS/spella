@@ -1,115 +1,72 @@
 # English Assist 英文输入
 
-This Windows development branch provides an independent English Assist TSF entry.
-The source changes cover local word completion, spelling suggestions and keyboard
-selection. This branch has not yet been compiled, installed or tested in a real
-application; source-level behavior below is the implementation target, not a
-completed compatibility claim. See [P0 validation](english-assist/INPUT_VALIDATION.md).
+本项目是登记在 Windows 英语（美国）语言下的原生 TSF 输入法。0.2.0 提供离线英文补全、拼写建议、中文释义、词性、可选音标和拼音找英文。实际构建和宿主验证状态见 [验证记录](english-assist/INPUT_VALIDATION.md)。
 
-## System entry
+截至 2026-11-09：final-r2 完整构建退出 0；r3 只刷新安装脚本，原生文件保持同一冻结字节，并已完成安装→卸载→重装，各次退出 0。最终安装目录为 `C:\Program Files\EnglishAssist\versions\0.2.0-20261109024807-741245`，24 项文件 SHA/大小与 build.json 全部对齐。
 
-The installer registers only **English Assist 英文助手**, under English (United
-States), language ID 0409. Choose it with Win+Space. Windows Settings exposes it
-under Time & language → Language & region → English (United States) → Language
-options → Add a keyboard. The installer preserves existing keyboard entries and
-does not set a new default keyboard.
+此前 r2 记事本进程 40620 显示词性/中文释义，完成 `hel → 4 → hello`、`pingguo → 1 → apple`、`hel → 翻页 → 3 → helped` 并保存 `hello apple helped`。该证据对应 r3 相同原生字节，不等于最终重装后的全部应用已重新测试。旧文件的8项排队删除未被修改，实际重启删除尚未核验；最终安装探针和设置截图另见 [验证记录](english-assist/INPUT_VALIDATION.md)。
 
-The entry stays English. This product does not install the upstream Chinese
-profile. A delayed active-profile response during activation defaults to English.
-Actual first-focus behavior and language-list enrollment still need P0 testing.
+## 选择输入法
 
-## Keyboard interaction
+按 Win+Space，选择 **English Assist 英文助手**。也可在“设置 → 时间和语言 → 语言和区域 → 英语（美国）→ 语言选项 → 键盘”检查入口。安装器保留其他键盘和原默认输入法。
 
-| Action | Behavior |
+升级后保存工作并重新打开要使用的应用，让它加载新版输入组件。
+
+## 候选与键盘
+
+| 操作 | 行为 |
 | --- | --- |
-| Type letters | Show local prefix candidates; preserve capitals and internal apostrophes. |
-| Type 0–9 | Keep the digit as literal input, including python3 and win11. Digits never select English candidates. |
-| Tab with a candidate | Accept the highlighted candidate without inserting a trailing space. |
-| Click a candidate | Accept it without inserting a trailing space, matching Tab. |
-| Up / Down | Explicitly select a candidate. |
-| Space | Commit the original spelling plus a space unless a candidate was explicitly selected; then commit that candidate plus a space. |
-| Enter without explicit selection | Commit the original spelling and let the application handle Enter. |
-| Enter after explicit selection | Accept only the candidate, without a trailing space or host Enter. A second Enter goes to the application. |
-| Escape | Keep the typed spelling and dismiss completion. |
-| Shift+Tab | Commit the original spelling and preserve the application's reverse focus navigation. |
-| Tab without a candidate | Preserve the application's Tab action. |
-| Left / Right / Home / End | Finish the original word and retain native caret navigation. |
-| Punctuation and ordinary shortcuts | Preserve literal punctuation and native application actions. |
+| 输入英文 | 离线补全；候选显示词性和中文释义，保留大小写 |
+| 输入拼音 | 如 nihao、pingguo、xuexi，查找对应英文；可在设置中关闭 |
+| 1–5 | 接受当前页对应候选，不附加空格 |
+| Tab / 点击候选 | 接受当前候选，不附加空格 |
+| - 或 _ | 上一页 |
+| = 或 + | 下一页 |
+| PageUp / PageDown | 上一页 / 下一页 |
+| ↑ / ↓ | 明确选择候选 |
+| 空格 | 默认提交原输入加空格；明确选词后才接受选中候选并加空格 |
+| 明确选词后 Enter | 只确认候选；下一次 Enter 由应用处理 |
+| 未选词时 Enter | 保留原输入，交给应用处理回车 |
+| Esc | 保留原输入并结束候选 |
+| 无候选时数字、翻页符号、Tab | 保留应用原有输入行为 |
+| Ctrl / Alt 快捷键及光标导航 | 结束当前原词，保留应用原有操作 |
 
-English candidates do not display numeric shortcut labels. A visual highlight
-alone does not count as explicit selection: Space must not silently correct text.
-For example, a spelling suggestion for teh can offer the, but Space retains teh
-unless the user has deliberately selected the suggestion.
+每页最多五条。0、6–9 或当前页没有对应候选的数字不会选择隐藏项。输入 python3 等原始字符串时，如候选仍可见，可先按 Esc，再输入数字。
 
-Spelling suggestions cover a bounded insertion, deletion, substitution or adjacent
-transposition. They arrive after prefix candidates; they do not automatically
-replace typed text.
+拼写建议不自动改写原词。候选上的中文、词性、音标和编号只用于展示，上屏文字只有英文。
 
-## Offline vocabulary and learning
+## 设置与个人词库
 
-The English-specific build compiles the pinned frequency data and packages the
-validated RTENGL01 image beside the installed components, in dictionaries/.
-The installer publishes that immutable location to the current user's profile,
-so first-use completion does not require an online dictionary download.
+设置按常规、输入与查词、候选外观、个人词库与数据、快捷键、AI 服务及关于分类。
 
-Source data and attribution:
+可从开始菜单打开“英文助手设置”。在真正的 AppContainer 中，从候选菜单打开设置受限制；应用是打包形式不等于它一定运行在 AppContainer 中。
 
-- data/dict/raw/english/frequency.txt
-- data/dict/raw/english/SOURCE.txt
-- data/dict/raw/english/LICENSE-SymSpell
-- data/dict/raw/english/LICENSE-SCOWL
-- data/dict/raw/english/LICENSE-Google-Ngram
+候选外观支持跟随系统/浅色/深色、字号、宽度、紧凑模式和词义字段显隐。偏好自动保存，回到输入框后生效。
 
-This uses the upstream word-frequency data; the current spelling algorithm is
-Retype's bounded search, rather than the SymSpell algorithm.
+个人词库提供显式增删改、搜索、导入和导出。JSON 或 UTF-8 TXT/TSV 可导入；TXT/TSV 每行为“单词<Tab>释义”。保存前保留上个版本 manual.json.bak，返回输入框时后台刷新。自动学习关闭，不记录输入历史来生成个人词条；输入不启动学习后台服务，也不添加该服务的登录启动项。
 
-**Automatic English word learning is disabled in this branch.** Committing a
-word or accepting a candidate does not emit a learning event. The current product
-uses the read-only base vocabulary; manual personal-word management and an
-optional learning preference are future work. Existing upstream learning
-infrastructure remains in the source for helper and compatibility functions,
-which must not be confused with automatic English word collection.
+## AI 语法修正与补句
 
-Password, hidden and explicitly private input scopes are excluded by the existing
-input-scope checks. Custom controls and unknown hosts still need real testing;
-do not assume arbitrary controls expose reliable security or editing metadata.
-Normal English completion does not call a cloud model. AI grammar/sentence editing
-is a separate explicit operation under development, with its own range and
-preview validation.
+在设置中配置 DeepSeek 或兼容服务、模型和 API Key。密钥保存在 Windows 凭据管理器；本地补词和查词无需密钥或联网。
 
-## Validation commands
+选中需要处理的英文文本后按 Ctrl+Alt+G，选择语法修正或补句。检查预览后按 Ctrl+Enter 应用，Esc 取消。文本、选区或文档焦点发生变化时，旧结果失效；失败时保留原文。首版需要明确选区，最多 2048 个 UTF-16 单元。
 
-Run these only after configuring Rust MSVC, Visual C++ tools and the Windows SDK:
+本轮尚未配置新的 DeepSeek Key，未调用外部 API；上述操作说明及已有选区/预览回归不能当作真实服务效果、质量或延迟验收。
+
+在真正的 AppContainer 中，若 AI 辅助进程尚未运行，本版无法从该应用冷启动 AI。此限制不泛指所有打包应用；离线补全和查词无需 AI 辅助进程。
+
+## 离线词典与来源
+
+词频资源、英汉释义和拼音索引随安装包分发。英文数据使用各自许可；英汉词义来自 ECDICT，拼音映射来自冻结 CC-CEDICT。具体来源、版本和许可见 NOTICE-English-Assist.txt 及 data/dict/raw/english-assist/。
+
+组合词义/拼音元数据按 CC BY-SA 3.0 分发，保留 ECDICT MIT 和词频来源署名；代码仍为 MIT。匹配版本的源码 ZIP 应包含两份原始压缩数据、SOURCES.json、完整许可/NOTICE、频率源、输出摘要清单与独立编译/校验脚本，不能只保留生成的二进制。
+
+## 构建
+
+需要 Rust MSVC、MSVC x64/x86、Windows SDK、Inno Setup 6 和 Python 3.11+；Python 无需第三方包，可通过 `-PythonPath` 或 `ENGLISH_ASSIST_PYTHON` 指定。
 
 ~~~powershell
-cargo fmt --all -- --check
-cargo test --locked -p retype-engine --test english
-cargo test --locked -p retype-candidate-ui --features egui --lib
-cargo test --locked -p retype-tsf
-cargo test --locked --target i686-pc-windows-msvc -p retype-tsf
-.\platforms\windows\installer\build-english-assist.ps1 -Installer
+.\platforms\windows\installer\build-english-assist.ps1 -Installer -PythonPath C:\Python313\python.exe
 ~~~
 
-These are proposed commands, not a record that tests passed. Native activation,
-text submission, focus changes, application shortcuts and clean uninstall require
-the real-application checks in [INPUT_VALIDATION.md](english-assist/INPUT_VALIDATION.md).
-The original upstream validation record does not establish this branch's behavior.
-
-## 中文操作说明
-
-本分支的系统入口是 **English Assist 英文助手**，绑定英语（美国），通过
-Win+Space 选择。源码已经改为英文专用入口，但尚未完成编译、安装和真实应用验收。
-
-- 输入英文得到本地单词补全，数字 0–9 按原样输入，不用先按 Esc。
-- Tab 或点击接受候选，默认不补空格；上下键进入显式选词。
-- 空格默认保留原词并加空格；显式选词后才接受候选并加空格。
-- 未显式选词时，Enter 保留原词并执行应用的回车行为。
-- 显式选词后的第一次 Enter 只选词，第二次 Enter 才交给应用。
-- Esc 保留原输入并关闭候选；无候选的 Tab、Shift+Tab 和光标移动保留应用用途。
-- 英文候选不显示数字选词编号，也不会自动把拼写建议替换进正文。
-- 英文专用安装包设计为内置离线词库；当前尚无已构建安装包可供验证。
-- 本版不自动学习输入词汇，手动个人词库与可选学习开关尚未实现。
-- AI 语法修正和补句为独立的主动操作；不能把协议或服务代码已加入视为端到端功能已验收。
-
-本分支不安装中文 Profile。源码保留的上游中文及其他平台模块属于继承代码，
-其旧使用方式不代表英文助手当前产品入口。
+构建脚本生成、校验离线资源，编译 x64/x86 并运行回归测试，不自动安装或改键盘列表。源码及数据许可必须随交付保留。

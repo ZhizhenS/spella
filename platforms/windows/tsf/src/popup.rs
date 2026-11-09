@@ -20,6 +20,7 @@ struct Frame {
     page_start: usize,
     composition: String,
     texts: Vec<String>,
+    comments: Vec<String>,
     context: ITfContext,
     tip: Weak<TipState>,
     bitmap: Arc<Bitmap>,
@@ -75,14 +76,14 @@ pub fn create(owner: Option<HWND>) -> Result<HWND> {
             lpfnWndProc: Some(window_proc),
             hInstance: module.into(),
             hCursor: LoadCursorW(None, IDC_ARROW)?,
-            lpszClassName: w!("Retype.Candidates.1"),
+            lpszClassName: w!("EnglishAssist.Candidates.1"),
             ..Default::default()
         };
         RegisterClassW(&class); // Already registered in this process is harmless.
         CreateWindowExW(
             WS_EX_NOACTIVATE | WS_EX_TOOLWINDOW | WS_EX_TOPMOST,
-            w!("Retype.Candidates.1"),
-            w!("retype 候选"),
+            w!("EnglishAssist.Candidates.1"),
+            w!("英文助手候选"),
             WS_POPUP,
             0,
             0,
@@ -116,9 +117,9 @@ pub fn measure(render: &RenderState, window: Option<HWND>, anchor: Option<RECT>)
         let available = viewport - 2 * pad;
         let gap = px(2, dpi);
         let widths = SURFACE.with(|surface| {
-            surface
-                .borrow_mut()
-                .measure(render, available, dpi as f32 / 96.0)
+            let mut surface = surface.borrow_mut();
+            surface.set_appearance(crate::preferences::candidate_appearance());
+            surface.measure(render, available, dpi as f32 / 96.0)
         });
         Layout {
             widths,
@@ -158,6 +159,17 @@ pub fn update(
         let raster_us = start.elapsed().as_micros().min(u64::MAX as u128) as u64;
         let width = bitmap.geometry.width as i32;
         let height = bitmap.geometry.height as i32;
+        let appearance = crate::preferences::candidate_appearance();
+        let notes: Vec<_> = visible
+            .iter()
+            .map(|c| {
+                c.annotation_text(
+                    appearance.show_meanings,
+                    appearance.show_part_of_speech,
+                    appearance.show_phonetics,
+                )
+            })
+            .collect();
         let old = GetWindowLongPtrW(window, GWLP_USERDATA) as *const Frame;
         let reused = !old.is_null() && Arc::ptr_eq(&(*old).bitmap, &bitmap);
         let geometry_changed =
@@ -168,7 +180,8 @@ pub fn update(
                 .texts
                 .iter()
                 .map(String::as_str)
-                .eq(visible.iter().map(|c| c.text.as_str()));
+                .eq(visible.iter().map(|c| c.text.as_str()))
+            || (*old).comments != notes;
         let invalidated = if reused {
             (*old).invalidated
         } else {
@@ -179,6 +192,7 @@ pub fn update(
             page_start: render.page_start,
             composition: render.composition.clone(),
             texts: visible.iter().map(|c| c.text.clone()).collect(),
+            comments: notes.clone(),
             context: context.clone(),
             tip: Arc::downgrade(tip),
             bitmap,
@@ -205,8 +219,9 @@ pub fn update(
                 render
                     .visible()
                     .iter()
+                    .zip(&notes)
                     .enumerate()
-                    .map(|(i, c)| format!("{} {}", i + 1, c.text))
+                    .map(|(i, (c, note))| format!("{} {} {}", i + 1, c.text, note))
                     .collect::<Vec<_>>()
                     .join("  ")
             );
@@ -355,6 +370,7 @@ mod tests {
     #[test]
     fn eight_short_phrases_fit_within_the_480_pixel_limit() {
         let render = RenderState {
+            status: retype_types::StatusFlags::CHINESE,
             candidates: (0..8)
                 .map(|_| Candidate::new("你好", CandidateSource::Local))
                 .collect(),

@@ -17,9 +17,14 @@ egui = ["dep:egui", "dep:retype-file-map"]
 
 [dev-dependencies]
 png = "0.17"
+retype-english = { path = "../../../core/english" }
 
 [[example]]
 name = "candidate-benchmark"
+required-features = ["egui"]
+
+[[example]]
+name = "english-assist-preview"
 required-features = ["egui"]
 
 [lints]

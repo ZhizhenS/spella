@@ -1,0 +1,68 @@
+English Assist offline English lexicon
+
+ECDICT
+Source: https://github.com/skywind3000/ECDICT
+Frozen commit: bc015ed2e24a7abef49fc6dbbb7fe32c1dadaf8b
+File: ecdict.csv (stored losslessly as ecdict.csv.gz)
+License: MIT. The unmodified upstream notice is in LICENSE-ECDICT.
+
+CC-CEDICT
+Original source: https://www.mdbg.net/chinese/dictionary?page=cc-cedict
+Frozen mirror: https://github.com/dongyuwei/hallelujahIM/blob/8be294f70a4dc7b24a93f07c41df6c34add07a07/dictionary/cedict_1_0_ts_utf-8_mdbg.txt
+File: original plain-text dictionary (stored losslessly as cedict.txt.gz)
+Snapshot: 2017-11-17T23:06:02Z, 115687 entries, publisher MDBG.
+License: Creative Commons Attribution-ShareAlike 3.0 Unported.
+Full license: LICENSE-CC-CEDICT / https://creativecommons.org/licenses/by-sa/3.0/
+Original file header (retained verbatim):
+
+# CC-CEDICT
+# Community maintained free Chinese-English dictionary.
+# 
+# Published by MDBG
+# 
+# License:
+# Creative Commons Attribution-Share Alike 3.0
+# http://creativecommons.org/licenses/by-sa/3.0/
+# 
+# Referenced works:
+# CEDICT - Copyright (C) 1997, 1998 Paul Andrew Denisowski
+# 
+# CC-CEDICT can be downloaded from:
+# http://www.mdbg.net/chindict/chindict.php?page=cc-cedict
+# 
+# Additions and corrections can be sent through:
+# https://cc-cedict.org/editor/editor.php
+# 
+# For more information about CC-CEDICT see:
+# https://cc-cedict.org/wiki/
+# 
+#! version=1
+#! subversion=0
+#! format=ts
+#! charset=UTF-8
+#! entries=115687
+#! publisher=MDBG
+#! license=http://creativecommons.org/licenses/by-sa/3.0/
+#! date=2017-11-17T23:06:02Z
+#! time=1510959962
+
+Modifications by English Assist contributors (2026):
+- Extract English POS, Chinese definitions and IPA from ECDICT for the English
+  completion vocabulary and English words referenced by CC-CEDICT.
+- Normalize CC-CEDICT tone-number pinyin to lowercase untoned search keys;
+  select single-word English glosses, join them to ECDICT and rank them using
+  the attributed English frequency list; bound each key to 64 matches.
+- Compile separate indexes and strings into english-lexicon-v1.bin (RTENLX01).
+The combined metadata data file is distributed under CC BY-SA 3.0, with the
+independent ECDICT MIT notice and frequency-source notices also retained.
+This data license is separate from the English Assist / retype MIT code license.
+No endorsement by any source project or publisher is implied.
+
+Reproducibility:
+The source distribution includes losslessly compressed originals and a standalone
+Python compiler in tools/english-assist/build-lexicon.py. Frozen repository commits,
+original Git blob IDs, compressed/content SHA256 values and license SHA256 values
+are recorded in data/dict/raw/english-assist/SOURCES.json (installed as
+english-lexicon-sources.json). The actual output digest/counts are recorded in
+english-lexicon-v1.json beside the binary. The installed binary can be used and
+redistributed separately under the data terms above.

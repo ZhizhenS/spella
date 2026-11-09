@@ -3,6 +3,63 @@ use retype_types::PinyinScheme;
 use windows::Win32::System::Registry::*;
 use windows_core::{w, Result};
 
+pub fn candidate_appearance() -> retype_types::CandidateAppearance {
+    use retype_types::{CandidateAppearance, CandidateTheme};
+    use std::time::{Duration, Instant};
+    thread_local! {
+        static APPEARANCE: std::cell::RefCell<Option<(Instant, CandidateAppearance)>> = const { std::cell::RefCell::new(None) };
+    }
+    APPEARANCE.with(|cache| {
+        if let Some((when, value)) = *cache.borrow() {
+            if when.elapsed() < Duration::from_millis(500) {
+                return value;
+            }
+        }
+        let defaults = CandidateAppearance::default();
+        let mut theme = match read_dword(w!("CandidateTheme")) {
+            1 => CandidateTheme::Light,
+            2 => CandidateTheme::Dark,
+            _ => CandidateTheme::System,
+        };
+        if theme == CandidateTheme::System {
+            let mut light = 1u32;
+            let mut bytes = 4;
+            // SAFETY: Read only the Windows app-theme preference, with a DWORD output.
+            unsafe {
+                let _ = RegGetValueW(
+                    HKEY_CURRENT_USER,
+                    w!("Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize"),
+                    w!("AppsUseLightTheme"),
+                    RRF_RT_REG_DWORD,
+                    None,
+                    Some((&mut light as *mut u32).cast()),
+                    Some(&mut bytes),
+                );
+            }
+            theme = if light == 0 {
+                CandidateTheme::Dark
+            } else {
+                CandidateTheme::Light
+            };
+        }
+        let font = read_dword(w!("CandidateFontSize"));
+        let width = read_dword(w!("CandidateWidth"));
+        let appearance = CandidateAppearance {
+            theme,
+            font_size: if font == 0 { defaults.font_size } else { font },
+            width: if width == 0 { defaults.width } else { width },
+            compact: read_dword(w!("CandidateCompact")) != 0,
+            show_meanings: read_dword(w!("CandidateHideMeanings")) == 0,
+            show_part_of_speech: read_dword(w!("CandidateHidePartOfSpeech")) == 0,
+            show_phonetics: read_dword(w!("CandidateShowPhonetics")) != 0,
+            show_key_hints: read_dword(w!("CandidateHideKeyHints")) == 0,
+        }
+        .normalized();
+        *cache.borrow_mut() = Some((Instant::now(), appearance));
+        appearance
+    })
+}
+
 pub fn scheme() -> PinyinScheme {
     let mut value = 0u32;
     let mut size = 4;
@@ -33,8 +90,62 @@ pub fn english_options() -> (bool, bool) {
     )
 }
 
+pub fn english_pinyin() -> bool {
+    read_dword(w!("EnglishPinyinDisabled")) == 0
+}
+
+pub fn manual_words_generation() -> u32 {
+    read_dword(w!("ManualWordsGeneration"))
+}
+
+pub fn manual_words_path() -> Option<std::path::PathBuf> {
+    let mut buffer = [0u16; 32768];
+    let mut bytes = (buffer.len() * 2) as u32;
+    // SAFETY: Read only the current user's explicitly published dictionary path.
+    let result = unsafe {
+        RegGetValueW(
+            HKEY_CURRENT_USER,
+            w!("Software\\EnglishAssist"),
+            w!("ManualWordsPath"),
+            RRF_RT_REG_SZ,
+            None,
+            Some(buffer.as_mut_ptr().cast()),
+            Some(&mut bytes),
+        )
+    };
+    if result.is_err() || bytes < 2 || bytes as usize > buffer.len() * 2 {
+        return None;
+    }
+    let path =
+        std::path::PathBuf::from(String::from_utf16_lossy(&buffer[..bytes as usize / 2 - 1]));
+    path.is_absolute().then_some(path)
+}
+
 pub fn symbol_completion() -> bool {
+    #[cfg(test)]
+    if let Some(enabled) = TEST_SYMBOL_COMPLETION.with(std::cell::Cell::get) {
+        return enabled;
+    }
     read_dword(w!("SymbolCompletionEnabled")) != 0
+}
+
+#[cfg(test)]
+thread_local! {
+    static TEST_SYMBOL_COMPLETION: std::cell::Cell<Option<bool>> = const { std::cell::Cell::new(None) };
+}
+
+/// Thread-local fixture preference: never reads or changes the user's registry.
+#[cfg(test)]
+pub(crate) struct SymbolCompletionForTest(Option<bool>);
+#[cfg(test)]
+impl Drop for SymbolCompletionForTest {
+    fn drop(&mut self) {
+        TEST_SYMBOL_COMPLETION.with(|value| value.set(self.0));
+    }
+}
+#[cfg(test)]
+pub(crate) fn symbol_completion_for_test(enabled: bool) -> SymbolCompletionForTest {
+    SymbolCompletionForTest(TEST_SYMBOL_COMPLETION.with(|value| value.replace(Some(enabled))))
 }
 
 fn read_dword(name: windows_core::PCWSTR) -> u32 {

@@ -22,5 +22,6 @@ SOFTWARE.
 
 ---
 
-本项目的**词库数据**另受第三方 MIT 许可约束，署名见 `NOTICE.txt` 与
-`data/dict/raw/LICENSE-jieba`。发行包中必须一并附带这些文件。
+Third-party dictionary/data licenses are separate from this MIT code license.
+See NOTICE.txt for source-tree notices and NOTICE-English-Assist.txt for the
+English Assist Windows package, together with the accompanying LICENSE-* files.

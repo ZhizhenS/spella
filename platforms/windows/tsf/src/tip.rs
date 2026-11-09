@@ -153,6 +153,8 @@ pub struct TipState {
     language_bar: Mutex<Option<crate::langbar::LanguageBar>>,
     shift_tap: Mutex<ShiftTap>,
     shortcuts: Mutex<(std::time::Instant, retype_ai::config::Shortcuts)>,
+    #[cfg(test)]
+    test_shortcuts: Mutex<Option<retype_ai::config::Shortcuts>>,
     preserved_translation: Mutex<Option<retype_ai::config::Shortcut>>,
     preserved_voice: Mutex<Option<retype_ai::config::Shortcut>>,
     pub(crate) mode_bridge: Mutex<Option<crate::langbar::ModeBridge>>,
@@ -184,6 +186,8 @@ impl TipState {
             language_bar: Mutex::new(None),
             shift_tap: Mutex::new(ShiftTap::default()),
             shortcuts: Mutex::new((std::time::Instant::now(), retype_ai::secrets::shortcuts())),
+            #[cfg(test)]
+            test_shortcuts: Mutex::new(None),
             preserved_translation: Mutex::new(None),
             preserved_voice: Mutex::new(None),
             mode_bridge: Mutex::new(None),
@@ -316,6 +320,10 @@ impl TipState {
         self.activated.load(Ordering::SeqCst)
     }
     pub(crate) fn shortcuts(&self) -> retype_ai::config::Shortcuts {
+        #[cfg(test)]
+        if let Some(bindings) = *lock(&self.test_shortcuts) {
+            return bindings;
+        }
         let (bindings, refresh) = {
             let mut cache = lock(&self.shortcuts);
             let refresh = cache.0.elapsed() >= std::time::Duration::from_millis(250);
@@ -329,6 +337,12 @@ impl TipState {
             self.sync_voice_key(bindings.voice);
         }
         bindings
+    }
+    /// Isolate shortcut-routing fixtures from the developer's registry settings
+    /// and the production refresh timer, without changing production defaults.
+    #[cfg(test)]
+    pub(crate) fn set_shortcuts_for_test(&self, bindings: retype_ai::config::Shortcuts) {
+        *lock(&self.test_shortcuts) = Some(bindings);
     }
     fn sync_translation_key(&self, binding: retype_ai::config::Shortcut) {
         let desired = preserved_translation(binding).map(|_| binding);
@@ -490,8 +504,13 @@ impl TipState {
         }
         if let Some(session) = self.session() {
             session.sync_packs();
+            session.sync_manual_words();
             let scheme = crate::preferences::scheme();
             let (enabled, spelling) = crate::preferences::english_options();
+            let pinyin = crate::preferences::english_pinyin();
+            if session.backend.with_kernel(|k| k.config().english_pinyin) != pinyin {
+                session.submit(InputEvent::SetEnglishPinyin(pinyin));
+            }
             if session
                 .backend
                 .with_kernel(|k| (k.config().english_enabled, k.config().english_spelling))
@@ -511,6 +530,13 @@ impl TipState {
             window.hide();
             *lock(&self.window) = Some(window);
         }
+    }
+    fn dismiss_assistance(&self) {
+        // Cancel requests at the focus/context event itself. A timer may miss
+        // A -> B -> A transitions, and there need not be an active composition.
+        crate::translation::dismiss(self);
+        crate::voice::dismiss(self);
+        self.voice_alt_down.store(false, Ordering::Release);
     }
     pub(crate) fn reset_kernel(&self) {
         if let Some(s) = self.session() {
@@ -570,6 +596,12 @@ impl TipState {
             if !mods.is_plain() {
                 return false;
             }
+            if matches!(
+                key,
+                Key::PageUp | Key::PageDown | Key::Char('-' | '_' | '=' | '+')
+            ) {
+                return composing && candidates;
+            }
             return matches!(key,Key::Char(c) if c.is_ascii_alphabetic())
                 || composing
                     && (matches!(
@@ -578,7 +610,7 @@ impl TipState {
                     ) || candidates
                         && (matches!(key, Key::Up | Key::Down)
                             || key == Key::Tab && !mods.contains(Modifiers::SHIFT))
-                        || selected && matches!(key, Key::PageUp | Key::PageDown | Key::Enter));
+                        || selected && key == Key::Enter);
         }
         if chinese
             && english
@@ -677,6 +709,13 @@ impl ITfDisplayAttributeProvider_Impl for RetypeTip_Impl {
 struct FocusSink {
     state: Weak<TipState>,
 }
+#[cfg(test)]
+pub(crate) fn focus_sink_for_test(state: &Arc<TipState>) -> ITfThreadMgrEventSink {
+    FocusSink {
+        state: Arc::downgrade(state),
+    }
+    .into()
+}
 impl ITfThreadMgrEventSink_Impl for FocusSink_Impl {
     fn OnInitDocumentMgr(&self, _doc: Ref<'_, ITfDocumentMgr>) -> Result<()> {
         Ok(())
@@ -687,10 +726,18 @@ impl ITfThreadMgrEventSink_Impl for FocusSink_Impl {
     fn OnSetFocus(
         &self,
         focused: Ref<'_, ITfDocumentMgr>,
-        _previous: Ref<'_, ITfDocumentMgr>,
+        previous: Ref<'_, ITfDocumentMgr>,
     ) -> Result<()> {
         guarded(|| {
             if let Some(state) = self.state.upgrade() {
+                let changed = match (focused.ok(), previous.ok()) {
+                    (Ok(focused), Ok(previous)) => focused != previous,
+                    (Err(_), Err(_)) => false,
+                    _ => true,
+                };
+                if changed {
+                    state.dismiss_assistance();
+                }
                 lock(&state.stats_clock).reset();
                 let current = lock(&state.composition).clone();
                 if let Some(current) = current {
@@ -711,11 +758,17 @@ impl ITfThreadMgrEventSink_Impl for FocusSink_Impl {
         })
     }
     fn OnPushContext(&self, _ctx: Ref<'_, ITfContext>) -> Result<()> {
-        Ok(())
+        guarded(|| {
+            if let Some(state) = self.state.upgrade() {
+                state.dismiss_assistance();
+            }
+            Ok(())
+        })
     }
     fn OnPopContext(&self, ctx: Ref<'_, ITfContext>) -> Result<()> {
         guarded(|| {
             if let Some(state) = self.state.upgrade() {
+                state.dismiss_assistance();
                 let current = lock(&state.composition).clone();
                 if current.is_some_and(|c| ctx.ok().is_ok_and(|ctx| c.context == *ctx)) {
                     state.epoch.fetch_add(1, Ordering::SeqCst);
@@ -743,6 +796,7 @@ impl ITfThreadFocusSink_Impl for FocusSink_Impl {
     fn OnKillThreadFocus(&self) -> Result<()> {
         guarded(|| {
             if let Some(state) = self.state.upgrade() {
+                state.dismiss_assistance();
                 *lock(&state.shift_tap) = ShiftTap::default();
                 lock(&state.stats_clock).reset();
                 state.epoch.fetch_add(1, Ordering::SeqCst);
@@ -881,9 +935,10 @@ impl KeyEventSink_Impl {
                 .backend
                 .with_kernel(|k| !k.is_chinese() && k.english_prediction_enabled())
         });
-        if english && status.dwStaticFlags & TS_SS_NOHIDDENTEXT == 0 {
-            return Ok(false.into());
-        }
+        // NOHIDDENTEXT describes document capabilities, not the privacy of the
+        // current field: ordinary RichEdit fields can support hidden text.
+        // The granted edit session checks the actual selection InputScope before
+        // decoding; password/private/PIN scopes receive only literal input.
         let direct = !wanted
             && status.dwStaticFlags & TS_SS_NOHIDDENTEXT != 0
             && state.session().is_some_and(|session| !session.shadow)
@@ -973,6 +1028,7 @@ impl ITfKeyEventSink_Impl for KeyEventSink_Impl {
             }
             if !foreground.as_bool() {
                 if let Some(s) = self.state.upgrade() {
+                    s.dismiss_assistance();
                     s.voice_alt_down.store(false, Ordering::Release);
                     *lock(&s.shift_tap) = ShiftTap::default();
                     s.epoch.fetch_add(1, Ordering::SeqCst);
@@ -1175,7 +1231,7 @@ mod tests {
     fn preserved_translation_uses_exact_modifiers_and_excludes_disabled_and_win() {
         use retype_ai::config::Shortcut;
         let key = preserved_translation(Shortcut::TRANSLATE).map(|key| (key.uVKey, key.uModifiers));
-        assert_eq!(key, Some((0x30, TF_MOD_CONTROL | TF_MOD_ALT)));
+        assert_eq!(key, Some((0x47, TF_MOD_CONTROL | TF_MOD_ALT)));
         let key = preserved_translation(Shortcut {
             vk: 0x54,
             modifiers: 5,

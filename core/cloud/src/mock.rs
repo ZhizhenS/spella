@@ -158,6 +158,7 @@ impl LlmReranker for MockLlmReranker {
                     language: Default::default(),
                     text: hw.clone(),
                     comment: "热词".into(),
+                    annotation: None,
                     source: CandidateSource::Hotword,
                     syllable_len: req.syllables.len(),
                     consumed: req.composition.len(),

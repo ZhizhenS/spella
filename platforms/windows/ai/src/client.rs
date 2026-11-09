@@ -40,7 +40,7 @@ pub fn launch() -> Result<(), String> {
     // per-user learning broker can launch only the AI binary beside itself.
     let sid = transport::user_sid().map_err(|_| "无法识别当前用户")?;
     let response = transport::exchange(&transport::pipe_name(&sid), br#"{"start_ai":true}"#)
-        .map_err(|_| "无法启动翻译服务，请先打开设置或重新登录后重试")?;
+        .map_err(|_| "当前应用无法启动 AI 服务；请在普通桌面程序中使用此功能。")?;
     let response: serde_json::Value =
         serde_json::from_slice(&response).map_err(|_| "翻译后台启动响应无效")?;
     if response["ai_started"].as_bool() == Some(true) {

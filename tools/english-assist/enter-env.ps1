@@ -23,6 +23,13 @@ if (-not (Test-Path -LiteralPath $taskDeveloperShell)) {
     throw 'The Visual Studio developer shell is incomplete.'
 }
 & $taskDeveloperShell -Arch amd64 -HostArch amd64 -SkipAutomaticLocation
+# The VS developer shell rebuilds PATH from the registered environment. Restore
+# this project's private Rust toolchain after it initializes the MSVC paths.
+if (Test-Path -LiteralPath (Join-Path $taskLocalToolchain 'cargo\bin\cargo.exe')) {
+    $env:CARGO_HOME = Join-Path $taskLocalToolchain 'cargo'
+    $env:RUSTUP_HOME = Join-Path $taskLocalToolchain 'rustup'
+    $env:Path = "$env:CARGO_HOME\bin;$env:Path"
+}
 if (-not (Get-Command cl.exe -ErrorAction SilentlyContinue)) {
     throw 'MSVC was detected but cl.exe is unavailable in its developer shell.'
 }

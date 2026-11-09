@@ -20,6 +20,7 @@ retype-dict = { workspace = true }
 retype-context = { workspace = true }
 retype-cloud = { workspace = true }
 retype-engine = { workspace = true }
+retype-english = { workspace = true }
 retype-learning = { path = "../learning" }
 retype-ai = { path = "../ai" }
 retype-candidate-ui = { path = "../candidate-ui", features = ["egui"] }

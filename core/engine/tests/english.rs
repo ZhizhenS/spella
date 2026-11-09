@@ -178,7 +178,7 @@ fn case_apostrophes_punctuation_and_shortcuts_preserve_text() {
         .iter()
         .any(|c| c.text == "Hello"));
     assert_eq!(
-        commits(&key(&mut k, Key::Char('='), Modifiers::NONE)),
+        commits(&key(&mut k, Key::Char(','), Modifiers::NONE)),
         ["Hel"]
     );
     type_word(&mut k, "don't");
@@ -186,7 +186,7 @@ fn case_apostrophes_punctuation_and_shortcuts_preserve_text() {
         commits(&key(&mut k, Key::Space, Modifiers::NONE)),
         ["don't "]
     );
-    for ending in [Key::Char('0'), Key::Char('9'), Key::Char('-'), Key::Left] {
+    for ending in [Key::Char('0'), Key::Char('9'), Key::Char('.'), Key::Left] {
         type_word(&mut k, "test");
         let actions = key(&mut k, ending, Modifiers::NONE);
         assert_eq!(commits(&actions), ["test"]);
@@ -215,41 +215,112 @@ fn tab_without_candidates_and_shift_tab_preserve_host_navigation() {
     assert!(actions.contains(&KernelAction::PassThrough));
 }
 
+fn candidate_fixture(count: usize) -> Kernel {
+    let mut k = kernel();
+    type_word(&mut k, "qzxvfixture");
+    assert!(k.render_state().candidates.is_empty());
+    let candidates = (0..count)
+        .map(|i| {
+            let mut candidate = Candidate::new(format!("choice{i}"), CandidateSource::Local);
+            candidate.language = CandidateLanguage::English;
+            candidate
+        })
+        .collect();
+    k.handle(InputEvent::EnglishCompleted {
+        gen: k.generation(),
+        candidates,
+    });
+    k
+}
+
 #[test]
-fn every_digit_preserves_the_typed_word_with_visible_candidates() {
-    for digit in '0'..='9' {
-        let mut k = kernel();
-        type_word(&mut k, "python");
-        assert!(!k.render_state().candidates.is_empty());
+fn digits_one_to_five_select_the_current_page_without_a_trailing_space() {
+    for digit in '1'..='5' {
+        let mut k = candidate_fixture(12);
+        assert_eq!(k.render_state().visible().len(), 5);
+        let expected = k.render_state().visible()[digit as usize - '1' as usize]
+            .text
+            .clone();
         let actions = key(&mut k, Key::Char(digit), Modifiers::NONE);
-        assert_eq!(commits(&actions), ["python"]);
-        assert!(actions.contains(&KernelAction::PassThrough));
+        assert_eq!(commits(&actions), [expected]);
+        assert!(!actions.contains(&KernelAction::PassThrough));
         assert!(!k.has_composition());
+    }
+    for digit in ['0', '6', '7', '8', '9'] {
+        let mut k = candidate_fixture(12);
+        let actions = key(&mut k, Key::Char(digit), Modifiers::NONE);
+        assert_eq!(commits(&actions), ["qzxvfixture"]);
+        assert!(actions.contains(&KernelAction::PassThrough));
     }
 }
 
 #[test]
-fn digits_remain_literal_after_explicit_selection_and_paging() {
-    let mut k = kernel();
-    type_word(&mut k, "art");
-    let count = k.render_state().candidates.len();
-    assert!(count > 4);
-    k.layout_candidates(&vec![100; count], 202, 2);
-    key(&mut k, Key::Down, Modifiers::NONE);
+fn numeric_selection_uses_visible_rows_and_never_a_hidden_candidate() {
+    let mut k = candidate_fixture(12);
+    // Even narrow viewports keep five vertical rows; their widths do not
+    // accumulate horizontally into one-item pages.
+    k.layout_candidates(&vec![420; 12], 420, 2);
+    assert_eq!(k.render_state().page_starts, [0, 5, 10]);
+    assert_eq!(k.render_state().visible().len(), 5);
     key(&mut k, Key::PageDown, Modifiers::NONE);
-    let state = k.render_state();
-    assert_eq!(state.page_start, 2);
+    assert_eq!(k.render_state().page_start, 5);
     assert!(k.english_candidate_selected());
-    let actions = key(&mut k, Key::Char('2'), Modifiers::NONE);
-    assert_eq!(commits(&actions), ["art"]);
-    assert!(actions.contains(&KernelAction::PassThrough));
+    assert_eq!(
+        commits(&key(&mut k, Key::Char('2'), Modifiers::NONE)),
+        ["choice6"]
+    );
 
-    type_word(&mut k, "art");
-    let count = k.render_state().candidates.len();
-    k.layout_candidates(&vec![100; count], 202, 2);
+    let mut k = candidate_fixture(12);
+    key(&mut k, Key::Char('='), Modifiers::NONE);
+    key(&mut k, Key::Char('+'), Modifiers::SHIFT);
+    assert_eq!(k.render_state().page_start, 10);
+    assert_eq!(k.render_state().visible().len(), 2);
     let actions = key(&mut k, Key::Char('3'), Modifiers::NONE);
-    assert_eq!(commits(&actions), ["art"]);
+    assert_eq!(commits(&actions), ["qzxvfixture"]);
     assert!(actions.contains(&KernelAction::PassThrough));
+}
+
+#[test]
+fn minus_plus_and_page_keys_navigate_without_committing_or_changing_input() {
+    let mut k = candidate_fixture(12);
+    for (page_key, mods, expected) in [
+        (Key::Char('-'), Modifiers::NONE, 0),
+        (Key::Char('='), Modifiers::NONE, 5),
+        (Key::Char('+'), Modifiers::SHIFT, 10),
+        (Key::PageDown, Modifiers::NONE, 10),
+        (Key::PageUp, Modifiers::NONE, 5),
+        (Key::Char('_'), Modifiers::SHIFT, 0),
+        (Key::Char('-'), Modifiers::NONE, 0),
+    ] {
+        let actions = key(&mut k, page_key, mods);
+        assert!(commits(&actions).is_empty());
+        assert!(!actions.contains(&KernelAction::PassThrough));
+        assert_eq!(k.render_state().page_start, expected);
+        assert_eq!(k.render_state().composition, "qzxvfixture");
+        assert!(k.english_candidate_selected());
+    }
+}
+
+#[test]
+fn page_symbols_and_page_keys_remain_native_without_candidates() {
+    for (page_key, mods) in [
+        (Key::Char('-'), Modifiers::NONE),
+        (Key::Char('_'), Modifiers::SHIFT),
+        (Key::Char('='), Modifiers::NONE),
+        (Key::Char('+'), Modifiers::SHIFT),
+        (Key::PageUp, Modifiers::NONE),
+        (Key::PageDown, Modifiers::NONE),
+    ] {
+        let mut k = kernel();
+        let actions = key(&mut k, page_key, mods);
+        assert!(commits(&actions).is_empty());
+        assert!(actions.contains(&KernelAction::PassThrough));
+        type_word(&mut k, "qzxvfixture");
+        assert!(k.render_state().candidates.is_empty());
+        let actions = key(&mut k, page_key, mods);
+        assert_eq!(commits(&actions), ["qzxvfixture"]);
+        assert!(actions.contains(&KernelAction::PassThrough));
+    }
 }
 
 #[test]
@@ -308,4 +379,35 @@ fn escape_keeps_text_reset_clears_and_late_spelling_is_ignored() {
     type_word(&mut k, "hel");
     key(&mut k, Key::Backspace, Modifiers::NONE);
     assert_eq!(k.composition_text(), "he");
+}
+
+#[test]
+fn pinyin_setting_refreshes_live_composition_and_discards_old_async_results() {
+    let mut k = kernel();
+    assert!(k.config().english_pinyin);
+    type_word(&mut k, "hello");
+    let old_generation = k.generation();
+    let actions = k.handle(InputEvent::SetEnglishPinyin(false));
+    assert!(!k.config().english_pinyin);
+    assert_eq!(k.composition_text(), "hello");
+    assert!(commits(&actions).is_empty());
+    assert!(actions
+        .iter()
+        .any(|action| matches!(action, KernelAction::Render(_))));
+    assert_ne!(k.generation(), old_generation);
+    assert!(k
+        .handle(InputEvent::EnglishCompleted {
+            gen: old_generation,
+            candidates: vec![retype_types::Candidate::new(
+                "stale",
+                retype_types::CandidateSource::Local
+            )],
+        })
+        .is_empty());
+    let current = k.generation();
+    assert!(k.handle(InputEvent::SetEnglishPinyin(false)).is_empty());
+    assert_eq!(k.generation(), current);
+    k.handle(InputEvent::SetEnglishPinyin(true));
+    assert!(k.config().english_pinyin);
+    assert_eq!(k.composition_text(), "hello");
 }

@@ -8,6 +8,10 @@
 
 #[path = "../../common/base_resources.rs"]
 mod base_resources;
+#[path = "installed_english.rs"]
+mod installed_english;
+#[path = "../../common/manual_words.rs"]
+mod manual_words;
 use retype_dict::{AsyncDict, FallbackPolicy, LayeredDict, UserDict, DEFAULT_USER_BOOST};
 use retype_engine::{
     offline_cloud, BackendOptions, Kernel, KernelBackend, KernelConfig, LocalBackend,
@@ -15,9 +19,7 @@ use retype_engine::{
 use retype_pinyin::Lexicon;
 use retype_types::{InputEvent, KernelAction, LearningStore};
 use std::path::PathBuf;
-use std::sync::atomic::{AtomicU32, Ordering};
-#[cfg(not(test))]
-use std::sync::OnceLock;
+use std::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
@@ -32,8 +34,8 @@ pub const ENV_SHADOW: &str = "ENGLISH_ASSIST_TSF_SHADOW";
 /// 本 DLL 自己所在的目录。
 ///
 /// **TIP 的当前工作目录是宿主进程的**（notepad、chrome……），绝不是我们的安装目录，
-/// 所以任何相对路径都不可信。此路径只用于定位后台程序和迁移旧版本资源；
-/// 新词库存放在用户目录中，由注册表向沙箱宿主公布只读路径。
+/// 所以任何相对路径都不可信。此路径还用于后台 worker 定位同包离线英文资源；
+/// 用户资源路径仍由注册表向沙箱宿主公布。
 ///
 /// 用 `GetModuleHandleExW(FROM_ADDRESS, &本函数)` 拿到**我们自己**的模块句柄
 /// ——`GetModuleHandleW(None)` 拿到的是宿主 exe，那是错的。
@@ -97,11 +99,41 @@ fn env_flag(name: &str) -> bool {
         .unwrap_or(false)
 }
 
+/// Reservation and publication share a lock: an older worker cannot pass its
+/// serial check, spend time validating, and overwrite a newer snapshot.
+struct ManualPublication(Mutex<u64>);
+
+impl ManualPublication {
+    const fn new() -> Self {
+        Self(Mutex::new(0))
+    }
+
+    fn reserve(&self) -> u64 {
+        let mut serial = self.0.lock().unwrap_or_else(|p| p.into_inner());
+        *serial = serial.wrapping_add(1);
+        *serial
+    }
+
+    fn publish(
+        &self,
+        serial: u64,
+        commit: impl FnOnce() -> Result<(), String>,
+    ) -> Result<bool, String> {
+        let current = self.0.lock().unwrap_or_else(|p| p.into_inner());
+        if *current != serial {
+            return Ok(false);
+        }
+        commit()?;
+        Ok(true)
+    }
+}
+
 pub struct Session {
     pub backend: Arc<LocalBackend>,
     pub dict: Arc<AsyncDict>,
     pub packs: Arc<AsyncDict>,
     pack_generation: AtomicU32,
+    manual_generation: AtomicU64,
     pub user: Arc<UserDict>,
     /// 影子模式：喂内核但不吃按键
     pub shadow: bool,
@@ -164,6 +196,7 @@ impl Session {
             KernelConfig {
                 english_enabled: crate::preferences::english_options().0,
                 english_spelling: crate::preferences::english_options().1,
+                english_pinyin: crate::preferences::english_pinyin(),
                 pinyin_scheme: crate::preferences::scheme(),
                 decode: retype_pinyin::DecodeOptions {
                     page_size: 8,
@@ -183,6 +216,7 @@ impl Session {
             dict,
             packs,
             pack_generation: AtomicU32::new(u32::MAX),
+            manual_generation: AtomicU64::new(u64::MAX),
             user,
             shadow: env_flag(ENV_SHADOW),
             dict_path,
@@ -193,7 +227,79 @@ impl Session {
             session.watch_resources();
         }
         session.sync_packs();
+        session.sync_manual_words();
         session
+    }
+
+    /// Check a small generation flag at focus boundaries; file reads run only
+    /// on the worker, never on the key callback or while holding a TSF edit lock.
+    pub fn sync_manual_words(self: &Arc<Self>) {
+        if !self.managed_resources {
+            return;
+        }
+        static PUBLICATION: ManualPublication = ManualPublication::new();
+        let generation = u64::from(crate::preferences::manual_words_generation());
+        if self.manual_generation.swap(generation, Ordering::SeqCst) == generation {
+            return;
+        }
+        let path = crate::preferences::manual_words_path();
+        let weak = Arc::downgrade(self);
+        let serial = PUBLICATION.reserve();
+        let spawned = std::thread::Builder::new()
+            .name("english-assist-manual-words".into())
+            .spawn(move || {
+                let load = || -> Result<Vec<(String, String)>, String> {
+                    let Some(path) = path else {
+                        return Ok(Vec::new());
+                    };
+                    let file = match std::fs::File::open(path) {
+                        Ok(file) => file,
+                        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+                            return Ok(Vec::new())
+                        }
+                        Err(_) => return Err("manual dictionary unavailable".into()),
+                    };
+                    use std::io::Read;
+                    let mut bytes = Vec::new();
+                    file.take((manual_words::MAX_FILE_BYTES + 1) as u64)
+                        .read_to_end(&mut bytes)
+                        .map_err(|_| "manual dictionary read failed")?;
+                    Ok(manual_words::decode(&bytes)?
+                        .into_iter()
+                        .map(|entry| (entry.word, entry.comment))
+                        .collect())
+                };
+                if let Some(session) = weak.upgrade() {
+                    if session.manual_generation.load(Ordering::SeqCst) == generation {
+                        let loaded = load().and_then(|words| {
+                            PUBLICATION.publish(serial, || {
+                                if session.manual_generation.load(Ordering::SeqCst) == generation {
+                                    retype_english::set_manual_words(words)?;
+                                }
+                                Ok(())
+                            })
+                        });
+                        if loaded.is_err() {
+                            // Preserve the previous valid dictionary and retry
+                            // at a later focus boundary after transient IO errors.
+                            let _ = session.manual_generation.compare_exchange(
+                                generation,
+                                u64::MAX,
+                                Ordering::SeqCst,
+                                Ordering::SeqCst,
+                            );
+                        }
+                    }
+                }
+            });
+        if spawned.is_err() {
+            let _ = self.manual_generation.compare_exchange(
+                generation,
+                u64::MAX,
+                Ordering::SeqCst,
+                Ordering::SeqCst,
+            );
+        }
     }
 
     /// Refresh on focus only; loading and parsing always run on a worker thread.
@@ -284,10 +390,30 @@ impl Session {
         let _ = std::thread::Builder::new()
             .name("retype-base-resources".into())
             .spawn(move || {
-                let Some(root) = base_resources::root() else {
+                let hint = dll_dir();
+                let explicit_root = std::env::var_os("ENGLISH_ASSIST_BASE_RESOURCES")
+                    .map(PathBuf::from)
+                    .filter(|path| path.is_absolute());
+                if let Some(package) = installed_english::candidate(
+                    explicit_root.as_deref(),
+                    hint.as_deref(),
+                ) {
+                    let activated = installed_english::vocabulary(&package).and_then(|path| {
+                        retype_english::install(&path).map_err(|_| "activation_failed")
+                    });
+                    match activated {
+                        Ok(()) => {
+                            tracing::debug!("English resources loaded from current TIP package");
+                            return;
+                        }
+                        Err(reason) => tracing::warn!(
+                            "TIP package English resources unavailable ({reason}); falling back to published resources"
+                        ),
+                    }
+                }
+                let Some(root) = explicit_root.or_else(base_resources::root) else {
                     return;
                 };
-                let hint = dll_dir();
                 let mut loaded = None;
                 let mut english = None;
                 loop {
@@ -382,6 +508,15 @@ fn start_dictionary(path: &std::path::Path, target: Arc<AsyncDict>) {
     }
 }
 
+struct DisabledLearning;
+impl LearningStore for DisabledLearning {
+    fn record(&self, _event: retype_types::LearningEvent) {}
+}
+fn read_only_learning() -> (Arc<UserDict>, Arc<dyn LearningStore>) {
+    // The English-only product uses the explicitly edited manual dictionary.
+    // No persistent client, reconnect loop, broker launch or automatic history.
+    (Arc::new(UserDict::new()), Arc::new(DisabledLearning))
+}
 fn shared_learning(system: Arc<dyn Lexicon>) -> (Arc<UserDict>, Arc<dyn LearningStore>) {
     // Unit tests must never start a production broker or change the developer's learned words.
     #[cfg(test)]
@@ -392,25 +527,8 @@ fn shared_learning(system: Arc<dyn Lexicon>) -> (Arc<UserDict>, Arc<dyn Learning
     }
     #[cfg(not(test))]
     {
-        static CLIENT: OnceLock<Arc<retype_learning::client::Client>> = OnceLock::new();
-        let client = CLIENT.get_or_init(|| {
-            let host = dll_dir().map(|directory| {
-                let base = if directory.file_name().is_some_and(|name| name == "x86") {
-                    directory
-                        .parent()
-                        .map(std::path::Path::to_path_buf)
-                        .unwrap_or(directory)
-                } else {
-                    directory
-                };
-                base.join("retype-learning-host.exe")
-            });
-            retype_learning::client::Client::start(system, host)
-        });
-        (
-            Arc::clone(&client.user),
-            Arc::clone(client) as Arc<dyn LearningStore>,
-        )
+        let _ = system;
+        read_only_learning()
     }
 }
 
@@ -419,6 +537,50 @@ mod tests {
     #![allow(clippy::unwrap_used, clippy::expect_used)]
 
     use super::*;
+
+    #[test]
+    fn english_product_learning_is_disabled_without_a_persistent_client() {
+        let (user, learning) = read_only_learning();
+        learning.record(retype_types::LearningEvent::EnglishWord {
+            text: "explicit-test-only".into(),
+        });
+        learning.record(retype_types::LearningEvent::Coinage {
+            text: "测试".into(),
+            syllables: Vec::new(),
+        });
+        assert!(learning.english_words("", 100).is_empty());
+        assert!(user.usage_snapshot().records.is_empty());
+    }
+
+    #[test]
+    fn manual_publication_rejects_stale_work_and_serializes_reservation_with_commit() {
+        let publication = ManualPublication::new();
+        let stale = publication.reserve();
+        let latest = publication.reserve();
+        assert_eq!(
+            publication
+                .publish(stale, || panic!("stale worker published"))
+                .unwrap(),
+            false
+        );
+        assert!(publication
+            .publish(latest, || {
+                assert!(
+                    publication.0.try_lock().is_err(),
+                    "reservation must wait until validation and publish complete"
+                );
+                Ok(())
+            })
+            .unwrap());
+        assert!(publication
+            .publish(latest, || Err("validation failed".into()))
+            .is_err());
+        let next = publication.reserve();
+        assert!(publication.publish(next, || Ok(())).unwrap());
+        assert!(!publication
+            .publish(latest, || panic!("superseded worker published"))
+            .unwrap());
+    }
 
     #[test]
     fn english_entry_does_not_require_a_chinese_dictionary() {
