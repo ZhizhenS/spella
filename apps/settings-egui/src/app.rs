@@ -944,8 +944,13 @@ impl SettingsApp {
             });
             ui.horizontal_wrapped(|ui| {
                 ui.hyperlink_to("Wikidata", "https://www.wikidata.org/");
-                ui.label("结合官网核对现代公司、产品等专名，覆盖有限。");
+                  ui.label("中英文标签、简短描述与分类，补充公司、软件等现代专名；部分条目附官网，覆盖有限。");
+              });
+              ui.horizontal_wrapped(|ui| {
+                  ui.hyperlink_to("Kaikki / Wiktionary", "https://kaikki.org/dictionary/rawdata.html");
+                  ui.label("补充现代词、网络用法与缩写；中文仅覆盖有来源或经项目审核的义项。");
             });
+              ui.label(RichText::new("词库随安装包离线提供，输入时不联网翻译或更新；专名排序的站点链接数是知名度代理，并非打字词频。词语可能有多个义项，少见词和最新用法不保证收录。").color(MUTED));
             ui.label(
                 RichText::new("拼音候选会标出命中的中文词，区分精确匹配与扩展建议；排序优先考虑中文词的常用程度，英文词频仅作辅助。")
                     .color(MUTED),

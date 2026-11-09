@@ -41,6 +41,12 @@ try {
   }
   & $PythonPath (Join-Path $taskRepo 'tools\english-assist\modern-entities.py') --check
   if ($LASTEXITCODE -ne 0) { throw 'Reviewed modern-entity catalog check failed.' }
+  if (-not $NoTest) {
+    & $PythonPath (Join-Path $taskRepo 'tools\english-assist\test-build-modern-lexicon.py')
+    if ($LASTEXITCODE -ne 0) { throw 'Modern-lexicon source/admission fixtures failed.' }
+  }
+  & $PythonPath (Join-Path $taskRepo 'tools\english-assist\build-modern-lexicon.py') --check
+  if ($LASTEXITCODE -ne 0) { throw 'Reviewed modern-lexicon offline check failed.' }
   # Embedded data must be reviewed/reproducible before Cargo reads include_bytes!.
   & (Join-Path $taskRepo 'tools\english-assist\build-english-bigrams.ps1') -PythonPath $PythonPath -Test:(-not $NoTest)
   if (-not (Get-Command cargo -ErrorAction SilentlyContinue)) {
@@ -103,6 +109,8 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Core/TSF tests failed.' }
     & cargo test --release --locked -p retype-engine --test english_mixed -- --ignored
     if ($LASTEXITCODE -ne 0) { throw 'Prepared English/pinyin/entity resource integration failed.' }
+    & cargo test --release --locked -p retype-engine --test modern -- --ignored
+    if ($LASTEXITCODE -ne 0) { throw 'Prepared modern word/entity commit integration failed.' }
     & cargo test --release --locked --target i686-pc-windows-msvc -p retype-tsf
     if ($LASTEXITCODE -ne 0) { throw 'x86 TSF tests failed.' }
   }

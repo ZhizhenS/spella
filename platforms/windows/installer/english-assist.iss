@@ -71,6 +71,10 @@ Source: "LICENSE-SymSpell"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversio
 Source: "LICENSE-ECDICT"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
 Source: "LICENSE-CC-CEDICT"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
 Source: "LICENSE-Wanxiang"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
+Source: "LICENSE-Wikidata-CC0-1.0.txt"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
+Source: "NOTICE-Modern-Entities.txt"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
+Source: "LICENSE-Wiktionary-CC-BY-SA-4.0.html"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
+Source: "NOTICE-Modern-Lexicon.txt"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
 Source: "NOTICE-English-Lexicon.txt"; DestDir: "{code:GetPayloadDir}"; Flags: ignoreversion
 Source: "english-lexicon-sources.json"; DestDir: "{code:GetPayloadDir}"; DestName: "english-lexicon-sources.json"; Flags: ignoreversion
 

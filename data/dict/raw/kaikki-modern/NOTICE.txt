@@ -1,0 +1,28 @@
+English Assist modern vocabulary subset
+
+Source: English and Chinese editions of Wiktionary, extracted by Wiktextract
+and served by Kaikki.org. https://kaikki.org/dictionary/rawdata.html
+Original entry text copyright: Wiktionary contributors.
+https://en.wiktionary.org/wiki/Wiktionary:Copyrights
+
+Original Wiktionary entry text is available under CC BY-SA 4.0 and the GNU
+Free Documentation License. This redistributed lexical subset and its
+editorial Chinese additions are offered under CC BY-SA 4.0. The complete
+CC BY-SA 4.0 license is in LICENSE-CC-BY-SA-4.0.html. Individual entry URLs,
+frozen source SHA-256 digests and source line identifiers are retained.
+No quotations, usage examples, pronunciations, audio or images are included.
+
+Changes: selected English modern/slang/abbreviation senses; projected lexical
+fields; exact-sense Chinese translation matching; Chinese-edition definitions
+kept as separate source senses; bounded runtime fields. Editorial Chinese
+definitions are separately identified in modern-lexicon-zh-overrides.json
+and the reviewed modern-lexicon.json manifest, never labelled upstream Chinese.
+
+Wiktextract parser code is separately MIT-licensed. That software license does
+not relicense dictionary data. The English Assist importer is project code,
+not copied from Wiktextract.
+
+SOURCES.json and ZH-SOURCES.json describe the complete downloaded originals
+and reproducible projections. Multi-gigabyte originals remain in an acquisition
+cache outside the source repository. Normal builds are offline and never refresh
+reviewed inputs. Explicit source downloading proposes new data for review.

@@ -99,11 +99,24 @@ fn painted_selection(state: &RenderState) -> Option<usize> {
 /// Bound lookup evidence to one short badge; never expose the stored reading as a word.
 fn english_source_badge(annotation: Option<&retype_types::EnglishAnnotation>) -> Option<String> {
     let annotation = annotation?;
+    if !annotation.lexical_sense_id.is_empty() && !annotation.lexical_usage.is_empty() {
+        let label: String = annotation
+            .lexical_usage
+            .chars()
+            .filter(|c| !c.is_whitespace() && !c.is_control())
+            .take(6)
+            .collect();
+        return (!label.is_empty()).then_some(label);
+    }
     let (kind, evidence) = if !annotation.entity_kind.is_empty() {
         ("现代", &annotation.entity_kind)
     } else if annotation.pinyin_match {
         (
-            if annotation.pinyin_exact { "拼音" } else { "扩展" },
+            if annotation.pinyin_exact {
+                "拼音"
+            } else {
+                "扩展"
+            },
             &annotation.matched_chinese,
         )
     } else {
@@ -716,15 +729,16 @@ impl Surface {
                 );
                 let text_left = cell.left() + 39.0;
                 let max_width = (cell.right() - text_left - 10.0).max(1.0);
-                let source_badge = english_source_badge(candidate.annotation.as_ref()).map(|label| {
-                    painter.layout_job(clipped_text(
-                        &label,
-                        10.0,
-                        muted,
-                        (max_width * 0.4).min(112.0),
-                        1,
-                    ))
-                });
+                let source_badge =
+                    english_source_badge(candidate.annotation.as_ref()).map(|label| {
+                        painter.layout_job(clipped_text(
+                            &label,
+                            10.0,
+                            muted,
+                            (max_width * 0.4).min(112.0),
+                            1,
+                        ))
+                    });
                 let source_width = source_badge.as_ref().map_or(0.0, |badge| badge.size().x);
                 if let Some(badge) = source_badge {
                     painter.galley(
@@ -755,8 +769,13 @@ impl Surface {
                     &word_text,
                     word_size,
                     ink,
-                    (max_width - if source_width > 0.0 { source_width + 8.0 } else { 0.0 })
-                        .max(1.0),
+                    (max_width
+                        - if source_width > 0.0 {
+                            source_width + 8.0
+                        } else {
+                            0.0
+                        })
+                    .max(1.0),
                     1,
                 ));
                 painter.galley(Pos2::new(text_left, cell.top() + 5.0), word, ink);
@@ -1159,17 +1178,32 @@ mod tests {
             pinyin_exact: true,
             ..Default::default()
         };
-        assert_eq!(english_source_badge(Some(&annotation)).as_deref(), Some("拼音 · 想"));
+        assert_eq!(
+            english_source_badge(Some(&annotation)).as_deref(),
+            Some("拼音 · 想")
+        );
         annotation.matched_chinese = "想法".into();
         annotation.matched_pinyin = "xiang3 fa3".into();
         annotation.pinyin_exact = false;
-        assert_eq!(english_source_badge(Some(&annotation)).as_deref(), Some("扩展 · 想法"));
+        assert_eq!(
+            english_source_badge(Some(&annotation)).as_deref(),
+            Some("扩展 · 想法")
+        );
         annotation.matched_chinese = "一二三四五六七八九十".into();
-        assert_eq!(english_source_badge(Some(&annotation)).as_deref(), Some("扩展 · 一二三四五六…"));
+        assert_eq!(
+            english_source_badge(Some(&annotation)).as_deref(),
+            Some("扩展 · 一二三四五六…")
+        );
         annotation.matched_chinese = " \n想\t法\r ".into();
-        assert_eq!(english_source_badge(Some(&annotation)).as_deref(), Some("扩展 · 想法"));
+        assert_eq!(
+            english_source_badge(Some(&annotation)).as_deref(),
+            Some("扩展 · 想法")
+        );
         annotation.matched_chinese.clear();
-        assert_eq!(english_source_badge(Some(&annotation)).as_deref(), Some("扩展"));
+        assert_eq!(
+            english_source_badge(Some(&annotation)).as_deref(),
+            Some("扩展")
+        );
         annotation.pinyin_match = false;
         assert_eq!(english_source_badge(Some(&annotation)), None);
         assert_eq!(english_source_badge(None), None);
@@ -1182,13 +1216,73 @@ mod tests {
             entity_source: "https://www.anthropic.com/".into(),
             ..Default::default()
         };
-        assert_eq!(english_source_badge(Some(&annotation)).as_deref(), Some("现代 · 公司"));
+        assert_eq!(
+            english_source_badge(Some(&annotation)).as_deref(),
+            Some("现代 · 公司")
+        );
         annotation.entity_kind = "产品".into();
-        assert_eq!(english_source_badge(Some(&annotation)).as_deref(), Some("现代 · 产品"));
+        assert_eq!(
+            english_source_badge(Some(&annotation)).as_deref(),
+            Some("现代 · 产品")
+        );
         annotation.entity_kind = "一二三四五六七八九十".into();
-        assert_eq!(english_source_badge(Some(&annotation)).as_deref(), Some("现代 · 一二三四五六…"));
+        assert_eq!(
+            english_source_badge(Some(&annotation)).as_deref(),
+            Some("现代 · 一二三四五六…")
+        );
         annotation.entity_kind.clear();
         assert_eq!(english_source_badge(Some(&annotation)), None);
+    }
+
+    #[test]
+    fn modern_dictionary_usage_is_not_an_entity_or_pinyin_badge() {
+        let mut annotation = retype_types::EnglishAnnotation {
+            lexical_usage: "网络".into(),
+            lexical_sense_id: "conversation-one".into(),
+            expanded_form: "I don't know".into(),
+            lexical_source: "https://example.org/dictionary".into(),
+            ..Default::default()
+        };
+        for usage in ["网络", "缩写", "俚语", "非正式", "专业", "旧义", "词汇"] {
+            annotation.lexical_usage = usage.into();
+            assert_eq!(
+                english_source_badge(Some(&annotation)).as_deref(),
+                Some(usage)
+            );
+        }
+        annotation.lexical_sense_id.clear();
+        assert_eq!(english_source_badge(Some(&annotation)), None);
+    }
+
+    #[test]
+    fn modern_sense_usage_and_expansion_changes_refresh_without_changing_commit() {
+        let mut surface = Surface::default();
+        let mut current = state(&["IMO"]);
+        current.status = retype_types::StatusFlags::EMPTY;
+        current.composition = "imo".into();
+        current.candidates[0].annotation = Some(retype_types::EnglishAnnotation {
+            part_of_speech: "短语".into(),
+            definition: "依我看".into(),
+            lexical_usage: "缩写".into(),
+            expanded_form: "in my opinion".into(),
+            lexical_sense_id: "imo-chat".into(),
+            ..Default::default()
+        });
+        let widths = surface.measure(&current, 472, 1.0);
+        let first = surface.render(&current, &widths, 2, 480, 1.0);
+        let cached = surface.render(&current, &widths, 2, 480, 1.0);
+        assert!(Arc::ptr_eq(&first, &cached));
+        let annotation = current.candidates[0].annotation.as_mut().unwrap();
+        annotation.part_of_speech = "名词".into();
+        annotation.definition = "国际海事组织".into();
+        annotation.lexical_usage = "专业".into();
+        annotation.expanded_form = "International Maritime Organization".into();
+        annotation.lexical_sense_id = "imo-organization".into();
+        let second = surface.render(&current, &widths, 2, 480, 1.0);
+        assert!(!Arc::ptr_eq(&first, &second));
+        assert_ne!(first.pixels, second.pixels);
+        assert_eq!(current.candidates[0].text, "IMO");
+        assert_eq!(current.candidates[0].display_text(), "IMO");
     }
 
     #[test]
@@ -1200,17 +1294,27 @@ mod tests {
             current.candidates[0].display_text = Some("same".into());
             current.candidates[0].annotation = Some(retype_types::EnglishAnnotation {
                 pinyin_match: true,
-                matched_chinese: if raw.ends_with("yiyang") { "一样" } else { "同样" }.into(),
+                matched_chinese: if raw.ends_with("yiyang") {
+                    "一样"
+                } else {
+                    "同样"
+                }
+                .into(),
                 pinyin_exact: true,
                 ..Default::default()
             });
             let before = current.clone();
-            assert_eq!(english_header(&current), format!("I will do the · {}", &raw[10..]));
+            assert_eq!(
+                english_header(&current),
+                format!("I will do the · {}", &raw[10..])
+            );
             assert_eq!(current.candidates[0].display_text(), "same");
             assert_eq!(current.candidates[0].text, "I will do the same");
-            assert!(english_source_badge(current.candidates[0].annotation.as_ref())
-                .unwrap()
-                .starts_with("拼音 · "));
+            assert!(
+                english_source_badge(current.candidates[0].annotation.as_ref())
+                    .unwrap()
+                    .starts_with("拼音 · ")
+            );
             assert_eq!(current, before);
         }
     }

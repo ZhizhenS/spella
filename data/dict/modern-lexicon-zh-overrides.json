@@ -1,0 +1,769 @@
+{
+  "schema": 1,
+  "definition_origin": "project-editorial",
+  "license": "CC-BY-SA-4.0",
+  "policy": "Every override binds the exact frozen word, POS, complete gloss list, full_form and stable sense_id. Missing or changed source evidence is an error. Usage labels supplied here are editorial, not claimed as upstream tags. Priorities >=1200 mean individually reviewed everyday modern senses, not corpus frequency.",
+  "entries": [
+    {
+      "sense_id": "en-281de8e6f35ec275d101191b685efda4b9df1b9a",
+      "word": "AFAIK",
+      "pos": "adv",
+      "glosses": [
+        "Initialism of as far as I know."
+      ],
+      "full_form": "as far as I know",
+      "definition_zh": "据我所知",
+      "priority": 2000,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-664fa09d49d501cc24a485337328cf0e60630237",
+      "word": "AFK",
+      "pos": "prep_phrase",
+      "glosses": [
+        "Initialism of away from keyboard, i.e. away from one's computer; idle."
+      ],
+      "full_form": "away from keyboard",
+      "definition_zh": "暂时离开键盘；人不在电脑前",
+      "priority": 2000,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-2b0b95079603fb90c0d0a1a6ec96d96c786f4058",
+      "word": "AKA",
+      "pos": "prep",
+      "glosses": [
+        "Initialism of also known as."
+      ],
+      "full_form": "also known as",
+      "definition_zh": "又称；也叫",
+      "priority": 2000,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-763cdd9a1a979db3b73db76fc75fc769aa237273",
+      "word": "ASAP",
+      "pos": "adv",
+      "glosses": [
+        "Initialism of as soon as possible."
+      ],
+      "full_form": "as soon as possible",
+      "definition_zh": "尽快；越快越好",
+      "priority": 2000,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-76f4a8e398db91d98742f1cf8a844339c1485fe0",
+      "word": "bae",
+      "pos": "noun",
+      "glosses": [
+        "Darling (term of endearment)."
+      ],
+      "full_form": "",
+      "definition_zh": "宝贝；亲爱的（昵称）",
+      "priority": 1800,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-514fa0bc706388c5da2e5ca9ceb8b7f0ff269488",
+      "word": "based",
+      "pos": "adj",
+      "glosses": [
+        "Admirable; praiseworthy, especially if simultaneously unpopular or controversial."
+      ],
+      "full_form": "",
+      "definition_zh": "值得赞赏的；有个性、有主见的（网络赞语）",
+      "priority": 1900,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-6464ae4ab666a729479a907f0b0e8fb144be8e06",
+      "word": "based",
+      "pos": "adj",
+      "glosses": [
+        "Not caring what others think about one's personality, style, or behavior; focused on maintaining individuality."
+      ],
+      "full_form": "",
+      "definition_zh": "不在乎他人看法、坚持自我个性的",
+      "priority": 1800,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-6bdd9c1b4eab40a26f3818df661e9f9f1ebb99d0",
+      "word": "BRB",
+      "pos": "phrase",
+      "glosses": [
+        "Initialism of be right back."
+      ],
+      "full_form": "be right back",
+      "definition_zh": "马上回来",
+      "priority": 2000,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-e0f39a7efa4efa7ab50539009476f7c2664406f2",
+      "word": "BTW",
+      "pos": "prep_phrase",
+      "glosses": [
+        "Initialism of by the way."
+      ],
+      "full_form": "by the way",
+      "definition_zh": "顺便说一下",
+      "priority": 2000,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-a10be2a6ef337e79431642588304a79766c18d72",
+      "word": "cooked",
+      "pos": "adj",
+      "glosses": [
+        "In trouble; in a hopeless situation."
+      ],
+      "full_form": "",
+      "definition_zh": "完蛋了的；陷入无可挽救困境的",
+      "priority": 1900,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-6c53681d80639a0912928370505a2cbe4985bd0e",
+      "word": "cringe",
+      "pos": "adj",
+      "glosses": [
+        "Synonym of cringeworthy or uncool, inducing awkwardness or secondhand embarrassment."
+      ],
+      "full_form": "",
+      "definition_zh": "令人尴尬的；让人替别人难为情的",
+      "priority": 1900,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-0c8147ca3dd9afb212a8f97073906913cd9ec288",
+      "word": "delulu",
+      "pos": "adj",
+      "glosses": [
+        "Delusional."
+      ],
+      "full_form": "",
+      "definition_zh": "妄想的；不切实际地幻想的",
+      "priority": 2200,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-4c24adc714aeb24ad6c32af5d262b431e87d551c",
+      "word": "delulu",
+      "pos": "noun",
+      "glosses": [
+        "A delusional person."
+      ],
+      "full_form": "",
+      "definition_zh": "沉溺于不切实际幻想的人",
+      "priority": 2000,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-1d01328fb11932adb2ad4f17358246635adde33c",
+      "word": "DIY",
+      "pos": "noun",
+      "glosses": [
+        "Initialism of do it yourself."
+      ],
+      "full_form": "do it yourself",
+      "definition_zh": "自己动手做；自行制作",
+      "priority": 2000,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-4a8dec791ca446a463b9be195b3930f62175a417",
+      "word": "DM",
+      "pos": "noun",
+      "glosses": [
+        "Initialism of direct message (type of message on social media platforms)."
+      ],
+      "full_form": "direct message",
+      "definition_zh": "私信；直接消息",
+      "priority": 2000,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-d570e20a9145d1b79f138b5ff2870c40634b791f",
+      "word": "doomscrolling",
+      "pos": "noun",
+      "glosses": [
+        "The practice of continually reading Internet news about catastrophic events."
+      ],
+      "full_form": "",
+      "definition_zh": "不停刷看灾难或负面新闻的行为",
+      "priority": 2200,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-19b447145315792d8fff0d4c37a87fa1e8771349",
+      "word": "FOMO",
+      "pos": "noun",
+      "glosses": [
+        "Acronym of fear of missing out."
+      ],
+      "full_form": "fear of missing out",
+      "definition_zh": "害怕错过的焦虑；错失恐惧",
+      "priority": 2000,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-7f5453ee87893412ad9a564e6cb3acd44f0a4cbf",
+      "word": "FWIW",
+      "pos": "prep_phrase",
+      "glosses": [
+        "Initialism of for what it's worth."
+      ],
+      "full_form": "for what it's worth",
+      "definition_zh": "不管有没有帮助，供你参考",
+      "priority": 2000,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-15f24a9aa3519ab5f42f153ba43fffdc1d68e845",
+      "word": "FYI",
+      "pos": "phrase",
+      "glosses": [
+        "Initialism of for your information."
+      ],
+      "full_form": "for your information",
+      "definition_zh": "供你参考；告知你一下",
+      "priority": 2000,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-a2013c168c553635048d555409e17b3010845da8",
+      "word": "GG",
+      "pos": "intj",
+      "glosses": [
+        "Initialism of good game; commonly used at the end of a gaming match; also sometimes used to end an argument."
+      ],
+      "full_form": "good game",
+      "definition_zh": "打得好；精彩的一局（游戏结束时的礼貌用语）",
+      "priority": 2000,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-f64e94ba0b0c2eadaf8ca74d0eb0a51f118914e5",
+      "word": "ghosting",
+      "pos": "noun",
+      "glosses": [
+        "A method of ending a personal relationship by stopping any contact with the other party and not providing an explanation."
+      ],
+      "full_form": "",
+      "definition_zh": "突然停止联系、不给解释地结束一段关系；玩消失",
+      "priority": 2300,
+      "usage": "非正式",
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-01f548b75235d53e69e1acc81fa7af631038145e",
+      "word": "GOAT",
+      "pos": "noun",
+      "glosses": [
+        "Acronym of greatest of all time."
+      ],
+      "full_form": "greatest of all time",
+      "definition_zh": "史上最佳；某领域最杰出的人",
+      "priority": 2000,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-e0705fa1fc978e496f59ee8e58a16ad9c1b8d06c",
+      "word": "ICYMI",
+      "pos": "adv",
+      "glosses": [
+        "Initialism of in case you missed it."
+      ],
+      "full_form": "in case you missed it",
+      "definition_zh": "以防你错过了；补充提醒",
+      "priority": 2000,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-4ead9693fbd40ae4f7d8c0b67962d221a064ec2e",
+      "word": "IDK",
+      "pos": "phrase",
+      "glosses": [
+        "Initialism of I don't know."
+      ],
+      "full_form": "I don't know",
+      "definition_zh": "我不知道",
+      "priority": 2000,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-04d74c60972f4bcfe19d70288cce5afdf3b25f68",
+      "word": "IKR",
+      "pos": "phrase",
+      "glosses": [
+        "Initialism of I know, right?: indicates agreement with a previously mentioned idea, statement, viewpoint, etc."
+      ],
+      "full_form": "",
+      "definition_zh": "就是啊；可不是嘛（表示赞同）",
+      "priority": 2300,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-c83af32b1163026fee780c893448bec07df1cdb0",
+      "word": "ILY",
+      "pos": "phrase",
+      "glosses": [
+        "Initialism of I love you."
+      ],
+      "full_form": "I love you",
+      "definition_zh": "我爱你",
+      "priority": 2000,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-4569375926b3c71c9d69f3a0e2cb9e1d9a5f7bc3",
+      "word": "IMHO",
+      "pos": "phrase",
+      "glosses": [
+        "Initialism of in my humble opinion."
+      ],
+      "full_form": "in my humble opinion",
+      "definition_zh": "恕我直言；依我拙见",
+      "priority": 2100,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-d9e78e09524f6c429d73a1769932a2d784066a77",
+      "word": "IMHO",
+      "pos": "phrase",
+      "glosses": [
+        "Initialism of in my honest opinion."
+      ],
+      "full_form": "in my honest opinion",
+      "definition_zh": "说实话；我的真实看法是",
+      "priority": 1500,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-8fd2fdbf7e72bf5dad24ae9249e8eba2b0c81fe5",
+      "word": "IMO",
+      "pos": "prep_phrase",
+      "glosses": [
+        "Initialism of in my opinion."
+      ],
+      "full_form": "in my opinion",
+      "definition_zh": "依我看；在我看来",
+      "priority": 2000,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "zh-4298a2866cb06c2f20c6eee09ee922cb992eebda",
+      "word": "IMO",
+      "pos": "name",
+      "glosses": [
+        "International Maritime Organization (“國際海事組織”) 的首字母縮略詞"
+      ],
+      "full_form": "International Maritime Organization",
+      "definition_zh": "國際海事組織",
+      "priority": 100,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "zh-e712a2d2d3acfe0c530a9e36b36f5d6a05fff875",
+      "word": "IMO",
+      "pos": "name",
+      "glosses": [
+        "International Mathematical Olympiad (“國際數學奧林匹亞”) 的首字母縮略詞"
+      ],
+      "full_form": "International Mathematical Olympiad",
+      "definition_zh": "國際數學奧林匹亞",
+      "priority": 100,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-86b718d7f21fee35fc39f76dcc017077acbd63bd",
+      "word": "IRL",
+      "pos": "adv",
+      "glosses": [
+        "Initialism of in real life (as opposed to online)."
+      ],
+      "full_form": "in real life",
+      "definition_zh": "在现实生活中；线下",
+      "priority": 2000,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-9409197c30cbbb9e641794e33c146617754b0bf9",
+      "word": "LMAO",
+      "pos": "intj",
+      "glosses": [
+        "Initialism of laughing my ass/arse off; used to indicate great amusement, usually exaggerated."
+      ],
+      "full_form": "laughing my ass/arse off",
+      "definition_zh": "笑死了；笑得不行（较粗俗）",
+      "priority": 2000,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-397a9b543a4f2e22b3a4ee616165c084ad2ab0d8",
+      "word": "LMK",
+      "pos": "phrase",
+      "glosses": [
+        "Initialism of let me know."
+      ],
+      "full_form": "let me know",
+      "definition_zh": "告诉我；让我知道",
+      "priority": 2000,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-eb1c09d3ffa98886dc1bcdb5f02bf2d41e0d351f",
+      "word": "LOL",
+      "pos": "intj",
+      "glosses": [
+        "Laughing (or laugh) out loud."
+      ],
+      "full_form": "",
+      "definition_zh": "哈哈大笑；笑出声",
+      "priority": 2400,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-f71027286bfbed46423eb93257af3b0202dbd1ef",
+      "word": "newbie",
+      "pos": "noun",
+      "glosses": [
+        "A new user or participant; someone who is extremely new and inexperienced (to a game or activity). A beginner."
+      ],
+      "full_form": "",
+      "definition_zh": "新手；刚入门的人",
+      "priority": 1800,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-146a67f0879b5a5491edacc633b2a428693ef29c",
+      "word": "NGL",
+      "pos": "phrase",
+      "glosses": [
+        "Initialism of (I'm) not gonna lie: to tell the truth."
+      ],
+      "full_form": "(I'm) not gonna lie",
+      "definition_zh": "不瞒你说；说真的",
+      "priority": 2000,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-0d3fdc5abc9e8c9fcc3969f3457134eafd3ad428",
+      "word": "noob",
+      "pos": "noun",
+      "glosses": [
+        "A newb or newbie; someone who is new to a game, concept, or idea; implying a lack of experience."
+      ],
+      "full_form": "",
+      "definition_zh": "菜鸟；缺乏经验的新手（有贬义）",
+      "priority": 1900,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-ada04689756770b4555dfdad52fb9c23d7161d0c",
+      "word": "NP",
+      "pos": "phrase",
+      "glosses": [
+        "Initialism of no problem."
+      ],
+      "full_form": "no problem",
+      "definition_zh": "没问题；不客气",
+      "priority": 2000,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-d1397ef702d389c249bd8193c3478efb6ac0a8c8",
+      "word": "NSFW",
+      "pos": "adj",
+      "glosses": [
+        "Initialism of not safe for work; i.e., containing inappropriate or adult content (e.g. pornography or profanity) that may be unsuitable for public, formal or controlled environments, such as at work."
+      ],
+      "full_form": "not safe for work",
+      "definition_zh": "不适合在工作或公共场合查看的内容",
+      "priority": 2000,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-046e8d83b8842e46c43b252464bb4458efbef931",
+      "word": "NVM",
+      "pos": "phrase",
+      "glosses": [
+        "Initialism of never mind."
+      ],
+      "full_form": "never mind",
+      "definition_zh": "算了；别在意",
+      "priority": 2000,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-bee4d9cb8847db3163d14a61dd6c2a12fc6425c5",
+      "word": "OOTD",
+      "pos": "noun",
+      "glosses": [
+        "Initialism of outfit of the day."
+      ],
+      "full_form": "outfit of the day",
+      "definition_zh": "今日穿搭",
+      "priority": 2000,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-5b92132f3d4f255df0ffd9e2418bfaeb76037562",
+      "word": "POV",
+      "pos": "noun",
+      "glosses": [
+        "Initialism of point of view.",
+        "The (cognitive, mental, or emotional) viewpoint of a certain person; (attributively) from that viewpoint."
+      ],
+      "full_form": "",
+      "definition_zh": "观点；某人的主观视角",
+      "priority": 2300,
+      "usage": "缩写",
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。",
+      "display_full_form": "point of view"
+    },
+    {
+      "sense_id": "en-d0061b0e6a142ff60e3ca15c82e8e3b65ce84d72",
+      "word": "POV",
+      "pos": "noun",
+      "glosses": [
+        "Initialism of point of view.",
+        "The vantage point of a particular person; (attributively) from that vantage point."
+      ],
+      "full_form": "",
+      "definition_zh": "某人的观察视角；第一人称视角",
+      "priority": 1900,
+      "usage": "缩写",
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。",
+      "display_full_form": "point of view"
+    },
+    {
+      "sense_id": "en-a7bb926ab80572fddca37727d97f39e952d7641f",
+      "word": "rizz",
+      "pos": "noun",
+      "glosses": [
+        "A person's ability to attract a love interest, usually female; attractiveness, charm."
+      ],
+      "full_form": "",
+      "definition_zh": "吸引恋爱对象的魅力；撩人的本领",
+      "priority": 2400,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-46a24dcfc06f4ee1ad1fd42810b1e29a8ffbe56c",
+      "word": "rizz",
+      "pos": "verb",
+      "glosses": [
+        "Often followed by up: to attract or seduce (a love interest)."
+      ],
+      "full_form": "",
+      "definition_zh": "吸引或撩拨喜欢的人；搭讪",
+      "priority": 2200,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-094d1fe9993a19e88ccd0d87625ccc6c90623b5d",
+      "word": "rizz",
+      "pos": "noun",
+      "glosses": [
+        "Synonym of rolling paper, particularly of the Rizla+ brand."
+      ],
+      "full_form": "",
+      "definition_zh": "卷烟纸（伦敦地区俚语，尤指 Rizla+ 品牌）",
+      "priority": 50,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "zh-f4641d61435f0876c1cdd08ad3a439e1df94039f",
+      "word": "rizz",
+      "pos": "noun",
+      "glosses": [
+        "Rizla+牌卷烟"
+      ],
+      "full_form": "",
+      "definition_zh": "Rizla+牌卷烟",
+      "priority": 50,
+      "review_note": "项目维护时依据此冻结原义项编写并复核排序；保留原中文来源文本；不在输入时自动翻译。",
+      "definition_from_upstream_chinese": true
+    },
+    {
+      "sense_id": "en-5ca1c30330bd348cec217afeb2e9aa7cf681f4b1",
+      "word": "RN",
+      "pos": "adv",
+      "glosses": [
+        "Abbreviation of right now."
+      ],
+      "full_form": "right now",
+      "definition_zh": "现在；此刻",
+      "priority": 2000,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-ff2eefba02522814d76d1680d06bbfdfc3346d20",
+      "word": "salty",
+      "pos": "adj",
+      "glosses": [
+        "Irritated, annoyed, angry, bitter."
+      ],
+      "full_form": "",
+      "definition_zh": "恼火的；因不满而愤愤不平的",
+      "priority": 1800,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-6481f2f5fc88229055f776336e14a108bd7d7fd7",
+      "word": "SFW",
+      "pos": "adj",
+      "glosses": [
+        "Initialism of safe for work; i.e., content containing neither graphic nor adult imagery, and thus suitable for public, formal or controlled environments, such as at work."
+      ],
+      "full_form": "safe for work",
+      "definition_zh": "适合在工作场合公开查看的",
+      "priority": 2000,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-5e088b45b06240aeca1781356b6a6c1525b3dc87",
+      "word": "SMH",
+      "pos": "intj",
+      "glosses": [
+        "Initialism of shaking my head (used to convey disapproval)."
+      ],
+      "full_form": "shaking my head",
+      "definition_zh": "摇头，表示不赞同或无奈",
+      "priority": 2000,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-ae257f374c66918bc8acc65b74ae61fe71baaac0",
+      "word": "stan",
+      "pos": "noun",
+      "glosses": [
+        "An extremely obsessive fan of a person, group, character, or creative work, particularly one whose fixation is unhealthy or intrusive."
+      ],
+      "full_form": "",
+      "definition_zh": "狂热粉丝；过分痴迷的追随者",
+      "priority": 1700,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-e0f585632329b914b67a998b1cd6e0a149efb60e",
+      "word": "sus",
+      "pos": "adj",
+      "glosses": [
+        "Suspicious; raising or causing people to have suspicions."
+      ],
+      "full_form": "",
+      "definition_zh": "可疑的；让人起疑的",
+      "priority": 2400,
+      "usage": "网络",
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-15dd37b53aaa27067ac854a9e6bd658d4e98a699",
+      "word": "sus",
+      "pos": "adj",
+      "glosses": [
+        "Suspicious; having suspicions or questions."
+      ],
+      "full_form": "",
+      "definition_zh": "起疑心的；心存怀疑的",
+      "priority": 1600,
+      "usage": "非正式",
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-6e2d5dfb35adc30611f479b1efd962bd383362fc",
+      "word": "TBH",
+      "pos": "phrase",
+      "glosses": [
+        "Initialism of to be honest."
+      ],
+      "full_form": "to be honest",
+      "definition_zh": "说实话；坦白说",
+      "priority": 2000,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-04cf8264a03b2f837f692e93b5b3d70657b8e40b",
+      "word": "tl;dr",
+      "pos": "phrase",
+      "glosses": [
+        "Initialism of too long; didn't read (or sometimes too long; don't read).",
+        "Used to indicate that one did not read a (long) text."
+      ],
+      "full_form": "",
+      "definition_zh": "太长不看；表示没读完长文",
+      "priority": 2300,
+      "usage": "网络",
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。",
+      "display_full_form": "too long; didn't read"
+    },
+    {
+      "sense_id": "en-db96a5a25740072348e8516227f0d141da13e5e7",
+      "word": "tl;dr",
+      "pos": "phrase",
+      "glosses": [
+        "Initialism of too long; didn't read (or sometimes too long; don't read).",
+        "Used to introduce a short summary of an overly long text."
+      ],
+      "full_form": "",
+      "definition_zh": "长话短说；长文摘要",
+      "priority": 2200,
+      "usage": "网络",
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。",
+      "display_full_form": "too long; didn't read"
+    },
+    {
+      "sense_id": "en-7aeeae66a9f0af5cd8ea2cb476a478f2aaf49966",
+      "word": "TMI",
+      "pos": "noun",
+      "glosses": [
+        "Initialism of too much information."
+      ],
+      "full_form": "too much information",
+      "definition_zh": "信息太多了（尤指不想听的私密细节）",
+      "priority": 2000,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-bb582f1e400874e81eada1b625486e8148b4ca92",
+      "word": "yeet",
+      "pos": "intj",
+      "glosses": [
+        "Expressing excitement or approval."
+      ],
+      "full_form": "",
+      "definition_zh": "耶；表示兴奋或赞同",
+      "priority": 2100,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-f521c2a9f3c6a9584fbd421b36fc73cd3f0eb54d",
+      "word": "yeet",
+      "pos": "verb",
+      "glosses": [
+        "To throw (something) with great force; to hurl."
+      ],
+      "full_form": "",
+      "definition_zh": "用力扔；猛掷",
+      "priority": 2000,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    },
+    {
+      "sense_id": "en-4bbbbbf377151f0c82d0fb29be5e79f7fec32518",
+      "word": "YOLO",
+      "pos": "phrase",
+      "glosses": [
+        "Acronym of you only live once, i.e. expressing the view that one should make the most of the present moment."
+      ],
+      "full_form": "you only live once",
+      "definition_zh": "人生只有一次；及时把握机会",
+      "priority": 2000,
+      "review_note": "项目维护时依据此冻结原义项编写并复核的中文释义；非上游中译；不在输入时自动翻译。"
+    }
+  ],
+  "review_process": "Project editorial Chinese authored and checked against frozen source senses with Codex assistance; not upstream translations and not runtime automatic translation."
+}

@@ -1,4 +1,4 @@
-# English Assist 0.5.0 — Windows development branch
+# English Assist 0.6.0 — Windows development branch
 
 English Assist is a Windows English input-method project derived from
 [Retype at 902e35e](https://github.com/L-Chris/retype/tree/902e35e06ee4f744320cf995c39b1f64693034cf).
@@ -8,9 +8,72 @@ AI grammar correction and sentence completion, through a real English TSF entry.
 [简体中文](README.zh-CN.md) · [English input](docs/english-input.md) ·
 [P0 validation](docs/english-assist/INPUT_VALIDATION.md)
 
-## 0.5.0 dictionary and mixed input
+## 0.6.0 modern meanings and expanded names
 
-**Final 0.5.0 R1 checkpoint:** the formal build passed 413 Rust checks, 46 Python
+**Final 0.6.0 R1 checkpoint:** the formal build passed 427 Rust checks (425
+standard plus 2 explicitly run prepared-resource groups), 74 Python checks and
+634 PowerShell checks: 1,135 counted passes, including repeated x86 runs, with
+0 failures. Of 8 raw ignored entries, the 2 prepared groups later passed inside
+that total; 4 installed x64/x86 probes passed separately with activation S_OK,
+leaving 2 unexecuted entries. Upgrade exited 0 to
+`C:\Program Files\EnglishAssist\versions\0.6.0-20261109143156-791774`;
+all 29 artifact hashes and build.json matched. The mapped preference file identity
+and all 23 values were preserved. Earlier results remain version-specific history.
+
+- The offline modern-word subset contains **4,009 senses across 2,134 keys** from
+  frozen Kaikki extracts of English and Chinese Wiktionary. Before 34 duplicate
+  senses were merged, it admitted 3,982 source-Chinese senses (3,824 from the
+  Chinese edition and 158 with confirmed Chinese translations in the English
+  edition), plus 61 separately identified project Chinese additions prepared
+  with Codex assistance. Those additions are not presented as upstream Chinese.
+- Real POS and Chinese meanings coexist with ordinary ECDICT meanings and named
+  entities. Badges distinguish network usage, abbreviations and slang from
+  `现代 · 公司` and the existing pinyin evidence. Different senses of IMO retain
+  their identities instead of being merged merely because they commit the same
+  abbreviation. Reviewed conversational IDK/IMO/TBH meanings precede older cold
+  abbreviation senses; common ordinary words retain their normal candidate lane.
+- Selecting an abbreviation commits its short spelling, never its displayed full
+  form. A reviewed exact network abbreviation with a sourced expansion can lead
+  for an explicitly uppercase input such as `GOAT`; lowercase `goat` keeps its
+  ordinary animal meaning, and uppercase alone does not promote SICK or APPLE
+  slang. Ordinary modern words respect input case, such as `Rizz` and `RIZZ`;
+  proven abbreviations and proper names retain canonical spelling.
+- The Wikidata subset expands to **1,173 entities and 2,239 alias relations**
+  (2,161 distinct spellings), preserving
+  the original 51 reviewed seeds. Shared aliases may identify different entities.
+  Chinese labels and short descriptions aid identification; they are not complete
+  translations or a claim to cover all names or current Internet terminology.
+
+Lookup and normal frozen-data checks are offline, do not read an API key, and do
+not learn input history. Raw Enter, plain Space, bare Shift spacing toggle and
+full-composition mixed-pinyin acceptance retain their existing rules. Reviewed
+network abbreviations stay whole on plain Space, without expanding their full
+forms. The lexical TSV is 620,800 bytes, SHA-256
+`ccbb70532631d3cdc000ff63fd702b6d496e09d1b4f024e11a9670d4bfaa9749`;
+coverage and provenance are in `data/dict/modern-lexicon.json` and
+`data/dict/modern-entities.json`.
+
+Notepad PID29288 was confirmed to load the R1 DLL. Physical-key checks and saved
+file readback passed IDK/IMO short-form acceptance, rizz/RIZZ case, uppercase GOAT
+versus ordinary goat, LibreOffice prefix completion, raw Enter after selection and
+paging, Shift paging without toggling spacing, `iamrobot` + Space, and complete
+`I will do the same` acceptance from the mixed-pinyin example. The owned file
+matched all 12 expected lines, without trailing spaces or a final newline.
+`kotlin` has no entry in this approved catalog and showed no candidate; Enter
+preserved its raw spelling. This is a known coverage gap, not Kotlin completion.
+Valid language tags, Input Tips and the default override matched their pre-upgrade
+snapshots. Receipts: `work/research/v0.6.0-r1-notepad-live.json`,
+`v0.6.0-r1-notepad-module.json`, `v0.6.0-keyboard-preserved.json` and
+`work/build-logs/v0.6.0-r1-test-counts.json`.
+
+These are bounded Notepad checks. This version did not verify every application,
+real x86 editor typing, AI service/GUI, uninstall or reboot cleanup. Final source
+archive verification is separate and pending; a complete native rebuild from the
+source ZIP has not been verified. Candidate ranks are observed snapshots.
+
+## Inherited 0.5 dictionary and mixed input; historical checks
+
+**Historical 0.5.0 R1 checkpoint:** the formal build passed 413 Rust checks, 46 Python
 checks and 619 PowerShell checks: 1,078 counted passes, including repeated x86
 runs. Rust reported 0 failures and 7 raw ignored entries; the prepared-resource
 integration was then explicitly run and is included in the 413 passes. Installed
@@ -211,6 +274,8 @@ reboot deletion of queued old files is still unverified. See the
 - Local prefix completion and spelling suggestions with original case preserved.
 - Five candidates per page, 1–5 selection and minus/plus paging; digits remain literal without candidates.
 - Chinese definitions, part of speech, optional phonetics and pinyin lookup.
+- Separate modern-word senses and expanded named-entity aliases, with sourced
+  usage labels and display-only abbreviation expansions.
 - Tab or mouse acceptance without an automatic trailing space.
 - Automatic spacing adds only needed word boundaries and never a trailing space.
 - Enter submits the raw current composition even after candidate navigation;
@@ -243,10 +308,10 @@ The English-specific script builds both TSF architectures, the settings/helper
 programs and the pinned English vocabulary, then runs its configured checks.
 It does not install the product or modify the system keyboard list.
 
-The 0.5.0 R1 installer is `dist/english-assist-0.5.0-windows-x64-setup.exe`.
+The 0.6.0 R1 installer is `dist/english-assist-0.6.0-windows-x64-setup.exe`.
 Its formal build, installed hashes, activation probes and bounded Notepad checks
-are recorded above and in the versioned validation record. Earlier installation
-and lifecycle results remain historical.
+are recorded above. The 0.5.0 installation and earlier lifecycle checks remain
+historical; this release did not repeat uninstall or reboot cleanup.
 Do not use the inherited Retype installer, register.ps1 or upstream release
 download links for this fork.
 
@@ -290,6 +355,15 @@ attribution and hashes in `data/dict/raw/english-assist/SOURCES.json` and
 `data/dict/raw/wanxiang-base/SOURCE.md`. Modern entities retain their separate
 CC0 Wikidata snapshot/revision records and reviewed official identity URLs in
 `data/dict/modern-entities.json`; they are independent of the bilingual sidecar.
+
+The 0.6 modern lexical subset and its separately marked project Chinese additions
+are distributed under CC BY-SA 4.0, retaining Wiktionary-contributor attribution,
+per-sense URLs, frozen hashes and the projection/change notice. Wiktextract's MIT
+software license does not relicense its data. Retain `data/dict/modern-lexicon*`,
+the frozen projections and both edition-source manifests in
+`data/dict/raw/kaikki-modern/`, full licenses/notices and the independent compiler
+and checks. Normal builds do not refresh sources. Complete large dumps remain in
+a separate acquisition cache; the bundled projections are not the full dictionary.
 
 The separate 0.3 embedded bigram preferences use the frozen published SymSpell
 file from MIT repository commit `c239062ae02961df18ab7da1671d01b4388204e0`.

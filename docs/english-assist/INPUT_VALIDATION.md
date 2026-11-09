@@ -1,10 +1,36 @@
 # English Assist：交互与验证记录
 
-更新：2026-11-09。0.5.0 R1已完成正式构建、升级、产物核对和有限真实记事本检查。上游基线：Retype `902e35e06ee4f744320cf995c39b1f64693034cf`。
+更新：2026-11-09。当前0.6.0 R1已完成正式构建、升级、产物核对和有限真实记事本检查。上游基线：Retype `902e35e06ee4f744320cf995c39b1f64693034cf`。
 
 本文区分本子任务执行的定向检查和根任务负责的最终集成、安装及真实宿主验收。产品范围见 [产品规格](../english-assist-product.md)，操作说明见 [英文输入](../english-input.md)。最终安装包与宿主兼容结论以根任务的版本化构建记录为准。
 
-## 0.5.0 R1 关系词库、混合拼音尾词与现代实体
+## 当前0.6.0 R1 现代词义项、专名与真实输入
+
+数据契约、来源和维护方式见 [现代词库](MODERN_LEXICONS.md)。本节分开记录正式测试、安装后探针和实际宿主检查，不把历史版本或数据覆盖范围扩大为本轮验收。
+
+| 0.6.0 项目 | 实际结果 / 验收边界 |
+| --- | --- |
+| 改动前备份 | `work/backups/20261109-before-0.6.0` 保存0.5.0源码归档、已装产物/安装包、产品配置、共享偏好文件与槽值及Notepad LocalState；不读取凭据内容或其他恢复标签 |
+| 现代词来源与数量 | 完整扫描Kaikki英文版raw的11,121,531行、中文版extract的2,965,486行，分别保留98,586和4,822个待筛选义项。实际EAMODLX1安装子集为4,009义项、2,134个检索键，620,800字节；SHA256=`ccbb70532631d3cdc000ff63fd702b6d496e09d1b4f024e11a9670d4bfaa9749`。待筛选义项数不等于安装词数，不宣称完整现代英语覆盖 |
+| 中文、词性与许可 | 每个准入义项保留源词性对应的中文词性、真实中文释义、语域、可有的缩写全称及来源身份。等价缩写合并前的4,043条证据含3,824条中文版释义、158条明确匹配的英文版中文翻译、61条项目中文补充；另1条覆盖只调整排序且保持原中文归属。项目中文由维护时依据冻结原义项编写并经Codex辅助复核，不冒称上游中译或人类逐条审核，不在输入时自动翻译。词典文本选择CC BY-SA4.0，完整授权与NOTICE随包；代码MIT许可不替代数据许可 |
+| 专名来源与数量 | Wikidata有界发现共1,475个源ID，准入1,173个实体、2,239个别名（2,161个不同检索别名），保留原51条项目目录。EAMODEN2保留QID、修订、类别与中文元数据，按CC0分发完整授权和NOTICE；官网链接用于身份溯源，不复制网站文案。中文描述是实体元数据，不是完整词典释义，不声称全量Wikidata |
+| 有界索引与多义 | 资源worker预建不可变范围最大值索引，单条现代词/实体查询最多扫描256个叶项、返回24项；输入期间不解析全库、不联网刷新。词义、实体和普通英文分流保留，缩写全称仅作注释，选IDK只提交IDK。冷门、旧义和专业同形义不统一套用常用网络义中文；有限候选页不保证呈现全部义项 |
+| 大小写和排序保护 | 保留明确缩写/专名的规范大小写，普通词随输入大小写；全大写GOAT可优先真正缩写义，lowercase goat保留山羊等普通词义优先。常见整词、显式个人词、连写与拼音路径有独立保护；APPLE不被冷门俚语凭大写抢先的回归已覆盖。来源priority与Wikidata sitelink代理分别使用，不混称实际打字频率或实时网络热度 |
+| 正式构建 | `work/build-logs/v0.6.0-r1-full-build.log`退出0，ISCC成功。28条Rust汇总427通过（常规425＋显式准备词库集成2）、Python五套74通过、PowerShell634通过，正式合计1,135次通过；包含架构重复，不是唯一用例数。`work/build-logs/v0.6.0-r1-test-counts.json` |
+| 忽略项与独立探针 | 正式汇总原始8次忽略中，英文混合/现代词准备词库2项随后在正式流水通过，已计入427；安装后x64/x86各2项探针另行通过、ActivateProfile HRESULT均S_OK，FORPROCESS作用域及进程语言恢复，4项不加进1,135。仍有2项未执行：`lexicon::tests::prepared_lexicon_has_real_chinese_annotations_and_pinyin_meanings`、`backend::tests::download_and_convert_without_changing_user_preferences`。不以探针替代x86编辑器真实键入 |
+| 升级、冻结与共享偏好 | 升级退出0；ActiveDir=`C:\Program Files\EnglishAssist\versions\0.6.0-20261109143156-791774`。29项文件及build.json匹配生产冻结清单，已映射偏好文件身份及全部槽值在升级前后保持。实测后自动空格、补词、拼音、连写及状态条保持启用。`work/research/v0.6.0-r1-installed-hashes.json`、`v0.6.0-final-installed-check.json`、`v0.6.0-preferences-after.json` |
+| 真实宿主与按键方式 | Notepad PID29288实际加载本次DLL，SHA256=`4af101ed03fec47d16e5e833534f2e8793ecbc0d44af4a70ac765cd7abbce111`，见`work/research/v0.6.0-r1-notepad-module.json`。在已观测焦点的自有公开测试文件中，通过`@oai/sky`逐个物理键事件输入；每个主要阶段Ctrl+S后读回核对 |
+| 缩写和现代义实测 | idk首项IDK/短语/我不知道，显示I don't know，按1仅提交IDK；imo首项会话义我覺得/in my opinion，海事与数学义独立保留，Tab仅提交IMO；rizz首项魅力名词、后续搭讪动词保留中文和词性，按1提交rizz。Shift字母组合输入RIZZ，Tab仍提交RIZZ，自动空格保持ON |
+| 普通义与缩写义实测 | GOAT首项史上最佳/greatest of all time，普通goat义仍在，按1仅提交GOAT；lowercase goat首项山羊，Tab提交goat。此排序为本次已装词库和输入的观察值，不承诺任意缩写在所有上下文均居首 |
+| 专名正向与覆盖缺口 | libreof前缀出现规范LibreOffice、专名/现代·软件及源中文描述，按1仅提交LibreOffice。Kotlin不在本次审核目录内，实际kotlin没有该专名候选，Enter精确保留raw kotlin；没有把这项缺失写成通过或据此宣称所有编程语言已覆盖 |
+| 原文回车与翻页 | tbh按Down选择其他义项后，Enter仍提交原始小写tbh且不附加换行；idk用Shift+equal从第1/2页至第2/2页、Shift+minus返回，再翻页后Enter仍raw idk。翻页组合键不切换自动空格，说明文字、全称和候选选择不改变原文Enter语义 |
+| 空格与混合尾词回归 | iamrobot按Space保存为I am robot，内部词界完整且无尾空格；iwilldotheyiyang显示英文前缀和拼音尾词，首项same/拼音·一样，按1完整提交I will do the same一次，无重复前缀或释义入文 |
+| 12行保存核对 | 自有文件`work/ui-tests/notepad-v060-4a05a854.txt`精确为`IDK\nIMO\nrizz\nRIZZ\nGOAT\ngoat\nkotlin\nLibreOffice\ntbh\nidk\nI am robot\nI will do the same`（文件使用CRLF），无最终换行/尾空格。95字节，SHA256=`cfaf6e5f909633c1a504050f3b7f0e2852945b3f59d4de79030de173884fae49`；逐阶段与最终核对见`work/research/v0.6.0-r1-notepad-live.json` |
+| 截图证据 | `work/research/`保存10张本轮裁剪PNG，包括`v0.6.0-r1-idk-live.png`、`v0.6.0-r1-imo-live.png`、`v0.6.0-r1-rizz-uppercase-live.png`、`v0.6.0-r1-goat-uppercase-live.png`、`v0.6.0-r1-libreoffice-live.png`、`v0.6.0-r1-idk-page2-live.png`和`v0.6.0-r1-mixed-yiyang-live.png`。截图结合保存文本和模块身份使用，不单凭截图证明提交成功 |
+| 有效键盘配置快照 | `v0.6.0-keyboard-before.json`与`v0.6.0-keyboard-after.json`均CapturedSuccessfully=true，实际包含zh-Hans-CN、en-US两个语言标签和非空InputMethodTips；en-US含美式键盘及本产品TIP。前后标签、各TIP列表相同，默认override均明确未设置；`work/research/v0.6.0-keyboard-preserved.json`确认有效快照及三项保持。此为0.6本轮真实证据，不借用0.5空快照 |
+| 本轮边界与源码交付 | 未重新验证全部应用、x86编辑器真实键入、AI联机/AI GUI、卸载/重启清理或全部现代词和长尾释义质量。老应用应完全退出后重开以加载新DLL。最终源码ZIP另见交付收据，未从ZIP整套原生重编；不提前把源码归档或原生重编写为通过 |
+
+## 历史0.5.0 R1 关系词库、混合拼音尾词与现代实体
 
 数据契约和维护方式见 [词典 v2](LEXICON_V2.md)。本节记录自动检查、正式安装及真实应用的不同范围，旧版本结果保留在后面。
 
@@ -29,7 +55,7 @@
 | xiang真实候选 | 第一页think想、mutually相、to向、like像、item项；Shift+equal翻至第二页，见fragrant香、ring响、elephant象、enjoy享、township乡。翻页组合键不切换自动空格；翻页后Enter保存raw xiang、无换行。候选位置仅为本次快照 |
 | 实体真实显示 | anthropic首项Anthropic/专名/现代·公司，释义美国人工智能公司、Claude开发商；第二项anthropic/adj./人类的。按1仅提交规范大小写Anthropic，未提交释义或徽标。`v0.5.0-r1-anthropic-live.png` |
 | 其他真实回归 | iamrobot按Space精确I am robot、无尾空格；iamnihao显示hello/拼音·你好后，未选词Space精确保留iamnihao，不译成hello、不插内部空格。共享偏好自动空格仍ON |
-| 保存结果和范围 | 自有文件 `work/ui-tests/notepad-v050-e22cdb54.txt` 精确六行 `I will do the same\nI will do the same\nxiang\nAnthropic\nI am robot\niamnihao`，无最终换行/尾空格。收据 `work/research/v0.5.0-r1-notepad-live.json`；语言列表、InputMethodTips、默认override前后相同，见 `v0.5.0-keyboard-preserved.json` |
+| 保存结果和范围 | 自有文件 `work/ui-tests/notepad-v050-e22cdb54.txt` 精确六行 `I will do the same\nI will do the same\nxiang\nAnthropic\nI am robot\niamnihao`，无最终换行/尾空格。收据 `work/research/v0.5.0-r1-notepad-live.json`。旧`v0.5.0-keyboard-before.json`和`v0.5.0-keyboard-after.json`的LanguageTag、InputMethodTips及默认override均为null；`v0.5.0-keyboard-preserved.json`只说明这些空值前后一致，不能证明当时语言/键盘配置未改，也不作为0.6的配置保持证据 |
 | 未宣称通过 | 全部应用、x86编辑器真实键入、AI联机/AI GUI、卸载/重启清理、全部长尾翻译质量以及从源码ZIP重做整套原生编译。本轮不读密钥、不请求外部AI；老应用应完全退出后重开以加载新DLL。源码归档完整性与离线重建另由交付收据记录 |
 
 ## 历史0.4.0 词前空格、原文回车与状态条

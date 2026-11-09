@@ -1,0 +1,77 @@
+{
+  "schema": 2,
+  "data_license": "CC0-1.0",
+  "source": "Wikidata contributors",
+  "licensing": "https://www.wikidata.org/wiki/Wikidata:Licensing",
+  "access": "https://www.wikidata.org/wiki/Wikidata:Data_access",
+  "acquired_utc": "2026-11-09T22:11:47.550178+00:00",
+  "scope": "Bounded discovery of software/programming-language subclasses and direct company instances with language labels and minimum sitelinks; not all modern entities. Organization/product/website queries did not complete and supplied no admitted expansion data. Original reviewed seed retained.",
+  "discovery_categories": {
+    "companies": [
+      "Q783794",
+      900,
+      15
+    ],
+    "programming-languages": [
+      "Q9143",
+      600,
+      2
+    ],
+    "software": [
+      "Q7397",
+      900,
+      4
+    ]
+  },
+  "query_counts": {
+    "companies": 138,
+    "programming-languages": 410,
+    "software": 900
+  },
+  "counts": {
+    "source_ids": 1475,
+    "admitted_entities": 1173,
+    "aliases": 2239,
+    "distinct_aliases": 2161,
+    "reviewed_seed": 51,
+    "rejected": {
+      "no-ascii-english-spelling": 4,
+      "no-chinese-metadata": 298
+    },
+    "chinese_origin": {
+      "wikidata-zh-label-and-category": 249,
+      "wikidata-zh-description": 873,
+      "reviewed-seed-v1": 51
+    }
+  },
+  "priority_note": "min(frozen_sitelink_count,65535)*100 + category_bonus (programming-language30/software25/company20/organization15/product10/website5) + reviewed_seed50; source visibility proxy within entities, not corpus word frequency",
+  "projection": "Retains needed public structured fields, exact queries/revisions and original response digests. Does not embed website prose, logos or a full Wikidata dump. For preserved seed entries, sitelinks_source_revision identifies the newer visibility observation separately from their original reviewed text revision.",
+  "files": [
+    {
+      "file": "raw/modern-entities/wikidata-snapshot.json.gz",
+      "bytes": 6896,
+      "sha256": "459a576ca4cef6ae839a20c41773b49e6fea7889b1222a245a26bcd490ddb873"
+    },
+    {
+      "file": "raw/modern-entities/reviewed-seed-v1.json",
+      "bytes": 38417,
+      "sha256": "886c1ff54af800eb5c34e695b6abecd46e885e5dd1029cd120bd35b7099dc4c3"
+    },
+    {
+      "file": "raw/modern-entities/wikidata-expanded-snapshot.json.gz",
+      "bytes": 617424,
+      "sha256": "e22a046711be1beb963a05188f14cea3b35d7b73a9059c326538eec8a93c126c"
+    },
+    {
+      "file": "raw/modern-entities/LICENSE-CC0-1.0.txt",
+      "bytes": 7048,
+      "sha256": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499"
+    },
+    {
+      "file": "raw/modern-entities/NOTICE.txt",
+      "bytes": 2793,
+      "sha256": "076b20707c16541feea0aa199e8eef2b6f460357fa5f01ac792b26381f5df1cd"
+    }
+  ],
+  "legalcode_source": "https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt"
+}

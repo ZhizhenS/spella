@@ -6,6 +6,7 @@ mod continuous;
 mod entities;
 mod image;
 pub mod lexicon;
+mod modern;
 pub use image::{compile, current, Vocabulary, MAGIC, MAX_BYTES};
 pub use lexicon::set_manual_words;
 /// Resource-worker entry point. A missing sidecar supports older installations.
@@ -17,6 +18,10 @@ pub fn install(path: &std::path::Path) -> Result<(), String> {
     } else {
         std::sync::Arc::new(lexicon::Lexicon::empty())
     };
+    // Embedded catalogs are validated/indexed here on the resource worker,
+    // never on the first production keystroke.
+    modern::initialize()?;
+    entities::initialize()?;
     image::install(path)?;
     lexicon::publish(annotations);
     Ok(())
@@ -62,8 +67,33 @@ fn is_entity(candidate: &Candidate) -> bool {
         .as_ref()
         .is_some_and(|annotation| !annotation.entity_kind.is_empty())
 }
-fn candidate_identity(candidate: &Candidate) -> (String, bool) {
-    (candidate.text.to_ascii_lowercase(), is_entity(candidate))
+fn is_lexical(candidate: &Candidate) -> bool {
+    candidate
+        .annotation
+        .as_ref()
+        .is_some_and(|note| !note.lexical_sense_id.is_empty())
+}
+fn candidate_identity(candidate: &Candidate) -> (String, u8, String, String) {
+    let text = candidate.text.to_ascii_lowercase();
+    match candidate.annotation.as_ref() {
+        Some(note) if !note.lexical_sense_id.is_empty() => (
+            text,
+            2,
+            note.lexical_source.clone(),
+            note.lexical_sense_id.clone(),
+        ),
+        Some(note) if !note.entity_kind.is_empty() => {
+            (text, 1, note.entity_source.clone(), String::new())
+        }
+        _ => (text, 0, String::new(), String::new()),
+    }
+}
+fn conversational_modern(candidate: &Candidate) -> bool {
+    candidate.score >= 1200.
+        && candidate.annotation.as_ref().is_some_and(|note| {
+            !note.lexical_sense_id.is_empty()
+                && matches!(note.lexical_usage.as_str(), "网络" | "缩写")
+        })
 }
 
 impl Vocabulary {
@@ -169,7 +199,7 @@ impl Vocabulary {
         if !segmentation
             || limit == 0
             || plain.iter().any(|candidate| {
-                (candidate.source == CandidateSource::User || is_entity(candidate))
+                candidate.source == CandidateSource::User
                     && candidate.text.eq_ignore_ascii_case(input)
             })
         {
@@ -190,9 +220,31 @@ impl Vocabulary {
         }) && !self.contains_word(input);
         let mut pinned = Vec::new();
         let mut ranked = Vec::new();
+        let mut independent = Vec::new();
+        let explicit_case = input
+            .bytes()
+            .next()
+            .is_some_and(|byte| byte.is_ascii_uppercase());
+        let explicit_abbreviation =
+            input.len() >= 2 && input.bytes().all(|byte| byte.is_ascii_uppercase());
+        let ordinary_common = self.ordinary_common(input, &plain);
         for mut candidate in plain {
+            if is_entity(&candidate) || is_lexical(&candidate) {
+                if (is_entity(&candidate) && explicit_case
+                    || is_lexical(&candidate) && explicit_abbreviation)
+                    || (conversational_modern(&candidate)
+                        && !ordinary_common
+                        && candidate.text.eq_ignore_ascii_case(input))
+                {
+                    pinned.push(candidate);
+                } else {
+                    // A low-priority technical abbreviation must not lock a
+                    // reliable lowercase English path such as `I am` out.
+                    independent.push(candidate);
+                }
+                continue;
+            }
             if candidate.source == CandidateSource::User
-                || is_entity(&candidate)
                 || candidate.text.eq_ignore_ascii_case(input)
                 || (primary_pinyin
                     && candidate
@@ -212,7 +264,21 @@ impl Vocabulary {
                 .total_cmp(&a.score)
                 .then_with(|| a.text.cmp(&b.text))
         });
-        pinned.extend(ranked);
+        if independent.is_empty() {
+            pinned.extend(ranked);
+        } else {
+            // Keep language-model scores separate from dictionary priorities,
+            // while making a few modern meanings visible on the first page.
+            let mut ranked = ranked.into_iter();
+            let leading_model_slots = if independent.iter().any(conversational_modern) {
+                3
+            } else {
+                5
+            };
+            pinned.extend(ranked.by_ref().take(leading_model_slots));
+            pinned.extend(independent);
+            pinned.extend(ranked);
+        }
         let mut seen = HashSet::new();
         pinned.retain(|candidate| seen.insert(candidate_identity(candidate)));
         pinned.truncate(limit);
@@ -329,43 +395,113 @@ impl Vocabulary {
 
     fn with_entities(&self, input: &str, ordinary: Vec<Candidate>, limit: usize) -> Vec<Candidate> {
         let names = entities::complete(input, limit);
-        if names.is_empty() {
+        let lexical = modern::complete(input, limit);
+        self.with_modern_streams(input, ordinary, lexical, names, limit)
+    }
+
+    fn with_modern_streams(
+        &self,
+        input: &str,
+        ordinary: Vec<Candidate>,
+        mut lexical: Vec<modern::Match>,
+        names: Vec<Candidate>,
+        limit: usize,
+    ) -> Vec<Candidate> {
+        if names.is_empty() && lexical.is_empty() {
             return ordinary;
         }
         let exact_name = names
             .iter()
             .any(|candidate| candidate.text.eq_ignore_ascii_case(input));
-        let ordinary_common = self.find(&input.to_ascii_lowercase()).is_some_and(|id| {
-            self.frequency(id) as f64 / self.total_frequency().max(1) as f64 >= 0.000_001
+        let ordinary_common = self.ordinary_common(input, &ordinary);
+        let explicit_abbreviation =
+            input.len() >= 2 && input.bytes().all(|byte| byte.is_ascii_uppercase());
+        let promote_lexical = lexical.iter().any(|hit| {
+            if !hit.exact {
+                return false;
+            }
+            let reviewed = conversational_modern(&hit.candidate) && hit.priority >= 1200;
+            let explicit = explicit_abbreviation
+                && hit.candidate.annotation.as_ref().is_some_and(|note| {
+                    !note.expanded_form.is_empty()
+                        && matches!(note.lexical_usage.as_str(), "网络" | "缩写")
+                });
+            // Uppercase alone is not evidence that APPLE's slang meanings are
+            // abbreviations. Overriding a common word also requires review.
+            !ordinary_common && (reviewed || explicit) || explicit && reviewed
         });
-        let promote = input
-            .bytes()
-            .next()
-            .is_some_and(|letter| letter.is_ascii_uppercase())
-            || ordinary.is_empty()
-            || (exact_name && !ordinary_common);
+        let promote = !names.is_empty()
+            && (input
+                .bytes()
+                .next()
+                .is_some_and(|letter| letter.is_ascii_uppercase())
+                || ordinary.is_empty()
+                || (exact_name && !ordinary_common));
         let (mut personal, ordinary): (Vec<_>, Vec<_>) = ordinary
             .into_iter()
             .partition(|candidate| candidate.source == CandidateSource::User);
-        if promote {
-            personal.extend(names);
-            personal.extend(ordinary);
+        // An explicit personal definition overrides dictionary meanings of its
+        // spelling; separately identified companies/products may still coexist.
+        let personal_keys: HashSet<_> = personal
+            .iter()
+            .map(|candidate| candidate.text.to_ascii_lowercase())
+            .collect();
+        lexical.retain(|hit| !personal_keys.contains(&hit.candidate.text.to_ascii_lowercase()));
+        let lexical: Vec<_> = lexical.into_iter().map(|hit| hit.candidate).collect();
+        let ordinary_leads = !promote_lexical && !promote;
+        let mut lanes = if promote_lexical {
+            [lexical, ordinary, names]
+        } else if promote {
+            [names, ordinary, lexical]
         } else {
-            // Preserve a common lowercase word's first slot, while reserving
-            // room for its independently attributed modern entity meaning.
-            let available = limit.saturating_sub(personal.len());
-            let normal_slots = available
-                .saturating_sub(names.len().min(2))
-                .max(usize::from(personal.is_empty() && available > 0));
-            let mut normal = ordinary.into_iter();
-            personal.extend(normal.by_ref().take(normal_slots));
-            personal.extend(names);
-            personal.extend(normal);
+            [ordinary, names, lexical]
+        };
+        let available = limit.saturating_sub(personal.len());
+        let reserve = lanes.iter().skip(1).filter(|lane| !lane.is_empty()).count();
+        let minimum = usize::from(!lanes[0].is_empty() && (personal.is_empty() || !ordinary_leads));
+        let head = available.saturating_sub(reserve).max(minimum).min(
+            if ordinary_leads && !ordinary_common {
+                3
+            } else {
+                limit
+            },
+        );
+        let mut primary = lanes[0].drain(..).collect::<Vec<_>>().into_iter();
+        personal.extend(primary.by_ref().take(head));
+        for lane in lanes.iter_mut().skip(1) {
+            if !lane.is_empty() {
+                personal.push(lane.remove(0));
+            }
+        }
+        personal.extend(primary);
+        for lane in lanes.into_iter().skip(1) {
+            personal.extend(lane);
         }
         let mut seen = HashSet::new();
         personal.retain(|candidate| seen.insert(candidate_identity(candidate)));
         personal.truncate(limit);
         personal
+    }
+
+    fn ordinary_common(&self, input: &str, ordinary: &[Candidate]) -> bool {
+        self.find(&input.to_ascii_lowercase()).is_some_and(|id| {
+            self.frequency(id) as f64 / self.total_frequency().max(1) as f64 >= 0.000_001
+        }) && !ordinary
+            .iter()
+            .filter(|candidate| {
+                candidate.text.eq_ignore_ascii_case(input)
+                    && !is_entity(candidate)
+                    && !is_lexical(candidate)
+            })
+            .any(|candidate| {
+                candidate.annotation.as_ref().is_some_and(|note| {
+                    let pos = note.part_of_speech.to_ascii_lowercase();
+                    (pos.contains("abbr") || pos.contains("缩写"))
+                        && !["n.", "v.", "adj.", "adv."]
+                            .iter()
+                            .any(|ordinary| pos.contains(ordinary))
+                })
+            })
     }
 
     fn assist(
@@ -377,7 +513,10 @@ impl Vocabulary {
         lexicon: &lexicon::Lexicon,
     ) -> Vec<Candidate> {
         for candidate in &mut hits {
-            if candidate.source == CandidateSource::User && !candidate.comment.is_empty() {
+            if candidate.source == CandidateSource::User && !candidate.comment.is_empty()
+                || is_entity(candidate)
+                || is_lexical(candidate)
+            {
                 continue;
             }
             if let Some(entry) = lexicon.lookup(&candidate.text) {
@@ -547,6 +686,220 @@ mod tests {
         compile(source, &mut bytes).unwrap();
         Vocabulary::from_bytes(bytes).unwrap()
     }
+    fn lexical_hit(text: &str, sense: &str, usage: &str, priority: u32) -> modern::Match {
+        let mut candidate = Candidate::new(text, CandidateSource::Local);
+        candidate.language = CandidateLanguage::English;
+        candidate.score = priority as f32;
+        candidate.annotation = Some(retype_types::EnglishAnnotation {
+            part_of_speech: "短语".into(),
+            definition: format!("中文义项{sense}"),
+            lexical_usage: usage.into(),
+            lexical_source: "https://example.org/lexicon".into(),
+            lexical_sense_id: sense.into(),
+            expanded_form: "in my opinion".into(),
+            ..Default::default()
+        });
+        modern::Match {
+            candidate,
+            exact: true,
+            priority,
+        }
+    }
+    #[test]
+    fn modern_meaning_identity_and_priority_preserve_polysemy_and_user_overrides() {
+        let vocab = small_vocabulary(b"imo 10\nthe 100000000\n");
+        let mut old = Candidate::new("imo", CandidateSource::Local);
+        old.annotation = Some(retype_types::EnglishAnnotation {
+            part_of_speech: "abbr.".into(),
+            definition: "旧缩写含义".into(),
+            ..Default::default()
+        });
+        let meanings = || {
+            vec![
+                lexical_hit("IMO", "chat", "缩写", 2200),
+                lexical_hit("IMO", "maritime", "专业", 500),
+                lexical_hit("IMO", "math", "专业", 400),
+            ]
+        };
+        let hits = vocab.with_modern_streams("imo", vec![old.clone()], meanings(), Vec::new(), 24);
+        assert_eq!(hits.len(), 4);
+        assert_eq!(
+            hits[0].annotation.as_ref().unwrap().lexical_sense_id,
+            "chat"
+        );
+        assert_eq!(
+            hits.iter()
+                .map(candidate_identity)
+                .collect::<HashSet<_>>()
+                .len(),
+            4
+        );
+        for sense in ["chat", "maritime", "math"] {
+            assert!(hits.iter().any(|candidate| candidate
+                .annotation
+                .as_ref()
+                .is_some_and(|note| note.lexical_sense_id == sense)));
+        }
+        assert!(hits
+            .iter()
+            .all(|candidate| candidate.text.eq_ignore_ascii_case("imo")));
+        let mut personal = Candidate::new("IMO", CandidateSource::User);
+        personal.comment = "显式个人定义".into();
+        let hits = vocab.with_modern_streams("imo", vec![personal], meanings(), Vec::new(), 1);
+        assert_eq!(hits.len(), 1);
+        assert_eq!(hits[0].source, CandidateSource::User);
+        assert_eq!(hits[0].comment, "显式个人定义");
+        let mut one = Candidate::new("IMO", CandidateSource::Local);
+        one.annotation = Some(retype_types::EnglishAnnotation {
+            entity_kind: "组织".into(),
+            entity_source: "Wikidata Q1@1".into(),
+            ..Default::default()
+        });
+        let mut two = one.clone();
+        two.annotation.as_mut().unwrap().entity_source = "Wikidata Q2@1".into();
+        assert_ne!(candidate_identity(&one), candidate_identity(&two));
+        let hits = vocab.with_modern_streams("imo", vec![old], meanings(), vec![one, two], 24);
+        assert_eq!(hits.len(), 6);
+    }
+
+    #[test]
+    fn modern_informal_meanings_do_not_displace_common_ordinary_words() {
+        let vocab = small_vocabulary(b"apple 1000000\nbased 1000000\ncap 1000000\ncooked 1000000\nsick 1000000\nthe 1000000\n");
+        for word in ["apple", "based", "cap", "cooked", "sick"] {
+            let mut ordinary = Candidate::new(word, CandidateSource::Local);
+            ordinary.annotation = Some(retype_types::EnglishAnnotation {
+                part_of_speech: "n. / v. / adj.".into(),
+                definition: "常见普通含义".into(),
+                ..Default::default()
+            });
+            for limit in [1, 2, 5, 24] {
+                let hits = vocab.with_modern_streams(
+                    word,
+                    vec![ordinary.clone()],
+                    vec![lexical_hit(word, "informal", "网络", 2400)],
+                    Vec::new(),
+                    limit,
+                );
+                assert!(!is_lexical(&hits[0]), "ordinary {word} must lead");
+                assert!(hits.len() <= limit);
+                if limit > 1 {
+                    assert!(hits.iter().any(is_lexical));
+                }
+            }
+        }
+        let technical = lexical_hit("IAM", "identity-access", "缩写", 500);
+        assert!(!conversational_modern(&technical.candidate));
+    }
+
+    #[test]
+    fn uppercase_network_initialism_requires_explicit_expansion_to_override_a_common_word() {
+        let vocab = small_vocabulary(b"goat 1000000\nsick 1000000\nthe 1000000\n");
+        let ordinary = |text: &str| {
+            let mut candidate = Candidate::new(text, CandidateSource::Local);
+            candidate.annotation = Some(retype_types::EnglishAnnotation {
+                part_of_speech: "n. / adj.".into(),
+                definition: "普通动物或形容词含义".into(),
+                ..Default::default()
+            });
+            candidate
+        };
+        for input in ["goat", "GOAT"] {
+            let mut modern = lexical_hit("GOAT", "greatest", "缩写", 2000);
+            modern.candidate.annotation.as_mut().unwrap().expanded_form =
+                "greatest of all time".into();
+            let hits = vocab.with_modern_streams(
+                input,
+                vec![ordinary(input)],
+                vec![modern],
+                Vec::new(),
+                5,
+            );
+            assert_eq!(is_lexical(&hits[0]), input == "GOAT");
+            assert_eq!(hits.len(), 2);
+        }
+        for (usage, priority, expansion) in [
+            ("俚语", 2400, ""),
+            ("缩写", 2400, ""),
+            ("缩写", 500, "example expansion"),
+        ] {
+            let mut modern = lexical_hit("SICK", "cool", usage, priority);
+            modern.candidate.annotation.as_mut().unwrap().expanded_form = expansion.into();
+            let hits = vocab.with_modern_streams(
+                "SICK",
+                vec![ordinary("SICK")],
+                vec![modern],
+                Vec::new(),
+                5,
+            );
+            assert!(
+                !is_lexical(&hits[0]),
+                "{usage}/{priority}/{expansion} cannot displace a common word"
+            );
+        }
+    }
+
+    #[test]
+    fn uppercase_without_abbreviation_evidence_keeps_supplementary_ordinary_meaning_before_slang() {
+        let vocab = small_vocabulary(b"hello 100\nhelp 50\n");
+        let mut ordinary = Candidate::new("APPLE", CandidateSource::Local);
+        ordinary.annotation = Some(retype_types::EnglishAnnotation {
+            part_of_speech: "n.".into(),
+            definition: "苹果".into(),
+            ..Default::default()
+        });
+        let mut company = Candidate::new("Apple", CandidateSource::Local);
+        company.annotation = Some(retype_types::EnglishAnnotation {
+            entity_kind: "公司".into(),
+            entity_source: "Wikidata Q312@1".into(),
+            ..Default::default()
+        });
+        for usage in ["俚语", "非正式", "网络", "缩写"] {
+            for names in [Vec::new(), vec![company.clone()]] {
+                let mut cold = lexical_hit("APPLE", "radio", usage, 500);
+                cold.candidate
+                    .annotation
+                    .as_mut()
+                    .unwrap()
+                    .expanded_form
+                    .clear();
+                let hits = vocab.with_modern_streams(
+                    "APPLE",
+                    vec![ordinary.clone()],
+                    vec![cold],
+                    names,
+                    5,
+                );
+                let normal = hits
+                    .iter()
+                    .position(|candidate| !is_entity(candidate) && !is_lexical(candidate))
+                    .unwrap();
+                let modern = hits.iter().position(is_lexical).unwrap();
+                assert!(normal < modern && normal < 5, "{usage}: {hits:?}");
+                assert_eq!(hits[normal].annotation.as_ref().unwrap().definition, "苹果");
+            }
+        }
+    }
+
+    #[test]
+    fn modern_catalog_does_not_lock_existing_continuous_and_whole_word_paths() {
+        let vocab = current();
+        for (input, expected) in [("ia", "I am"), ("iam", "I am"), ("iamt", "I am trying to")] {
+            let hits = vocab.complete_input(input, &Empty, 24, true, true, true);
+            assert!(
+                hits.iter()
+                    .take(5)
+                    .any(|candidate| candidate.text == expected),
+                "{input} must retain {expected}"
+            );
+        }
+        for input in ["iamrobot", "image"] {
+            let hits = vocab.complete_input(input, &Empty, 24, true, true, true);
+            assert!(!hits.is_empty());
+            if input == "image" {
+                assert_eq!(hits[0].text, "image");
+            }
+        }
+    }
     #[test]
     fn joined_pinyin_options_and_exact_personal_spelling_are_independent() {
         let vocab = current();
@@ -611,18 +964,20 @@ mod tests {
         }
         let hits = vocab.complete_input("anthropic", &Empty, 5, false, true, true);
         assert!(
-            hits.iter()
-                .any(|candidate| candidate.text == "anthropic" && !is_entity(candidate)),
+            hits.iter().any(|candidate| candidate.text == "anthropic"
+                && !is_entity(candidate)
+                && !is_lexical(candidate)),
             "ordinary adjective must remain independently available"
         );
         let hits = vocab.complete_input("apple", &Empty, 5, false, true, true);
         assert_eq!(hits[0].text, "apple");
-        assert!(!is_entity(&hits[0]));
+        assert!(!is_entity(&hits[0]) && !is_lexical(&hits[0]));
         assert!(hits
             .iter()
             .any(|candidate| candidate.text == "Apple" && is_entity(candidate)));
         assert!(is_entity(&vocab.complete("Apple", &Empty, 1)[0]));
-        assert!(!is_entity(&vocab.complete("apple", &Empty, 1)[0]));
+        let ordinary = vocab.complete("apple", &Empty, 1);
+        assert!(!is_entity(&ordinary[0]) && !is_lexical(&ordinary[0]));
         let manual =
             lexicon::ManualWords::validate(vec![("Apple".into(), "我的显式词条".into())]).unwrap();
         let hits = vocab.complete_input_from(
@@ -635,7 +990,7 @@ mod tests {
         );
         assert_eq!(hits[0].comment, "我的显式词条");
         assert_eq!(hits[0].source, CandidateSource::User);
-        assert!(!is_entity(&hits[0]));
+        assert!(!is_entity(&hits[0]) && !is_lexical(&hits[0]));
         for input in ["app", "App", "APP"] {
             for limit in [1, 2, 5] {
                 let hits = vocab.complete_input_from(
@@ -652,7 +1007,7 @@ mod tests {
                     "personal prefix priority for {input}"
                 );
                 assert_eq!(hits[0].comment, "我的显式词条");
-                assert!(!is_entity(&hits[0]));
+                assert!(!is_entity(&hits[0]) && !is_lexical(&hits[0]));
                 assert!(hits.len() <= limit);
                 if limit > 1 {
                     assert!(
@@ -695,11 +1050,24 @@ mod tests {
                 &lexicon,
                 &lexicon::ManualWords::default(),
             );
-            let ordinary = hits
+            let (ordinary_index, ordinary) = hits
                 .iter()
-                .find(|candidate| candidate.text == word && !is_entity(candidate))
+                .enumerate()
+                .find(|(_, candidate)| {
+                    candidate.text == word && !is_entity(candidate) && !is_lexical(candidate)
+                })
                 .unwrap();
-            assert!(ordinary.comment.contains("苹果"));
+            assert!(
+                ordinary.comment.contains("苹果"),
+                "input={input}, hits={hits:?}"
+            );
+            assert!(ordinary_index < 5);
+            if let Some(slang) = hits.iter().position(is_lexical) {
+                assert!(
+                    ordinary_index < slang,
+                    "ordinary definition precedes supplemental slang for {input}: {hits:?}"
+                );
+            }
         }
         let manual =
             lexicon::ManualWords::validate(vec![("Apple".into(), "显式个人备注".into())]).unwrap();
@@ -707,13 +1075,14 @@ mod tests {
         assert_eq!(
             hits.iter()
                 .filter(|candidate| candidate.text.eq_ignore_ascii_case("apple")
-                    && !is_entity(candidate))
+                    && !is_entity(candidate)
+                    && !is_lexical(candidate))
                 .count(),
             1
         );
         assert_eq!(hits[0].comment, "显式个人备注");
         assert_eq!(hits[0].source, CandidateSource::User);
-        assert!(!is_entity(&hits[0]));
+        assert!(!is_entity(&hits[0]) && !is_lexical(&hits[0]));
         assert_eq!(
             hits[0].annotation.as_ref().unwrap().definition,
             "显式个人备注"
@@ -822,7 +1191,7 @@ mod tests {
             expected.sort_by(|a, b| frequency(*b).cmp(&frequency(*a)).then_with(|| a.cmp(b)));
             let ordinary: Vec<_> = actual
                 .iter()
-                .filter(|candidate| !is_entity(candidate))
+                .filter(|candidate| !is_entity(candidate) && !is_lexical(candidate))
                 .collect();
             assert!(actual.len() <= 12);
             assert_eq!(

@@ -59,14 +59,30 @@ LICENSE-CC-CEDICT and the full installed LICENSE-Wanxiang for source licenses.
 The code license remains MIT. Sources and the independent compiler are included
 in the matching source distribution. No source project endorses this product.
 
-## Limited modern company/product names
+## Modern words and bounded entity coverage
 
-- A separate reviewed seed of 51 AI companies/products and developer-tool
-  names is embedded as EAMODEN1. It is not a complete modern-entity or Wikidata corpus.
+- Modern word senses come from frozen Kaikki extracts of the English and Chinese
+  Wiktionary editions. The installed LICENSE-Wiktionary-CC-BY-SA-4.0.html and
+  NOTICE-Modern-Lexicon.txt retain the selected CC BY-SA 4.0 data terms, attribution,
+  entry-source URLs and the changes/projection description. The independent MIT
+  producer does not relicense the dictionary data. Examples/audio are excluded.
+- Only senses with source Chinese or explicitly marked project Chinese coverage
+  are admitted to the runtime subset. Raw selected senses, admitted senses and
+  distinct keys are separate counts recorded in build.json and the source manifest.
+  Reviewed sense priorities, upstream usage/dated tags and stable source order
+  inform modern-word ordering; these are not live social-media popularity scores.
+- A separate bounded typed Wikidata projection is embedded as EAMODEN2, retaining
+  the original 51 project-reviewed Chinese seed entries. It is not a complete
+  modern-entity or Wikidata corpus, nor a guarantee of up-to-date coverage.
 - Structured IDs, source descriptions and exact revisions come from Wikidata under
   CC0-1.0 (https://www.wikidata.org/wiki/Wikidata:Licensing); the approved catalog
-  records each QID, revision URL and official-site reference. Chinese summaries
-  and normalized aliases are reviewed for this limited seed.
+  records each QID, revision URL, English/Chinese source fields, aliases, category
+  discovery and sitelink count. Optional official-site references are not fabricated
+  for entities without one. Source Chinese descriptions are short entity metadata,
+  not full dictionary definitions; Chinese-label-plus-category fallbacks and the
+  preserved project-reviewed seed are explicitly distinguished.
+- Sitelink count is an entity visibility proxy, not observed typing word frequency.
+  LICENSE-Wikidata-CC0-1.0.txt and NOTICE-Modern-Entities.txt are installed in full.
 - Example: Anthropic, Q116758847 revision 2562358338
   (https://www.wikidata.org/w/index.php?title=Q116758847&oldid=2562358338),
   official reference https://www.anthropic.com/company.

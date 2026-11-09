@@ -38,6 +38,10 @@ function Get-EnglishAssistPayloadSpec {
     @('LICENSE-ECDICT','data/dict/raw/english-assist/LICENSE-ECDICT','license','support'),
     @('LICENSE-CC-CEDICT','data/dict/raw/english-assist/LICENSE-CC-CEDICT','license','support'),
     @('LICENSE-Wanxiang','data/dict/raw/wanxiang-base/LICENSE','license','support'),
+    @('LICENSE-Wikidata-CC0-1.0.txt','data/dict/raw/modern-entities/LICENSE-CC0-1.0.txt','license','support'),
+    @('NOTICE-Modern-Entities.txt','data/dict/raw/modern-entities/NOTICE.txt','license','support'),
+    @('LICENSE-Wiktionary-CC-BY-SA-4.0.html','data/dict/raw/kaikki-modern/LICENSE-CC-BY-SA-4.0.html','license','support'),
+    @('NOTICE-Modern-Lexicon.txt','data/dict/raw/kaikki-modern/NOTICE.txt','license','support'),
     @('NOTICE-English-Lexicon.txt','data/dict/raw/english-assist/NOTICE-English-Lexicon.txt','license','support'),
     @('english-lexicon-sources.json','data/dict/raw/english-assist/SOURCES.json','data','support')
   )
@@ -93,18 +97,49 @@ function Get-EnglishAssistModernEntitiesReceipt([string]$RepoRoot) {
   $approved=ConvertFrom-Json ([IO.File]::ReadAllText($approvedPath))
   $lines=[IO.File]::ReadAllLines($runtimePath)
   $count=@($approved.entries).Count
-  if ($approved.schema -ne 1 -or $approved.runtime_format -cne 'EAMODEN1' -or
-      $approved.data_license -cne 'CC0-1.0' -or $count -lt 30 -or $count -gt 80 -or
-      $lines.Length -eq 0 -or $lines[0] -cnotmatch '^# EAMODEN1\t' -or
+  if ($approved.schema -ne 2 -or $approved.runtime_format -cne 'EAMODEN2' -or
+      $approved.data_license -cne 'CC0-1.0' -or $count -lt 1 -or $count -gt 20000 -or
+      $lines.Length -eq 0 -or $lines[0] -cnotmatch '^# EAMODEN2\t' -or
       @($lines | Where-Object { $_ -and -not $_.StartsWith('#') }).Count -ne $count) {
     throw 'Reviewed modern-entity JSON/runtime count or format is inconsistent; run the offline catalog check.'
   }
   [ordered]@{
-    schema=1; runtime_format='EAMODEN1'; count=$count; data_license='CC0-1.0'
-    source='Wikidata structured data with reviewed official-site references'
+    schema=2; runtime_format='EAMODEN2'; count=$count; data_license='CC0-1.0'
+    source='Bounded typed Wikidata Chinese metadata; preserved reviewed seed; optional official-site references'
     approved=@{file=$approvedFile;bytes=([IO.FileInfo]$approvedPath).Length;sha256=(Get-EnglishAssistPayloadHash $approvedPath)}
     runtime=@{file=$runtimeFile;bytes=([IO.FileInfo]$runtimePath).Length;sha256=(Get-EnglishAssistPayloadHash $runtimePath)}
     snapshot=$approved.snapshot
+    reviewed_seed=$approved.reviewed_seed
+    discovered_count=$approved.discovered_count
+    rejected=$approved.rejected
+    producerSha256=(Get-EnglishAssistPayloadHash (Join-Path $RepoRoot 'tools/english-assist/modern-entities.py'))
+    source_manifest_sha256=(Get-EnglishAssistPayloadHash (Join-Path $RepoRoot 'data/dict/raw/modern-entities/SOURCES.json'))
+  }
+}
+
+function Get-EnglishAssistModernLexiconReceipt([string]$RepoRoot) {
+  $approvedFile='data/dict/modern-lexicon.json'
+  $runtimeFile='data/dict/modern-lexicon.tsv'
+  $approvedPath=Join-Path $RepoRoot $approvedFile
+  $runtimePath=Join-Path $RepoRoot $runtimeFile
+  $approved=ConvertFrom-Json ([IO.File]::ReadAllText($approvedPath))
+  $lines=[IO.File]::ReadAllLines($runtimePath)
+  $hash=Get-EnglishAssistPayloadHash $runtimePath
+  if ($approved.schema -ne 1 -or $approved.runtime_format -cne 'EAMODLX1' -or
+      $approved.format -cne 'EAMODLX1' -or $approved.file -cne 'modern-lexicon.tsv' -or
+      $approved.data_license -cne 'CC-BY-SA-4.0' -or
+      $approved.sha256 -cne $hash -or $approved.bytes -ne ([IO.FileInfo]$runtimePath).Length -or
+      $approved.counts.senses -lt 1 -or $approved.counts.distinct_keys -lt 1 -or
+      $lines.Length -eq 0 -or $lines[0] -cnotmatch '^# EAMODLX1\t' -or
+      @($lines | Where-Object { $_ -and -not $_.StartsWith('#') }).Count -ne $approved.counts.senses) {
+    throw 'Approved modern-lexicon metadata/runtime differs; run the strict offline lexicon check.'
+  }
+  [ordered]@{
+    schema=1; runtime_format='EAMODLX1'; data_license='CC-BY-SA-4.0'
+    counts=$approved.counts; source_sha256=$approved.source_sha256
+    chinese_source_sha256=$approved.chinese_source_sha256; producerSha256=$approved.producerSha256
+    approved=@{file=$approvedFile;bytes=([IO.FileInfo]$approvedPath).Length;sha256=(Get-EnglishAssistPayloadHash $approvedPath)}
+    runtime=@{file=$runtimeFile;bytes=([IO.FileInfo]$runtimePath).Length;sha256=$hash}
   }
 }
 
@@ -119,6 +154,7 @@ function Complete-EnglishAssistPayload([string]$RepoRoot, [string]$PayloadRoot, 
     metadataCompilerSha256=(Get-EnglishAssistPayloadHash (Join-Path $RepoRoot 'tools/english-assist/build-lexicon.py'))
     EnglishContinuous=(ConvertFrom-Json ([IO.File]::ReadAllText((Join-Path $RepoRoot 'core/english/assets/bigrams.json'))))
     ModernEntities=(Get-EnglishAssistModernEntitiesReceipt $RepoRoot)
+    ModernLexicon=(Get-EnglishAssistModernLexiconReceipt $RepoRoot)
     artifacts=@(Get-EnglishAssistPayloadRecords $PayloadRoot)
   }
   Write-EnglishAssistPayloadManifest $PayloadRoot $metadata
@@ -175,17 +211,37 @@ function Assert-EnglishAssistFrozenPayload([string]$PayloadRoot, [string]$Versio
   # hashes describe its approved inputs; the native artifact hashes above remain
   # authoritative. Repack never reloads or silently updates the source catalog.
   $entities=$metadata.ModernEntities
-  if ($entities.schema -ne 1 -or $entities.runtime_format -cne 'EAMODEN1' -or
-      $entities.data_license -cne 'CC0-1.0' -or $entities.count -lt 30 -or $entities.count -gt 80 -or
+  if ($entities.schema -ne 2 -or $entities.runtime_format -cne 'EAMODEN2' -or
+      $entities.data_license -cne 'CC0-1.0' -or $entities.count -lt 1 -or $entities.count -gt 20000 -or
       $entities.approved.file -cne 'data/dict/modern-entities.json' -or
       $entities.runtime.file -cne 'data/dict/modern-entities.tsv' -or
       $entities.approved.bytes -le 0 -or $entities.runtime.bytes -le 0 -or
       $entities.approved.sha256 -cnotmatch '^[a-f0-9]{64}$' -or
       $entities.runtime.sha256 -cnotmatch '^[a-f0-9]{64}$' -or
-      $entities.snapshot.file -cne 'raw/modern-entities/wikidata-snapshot.json.gz' -or
+      $entities.snapshot.file -cne 'raw/modern-entities/wikidata-expanded-snapshot.json.gz' -or
       $entities.snapshot.sha256 -cnotmatch '^[a-f0-9]{64}$' -or
-      $entities.snapshot.content_sha256 -cnotmatch '^[a-f0-9]{64}$') {
+      $entities.snapshot.content_sha256 -cnotmatch '^[a-f0-9]{64}$' -or
+      $entities.reviewed_seed.file -cne 'raw/modern-entities/reviewed-seed-v1.json' -or
+      $entities.reviewed_seed.sha256 -cnotmatch '^[a-f0-9]{64}$' -or
+      $entities.reviewed_seed.count -lt 1 -or $entities.reviewed_seed.count -gt $entities.count -or
+      $entities.discovered_count -lt $entities.count -or
+      $entities.producerSha256 -cnotmatch '^[a-f0-9]{64}$' -or
+      $entities.source_manifest_sha256 -cnotmatch '^[a-f0-9]{64}$') {
     throw 'Frozen embedded modern-entity provenance is missing or inconsistent.'
+  }
+  $modern=$metadata.ModernLexicon
+  if ($modern.schema -ne 1 -or $modern.runtime_format -cne 'EAMODLX1' -or
+      $modern.data_license -cne 'CC-BY-SA-4.0' -or $modern.counts.senses -lt 1 -or
+      $modern.counts.distinct_keys -lt 1 -or $modern.counts.entries -lt 1 -or
+      $modern.approved.file -cne 'data/dict/modern-lexicon.json' -or
+      $modern.runtime.file -cne 'data/dict/modern-lexicon.tsv' -or
+      $modern.approved.bytes -le 0 -or $modern.runtime.bytes -le 0 -or
+      $modern.approved.sha256 -cnotmatch '^[a-f0-9]{64}$' -or
+      $modern.runtime.sha256 -cnotmatch '^[a-f0-9]{64}$' -or
+      $modern.source_sha256 -cnotmatch '^[a-f0-9]{64}$' -or
+      $modern.chinese_source_sha256 -cnotmatch '^[a-f0-9]{64}$' -or
+      $modern.producerSha256 -cnotmatch '^[a-f0-9]{64}$') {
+    throw 'Frozen embedded modern-lexicon provenance is missing or inconsistent.'
   }
   $metadata
 }

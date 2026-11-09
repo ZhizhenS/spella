@@ -30,3 +30,13 @@ platforms/macos/*.command text eol=lf
 /data/dict/raw/modern-entities/NOTICE.txt text eol=lf
 /tools/english-assist/modern-entities.py text eol=lf
 /tools/english-assist/test-modern-entities.py text eol=lf
+
+# Frozen modern-word sources and generated semantic rows are byte contracts.
+/data/dict/modern-lexicon.json -text
+/data/dict/modern-lexicon.tsv -text
+/data/dict/modern-lexicon-zh-overrides.json -text
+/data/dict/raw/kaikki-modern/* -text
+/data/dict/raw/modern-entities/* -text
+/tools/english-assist/build-modern-lexicon.py text eol=lf
+/tools/english-assist/test-build-modern-lexicon.py text eol=lf
+/tools/english-assist/collect-wikidata-entities.py text eol=lf

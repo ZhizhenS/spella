@@ -22,17 +22,27 @@ $taskStage = Join-Path $taskRepo ('dist\.english-assist-freeze-' + [Guid]::NewGu
 try {
   Write-Fixture (Join-Path $taskRepo 'Cargo.toml') "[workspace.package]`nversion = `"0.2.0`"`n[other]`nversion = `"9.0.0`"`n"
   Write-Fixture (Join-Path $taskRepo 'tools/english-assist/build-lexicon.py') '# compiler unit fixture'
+  Write-Fixture (Join-Path $taskRepo 'tools/english-assist/modern-entities.py') '# entity compiler unit fixture'
+  Write-Fixture (Join-Path $taskRepo 'data/dict/raw/modern-entities/SOURCES.json') '{"unitFixture":true}'
   $bigram = [ordered]@{schema=1;format='RTENBG01';file='bigrams.bin';bytes=128;sha256=('a'*64);compiler_sha256=('b'*64);source_manifest_sha256=('f'*64);counts=@{words=2;pairs=1};source=@{repository='https://github.com/wolfgarbe/SymSpell';commit=('c'*40);path='SymSpell/frequency_bigramdictionary_en_243_342.txt';sha256=('d'*64);uncompressedSha256=('e'*64)}}
   Write-Fixture (Join-Path $taskRepo 'core/english/assets/bigrams.json') ($bigram | ConvertTo-Json -Depth 8)
-  $entities=[ordered]@{schema=1;runtime_format='EAMODEN1';data_license='CC0-1.0';snapshot=@{file='raw/modern-entities/wikidata-snapshot.json.gz';sha256=('c'*64);content_sha256=('d'*64)};entries=@(1..30 | ForEach-Object {@{text=('Fixture'+$_)}})}
+  $entities=[ordered]@{schema=2;runtime_format='EAMODEN2';data_license='CC0-1.0';snapshot=@{file='raw/modern-entities/wikidata-expanded-snapshot.json.gz';sha256=('c'*64);content_sha256=('d'*64)};reviewed_seed=@{file='raw/modern-entities/reviewed-seed-v1.json';sha256=('a'*64);count=1};discovered_count=32;rejected=@{no_chinese=2};entries=@(1..30 | ForEach-Object {@{text=('Fixture'+$_)}})}
   Write-Fixture (Join-Path $taskRepo 'data/dict/modern-entities.json') ($entities | ConvertTo-Json -Depth 8)
-  $runtime="# EAMODEN1`ttext`taliases`tkind`tdefinition_zh`twikidata_id`trevision`tofficial_url`n"
-  foreach ($index in 1..30) { $runtime+="Fixture$index`tfixture$index`tentity`tfixture`tQ$index`t1`thttps://example.invalid/`n" }
+  $runtime="# EAMODEN2`ttext`taliases`tkind`tdefinition_zh`twikidata_id`trevision`tofficial_url`tpriority`n"
+  foreach ($index in 1..30) { $runtime+="Fixture$index`tfixture$index`tentity`tfixture`tQ$index`t1`t`t100`n" }
   Write-Fixture (Join-Path $taskRepo 'data/dict/modern-entities.tsv') $runtime
+  $modernRuntime="# EAMODLX1`tkey`ttext`tpos`tdefinition_zh`tusage`tfull_form`tsource_url`tsense_id`tpriority`n"
+  foreach ($index in 1..5) { $modernRuntime+="fixture`tFixture`tn`tdefinition`tusage`tfull`thttps://example.invalid/`tsense$index`t100`n" }
+  $modernPath=Join-Path $taskRepo 'data/dict/modern-lexicon.tsv'
+  Write-Fixture $modernPath $modernRuntime
+  $modern=[ordered]@{schema=1;format='EAMODLX1';runtime_format='EAMODLX1';file='modern-lexicon.tsv';data_license='CC-BY-SA-4.0';bytes=([IO.FileInfo]$modernPath).Length;sha256=(Get-EnglishAssistPayloadHash $modernPath);producerSha256=('1'*64);source_sha256=('2'*64);chinese_source_sha256=('3'*64);counts=@{entries=3;senses=5;distinct_keys=2}}
+  Write-Fixture (Join-Path $taskRepo 'data/dict/modern-lexicon.json') ($modern | ConvertTo-Json -Depth 8)
   Assert-True ((Get-EnglishAssistSourceVersion $taskRepo) -eq '0.2.0') 'Workspace source version must be authoritative'
   $spec = @(Get-EnglishAssistPayloadSpec)
-  Assert-True ($spec.Count -eq 25) 'Full explicit payload file list'
+  Assert-True ($spec.Count -eq 29) 'Full explicit payload file list'
   Assert-True (@($spec | Where-Object { $_.path -ceq 'LICENSE-Wanxiang' -and $_.source -ceq 'data/dict/raw/wanxiang-base/LICENSE' -and $_.kind -eq 'license' }).Count -eq 1) 'Complete Chinese frequency source license is a frozen artifact'
+  Assert-True (@($spec | Where-Object { $_.path -ceq 'LICENSE-Wikidata-CC0-1.0.txt' -and $_.kind -eq 'license' }).Count -eq 1) 'Full CC0 license is a frozen artifact'
+  Assert-True (@($spec | Where-Object { $_.path -ceq 'LICENSE-Wiktionary-CC-BY-SA-4.0.html' -and $_.kind -eq 'license' }).Count -eq 1) 'Full Wiktionary data license is a frozen artifact'
   foreach ($entry in $spec) {
     Write-Fixture (Join-Path $taskRepo $entry.source) ('non-executable unit fixture: ' + $entry.path)
   }
@@ -43,13 +53,15 @@ try {
   Complete-EnglishAssistPayload $taskRepo $taskStage '0.2.0'
   $originalText = [IO.File]::ReadAllText((Join-Path $taskStage 'build.json'))
   $metadata = Assert-EnglishAssistFrozenPayload $taskStage '0.2.0'
-  Assert-True ($metadata.artifacts.Count -eq 25) 'Every packaged file has bytes/hash'
+  Assert-True ($metadata.artifacts.Count -eq 29) 'Every packaged file has bytes/hash'
   Assert-True (@($metadata.artifacts | Where-Object { $_.kind -in @('tip-x64','tip-x86','settings','helper') }).Count -eq 6) 'All six production DLL/EXE files recorded'
   Assert-True ($metadata.metadataCompilerSha256.Length -eq 64) 'Python compiler digest recorded'
   Assert-True ($metadata.EnglishContinuous.sha256 -eq ('a'*64)) 'Embedded bigram image digest retained without another runtime artifact'
   Assert-True ($metadata.ModernEntities.count -eq 30 -and $metadata.ModernEntities.data_license -ceq 'CC0-1.0') 'Embedded entity count/license retained without another runtime artifact'
   Assert-True ($metadata.ModernEntities.approved.sha256 -eq (Get-EnglishAssistPayloadHash (Join-Path $taskRepo 'data/dict/modern-entities.json'))) 'Reviewed entity JSON digest recorded'
   Assert-True ($metadata.ModernEntities.runtime.sha256 -eq (Get-EnglishAssistPayloadHash (Join-Path $taskRepo 'data/dict/modern-entities.tsv'))) 'Embedded entity TSV digest recorded'
+  Assert-True ($metadata.ModernLexicon.counts.senses -eq 5 -and $metadata.ModernLexicon.data_license -ceq 'CC-BY-SA-4.0') 'Admitted modern senses and selected data license recorded'
+  Assert-True ($metadata.ModernLexicon.runtime.sha256 -eq (Get-EnglishAssistPayloadHash $modernPath)) 'Embedded modern lexicon digest recorded'
   Assert-True ($metadata.lexicon.sha256 -eq (Get-EnglishAssistPayloadHash (Join-Path $taskStage 'dictionaries/english-lexicon-v2.bin'))) 'Python metadata binary digest recorded'
   Assert-Denied { Assert-EnglishAssistFrozenPayload $taskStage '0.3.0' } 'Repack cannot relabel source version'
   Assert-Denied { Complete-EnglishAssistPayload $taskRepo $taskStage '0.3.0' } 'Freeze version must match source'
@@ -74,7 +86,7 @@ try {
   $bytes = [IO.File]::ReadAllBytes($file); [IO.File]::Delete($file)
   Assert-Denied { Assert-EnglishAssistFrozenPayload $taskStage '0.2.0' } 'Missing x86 native rejected'
   [IO.File]::WriteAllBytes($file, $bytes)
-  foreach ($mutation in @('duplicate','traversal','sourceVersion','lexicon','lexiconSchema','lexiconFile','lexiconFormat','bigram','bigramSource','entityCount','entityDigest','entityLicense','entitySource')) {
+  foreach ($mutation in @('duplicate','traversal','sourceVersion','lexicon','lexiconSchema','lexiconFile','lexiconFormat','bigram','bigramSource','entityCount','entityDigest','entityLicense','entitySource','entitySeed','modernCount','modernDigest','modernLicense','modernSource')) {
     $bad = ConvertFrom-Json $originalText
     switch ($mutation) {
       'duplicate' { $bad.artifacts[1].path = $bad.artifacts[0].path }
@@ -90,6 +102,11 @@ try {
       'entityDigest' { $bad.ModernEntities.runtime.sha256 = 'unreviewed' }
       'entityLicense' { $bad.ModernEntities.data_license = 'unknown' }
       'entitySource' { $bad.ModernEntities.snapshot.file = '../outside.json.gz' }
+      'entitySeed' { $bad.ModernEntities.reviewed_seed.sha256 = 'unreviewed' }
+      'modernCount' { $bad.ModernLexicon.counts.senses = 0 }
+      'modernDigest' { $bad.ModernLexicon.runtime.sha256 = 'unreviewed' }
+      'modernLicense' { $bad.ModernLexicon.data_license = 'unknown' }
+      'modernSource' { $bad.ModernLexicon.source_sha256 = 'unreviewed' }
     }
     Write-EnglishAssistPayloadManifest $taskStage $bad
     Assert-Denied { Assert-EnglishAssistFrozenPayload $taskStage '0.2.0' } "Invalid manifest rejected: $mutation"
@@ -116,6 +133,8 @@ try {
   Assert-True ($build.IndexOf("Copy-EnglishAssistProductionGroup `$taskRepo `$taskStage 'x86'") -lt $build.IndexOf('cargo run')) 'Native freeze occurs before any resource tool'
   Assert-True ($build.IndexOf('Publish-EnglishAssistFrozenPayload') -lt $build.IndexOf('cargo test')) 'Frozen payload published before Rust tests'
   Assert-True ($build.IndexOf("'tools\english-assist\modern-entities.py'") -ge 0 -and $build.IndexOf("'tools\english-assist\modern-entities.py'") -lt $build.IndexOf('cargo build') -and $build.Contains('--check')) 'Reviewed entity check precedes production compilation'
+  Assert-True ($build.IndexOf("'tools\english-assist\build-modern-lexicon.py'") -ge 0 -and $build.IndexOf("'tools\english-assist\build-modern-lexicon.py'") -lt $build.IndexOf('cargo build')) 'Strict modern lexicon check precedes production compilation'
+  Assert-True ($build.Contains('retype-engine --test modern -- --ignored')) 'Prepared modern commit integration is an explicit formal gate'
   $repack = [IO.File]::ReadAllText((Join-Path $PSScriptRoot '..\repack-english-assist.ps1'))
   Assert-True ($repack -notmatch 'target[\\/]|cargo\s+(build|run|test)') 'Repack has no target/native build fallback'
   $iss = [IO.File]::ReadAllText((Join-Path $PSScriptRoot '..\english-assist.iss'))

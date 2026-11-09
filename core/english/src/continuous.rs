@@ -355,6 +355,11 @@ pub(super) fn segment_exact(
     metadata: &lexicon::Lexicon,
     manual: &lexicon::ManualWords,
 ) -> Option<String> {
+    // A reviewed conversational abbreviation is already a complete spelling.
+    // Its explanatory full form belongs in annotation, never Space expansion.
+    if crate::modern::protects_word(input) {
+        return None;
+    }
     if input.len() < 2 || input.len() > EXACT_MAX_INPUT || !super::valid_word(input) {
         return None;
     }

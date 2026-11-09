@@ -46,6 +46,13 @@ pub struct EnglishAnnotation {
     pub entity_kind: String,
     /// Attribution retained independently from the committed name.
     pub entity_source: String,
+    /// Dictionary usage label, independent from a named entity category.
+    pub lexical_usage: String,
+    /// Explanatory expansion of an abbreviation; never committed implicitly.
+    pub expanded_form: String,
+    /// Source URL and stable sense identity for a modern dictionary meaning.
+    pub lexical_source: String,
+    pub lexical_sense_id: String,
 }
 
 /// 一条候选。
@@ -117,6 +124,9 @@ impl Candidate {
         if meanings && !annotation.definition.is_empty() {
             parts.push(annotation.definition.clone());
         }
+        if meanings && !annotation.expanded_form.is_empty() {
+            parts.push(format!("全称：{}", annotation.expanded_form));
+        }
         parts.join(" ")
     }
 }
@@ -134,6 +144,26 @@ mod candidate_display_tests {
         assert_eq!(candidate.text, "I am trying to");
         candidate.display_text = Some(String::new());
         assert_eq!(candidate.display_text(), "I am trying to");
+    }
+
+    #[test]
+    fn abbreviation_expansion_is_display_only_and_follows_meaning_visibility() {
+        let mut candidate = Candidate::new("IDK", CandidateSource::Local);
+        candidate.annotation = Some(EnglishAnnotation {
+            part_of_speech: "短语".into(),
+            definition: "我不知道".into(),
+            lexical_usage: "缩写".into(),
+            expanded_form: "I don't know".into(),
+            lexical_sense_id: "sense-one".into(),
+            ..Default::default()
+        });
+        assert_eq!(
+            candidate.annotation_text(true, true, false),
+            "短语 我不知道 全称：I don't know"
+        );
+        assert_eq!(candidate.annotation_text(false, true, false), "短语");
+        assert_eq!(candidate.text, "IDK");
+        assert_eq!(candidate.display_text(), "IDK");
     }
 }
 

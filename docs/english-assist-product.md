@@ -1,10 +1,49 @@
 # English Assist 产品规格与交付门槛
 
-版本：0.5.0。更新日期：2026-11-09。
+版本：0.6.0。更新日期：2026-11-09。
 
-## 0.5.0 关系词库、混合尾词与现代实体
+## 0.6.0 现代词义与扩展实体
 
-当前状态：0.5.0 R1正式构建、升级安装、双架构激活探针及有限真实记事本验收已完成。后文0.4及更早验收均为历史证据，不挪作本版结果。
+当前检查点：0.6.0 R1正式构建、升级安装、双架构激活探针及有限真实记事本验收已完成。正式通过1,135次（Rust427＝常规425＋准备资源2、Python74、PowerShell634），0失败，含x86重复，不是唯一测试数；4项安装探针另计。0.5及更早结果仅属历史。
+
+| 模块 | 当前行为与数据边界 |
+| --- | --- |
+| 现代词义 | EAMODLX1独立词义流保留POS、中文、用途、说明性全称、来源URL及稳定sense ID；4,009义/2,134键，和普通ECDICT义、实体分别去重 |
+| 中文来源 | 归并前3,982条来源中文（中文维基词典3,824、英语版本确证中译158），另有61条Codex辅助项目中文补充；合计4,043，归并34明确重复后4,009，不把项目补充冒充上游译文 |
+| 缩写与普通义 | IDK/IMO/TBH已审核常用网络义优先；IMO其他海事/数学义保独立身份。已有普通词性/高频普通义受到保护，全大写不是提升APPLE/SICK冷义的理由 |
+| 大小写与提交 | 普通现代词尊重输入case，如Rizz/RIZZ；有全称证据的缩写与专名保canonical。GOAT只有全大写、精确、审核优先级和网络缩写全称证据齐全时可越过普通义；lowergoat保持动物普通义。全称仅说明、永不隐式展开提交 |
+| 来源徽标 | 网络/缩写/俚语等用途与现代·公司及拼音/扩展汉字证据分别展示；缺全称不伪造，LOL另一缩写义只可帮助确认规范拼写，不冒充最高网络感叹词义的全称 |
+| 实体目录 | EAMODEN2为1,173实体/2,239条别名关系（2,161种不同拼写），保原51审核种子，允许同别名多个QID；短中文身份说明不是完整词义，缺真实官网时不伪造 |
+
+现代词义TSV620,800字节，SHA-256 `ccbb70532631d3cdc000ff63fd702b6d496e09d1b4f024e11a9670d4bfaa9749`。目录规模是有限冻结覆盖，不是全量Wiktionary/Wikidata，也不是当前热度或句意模型。数据清单见 `data/dict/modern-lexicon.json`、`data/dict/modern-entities.json`。
+
+资源worker验证并构造不可变prefix优先索引；每现代流最多24候选、256个叶扫描，精确键先于前缀，不逐键全扫数千义项。User显式词条优先，多个现代sense及同别名实体以来源身份独立保留；低优先技术缩写不锁掉ia/iam/iamt的旧连续路径。普通查询/冻结数据常规校验不读Key、不联网、不自动学习输入历史。
+
+原始通道沿用：Enter始终raw；plain Space不展开全称，审核网络缩写视为完整原串；自动空格ON无尾空格、OFF保物理空格，单Shift只切空格偏好。拼音尾词仍需显式选择并完整提交一次。当前有限验收如下，不从下方旧版通过项推定更多范围。
+
+### 0.6.0 R1正式结果与边界
+
+升级退出0，ActiveDir为 `C:\Program Files\EnglishAssist\versions\0.6.0-20261109143156-791774`，29项产物摘要及build.json全部匹配；映射偏好文件身份及23个值保留。原始Rust汇总8次忽略中的2组准备资源后续已计入427次通过，安装后x64/x86探针各2项通过、激活S_OK并另计，仍有2项未执行；详见 `work/build-logs/v0.6.0-r1-test-counts.json`。安装收据 `work/research/v0.6.0-r1-installed-hashes.json`。
+
+真实Notepad PID29288已确认加载本次DLL，SHA-256 `4af101ed03fec47d16e5e833534f2e8793ecbc0d44af4a70ac765cd7abbce111`。逐键操作并保存自有文件读回核对：
+
+| 本次实际场景 | 结果 |
+| --- | --- |
+| IDK按1、IMO按Tab | 只提交缩写，中文/POS/全称仅展示；IMO海事/数学义独立可见 |
+| rizz按1、Shift字母输入RIZZ后Tab | 大小写保持，Shift字母组合不切自动空格 |
+| GOAT按1、小写goat按Tab | 分别采用网络缩写义与普通山羊义 |
+| libreof按1 | 规范专名LibreOffice，中文身份说明和现代软件标记可见 |
+| tbh导航后Enter、idk翻页后Enter | 原串上屏、不附换行；idk的Shift+等号2/2、Shift+减号1/2往返正确且空格仍ON |
+| iamrobot按Space、混合yiyang按1 | 分别得到I am robot、完整I will do the same一次，无尾空格 |
+| kotlin未收录 | 无候选，Enter保原串成功；属于已知覆盖缺口，不能称Kotlin补全通过 |
+
+最终自有文件精确12行，无尾空格或最后换行；完整文字见 `docs/english-input.md` 或 `work/research/v0.6.0-r1-notepad-live.json`。模块收据 `v0.6.0-r1-notepad-module.json`；有效语言标签、Input Tips及默认覆盖值前后保持一致，收据 `work/research/v0.6.0-keyboard-preserved.json`。
+
+本版未验收全部应用、x86编辑器真实键入、AI服务/GUI、卸载或重启清理。最终源码ZIP尚待提交后复验，从ZIP完整原生重建未验证；候选排名只是本次观察快照，覆盖仍是有限目录。
+
+## 沿用0.5的关系词库与历史检查点
+
+历史状态：0.5.0 R1正式构建、升级安装、双架构激活探针及有限真实记事本验收已完成。下述0.5、0.4及更早结果均不挪作0.6验收。
 
 | 模块 | 本版行为与边界 |
 | --- | --- |
@@ -75,6 +114,7 @@ Windows 原生 TSF 英文输入法，登记在英语（美国）语言下。保�
 | 英文输入 | 离线前缀补全、大小写保留、独立拼写建议开关 |
 | 连写与短语 | 本地多路径分词，允许末尾prefix；候选显示当前后缀，显式确认后完整替换组合一次；Windows默认启用两个独立开关 |
 | 0.5混合与实体 | 英文前缀加拼音尾词、匹配中文证据提示，以及独立现代实体含义；R1有限记事本结果见上方 |
+| 0.6现代词义与扩展实体 | 4,009独立义项、2,134检索键，1,173实体/2,239别名关系（2,161种拼写）；缩写只提交短形式，来源/全称仅展示；R1有限记事本验收见上方 |
 | 英汉词典 | 候选英文与词性、中文释义分开显示；音标可选；展示字段不写入正文 |
 | 拼音查英 | 默认开启，拼音精确匹配优先，也提供有限前缀结果；去重后提交英文 |
 | 候选操作 | 每页五条，1–5 选当前页；Tab 接受首选或已选择项；鼠标点击选词 |
@@ -124,6 +164,8 @@ Windows 原生 TSF 英文输入法，登记在英语（美国）语言下。保�
 具体冻结源：ECDICT提交 `bc015ed2e24a7abef49fc6dbbb7fe32c1dadaf8b`；CC-CEDICT为HallelujahIM提交 `8be294f70a4dc7b24a93f07c41df6c34add07a07` 镜像的2017-11-17原文，原文件头为CC BY-SA 3.0。[当前MDBG下载页](https://www.mdbg.net/chinese/dictionary?page=cc-cedict)所列最新数据采用CC BY-SA 4.0，不能与本包2017快照混为同一版本或许可。Wanxiang v18.0.14的 `zi.dict.yaml` 和 `jichu.dict.yaml` 另保留CC BY 4.0署名，精确原文/来源哈希见 `data/dict/raw/english-assist/SOURCES.json`、`data/dict/raw/wanxiang-base/SOURCE.md`。
 
 现代实体另以CC0 Wikidata结构化快照、固定实体ID/修订及审核官网链接记录来源，目录与投影在 `data/dict/modern-entities.json`、`data/dict/modern-entities.tsv` 和 `data/dict/raw/modern-entities/`。更新工具只在明确调用时提出更新，运行时不访问网络；有限目录不承诺收录任意公司/产品。配套源码需同时保留这些材料、Wanxiang频率源、v2编译器及测试，不能只归档生成的词库文件。
+
+0.6现代词义与项目中文补充按CC BY-SA 4.0独立发布，保留Wiktionary贡献者署名、逐sense来源URL、冻结哈希与改动说明；提取器Wiktextract软件MIT不改变数据许可。匹配源码包需包含 `data/dict/modern-lexicon*`、`data/dict/raw/kaikki-modern/` 两版冻结投影/来源清单/完整许可及独立编译校验脚本。大型完整dump在独立获取缓存，常规构建使用审核后的投影，不自动刷新数据；现代实体CC0和旧英汉关系侧车的许可各自保留。
 
 0.3 的内嵌双词资源独立于英汉侧车：冻结 SymSpell MIT 仓库提交 `c239062ae02961df18ab7da1671d01b4388204e0` 中的 `SymSpell/frequency_bigramdictionary_en_243_342.txt`，原文5,137,213字节、242,342条，SHA-256 `fd892a160184101dd7ae807ac5a302d01fcea1c47304181a8ed7ed9c94545bcd`；无损 gzip SHA-256 `9af65d1e5ce272076ebd60e719f11b6341ca93294411af160d33c48e2b4f1fd1`。完整来源/许可哈希在 `data/dict/raw/english-bigrams/SOURCES.json`，内嵌产物清单在 `core/english/assets/bigrams.json`。保留 NOTICE-English-Assist.txt 的独立数据声明与 LICENSE-SymSpell，不声称已复现该 bigram 的原始生成链或包含 Gboard 模型。
 

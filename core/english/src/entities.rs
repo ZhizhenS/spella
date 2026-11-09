@@ -1,10 +1,11 @@
 //! Small reviewed modern-name stream, separate from ordinary English meanings.
 //! The frozen catalog is intentionally limited; lookup never performs IO/network.
+use crate::modern::RankedKeys;
 use retype_types::{Candidate, CandidateLanguage, CandidateSource, EnglishAnnotation};
-use std::sync::OnceLock;
+use std::{cmp::Reverse, collections::HashSet, sync::OnceLock};
 
 const DATA: &str = include_str!("../../../data/dict/modern-entities.tsv");
-const MAX_ENTITIES: usize = 80;
+const MAX_ENTITIES: usize = 20_000;
 const MAX_RESULTS: usize = 24;
 
 #[derive(Clone, Copy)]
@@ -16,33 +17,50 @@ struct Entity<'a> {
     id: &'a str,
     revision: &'a str,
     official: &'a str,
+    priority: u32,
+}
+struct Catalog<'a> {
+    entries: Vec<Entity<'a>>,
+    index: RankedKeys<'a>,
 }
 fn valid_key(key: &str) -> bool {
-    !key.is_empty() && key.len() <= 64 && key.bytes().all(|byte| byte.is_ascii_lowercase())
+    (2..=64).contains(&key.len()) && key.bytes().all(|byte| byte.is_ascii_lowercase())
 }
-fn parse(data: &str) -> Option<Vec<Entity<'_>>> {
+fn parse(data: &str) -> Option<Catalog<'_>> {
+    if data.len() > 16 * 1024 * 1024 {
+        return None;
+    }
     let mut lines = data.lines();
-    if !lines.next()?.starts_with("# EAMODEN1\t") {
+    if !lines.next()?.starts_with("# EAMODEN2\t") {
         return None;
     }
     let mut entries = Vec::new();
-    let mut previous = "";
+    let mut previous = None;
+    let mut identities = HashSet::new();
+    let mut aliases_count = 0;
     for line in lines {
         let fields: Vec<_> = line.split('\t').collect();
-        if fields.len() != 7 {
+        if fields.len() != 8 {
             return None;
         }
-        let [text, aliases, kind, definition, id, revision, official] = fields.as_slice() else {
+        let [text, aliases, kind, definition, id, revision, official, priority] = fields.as_slice()
+        else {
             return None;
         };
+        let priority = priority.parse::<u32>().ok()?;
+        let aliases_len = aliases.split(',').count();
+        aliases_count += aliases_len;
         if text.is_empty()
             || text.len() > 96
             || !text.is_ascii()
             || text.chars().any(char::is_control)
+            || text.trim() != *text
             || kind.is_empty()
-            || kind.chars().count() > 6
+            || kind.chars().count() > 12
+            || kind.chars().any(char::is_control)
             || definition.is_empty()
-            || definition.chars().count() > 96
+            || definition.chars().count() > 192
+            || definition.chars().any(char::is_control)
             || !id.starts_with('Q')
             || id.len() < 2
             || !id[1..].bytes().all(|byte| byte.is_ascii_digit())
@@ -50,17 +68,22 @@ fn parse(data: &str) -> Option<Vec<Entity<'_>>> {
                 .parse::<u64>()
                 .ok()
                 .is_none_or(|number| number == 0)
-            || !official.starts_with("https://")
+            || (!official.is_empty() && !official.starts_with("https://"))
+            || official.len() > 1024
             || official.chars().any(char::is_control)
             || aliases.split(',').any(|alias| !valid_key(alias))
+            || aliases_len > 32
+            || aliases_count > 200_000
+            || !identities.insert(*id)
         {
             return None;
         }
         let first = aliases.split(',').next()?;
-        if first <= previous || entries.len() >= MAX_ENTITIES {
+        let order = (first, Reverse(priority), *id);
+        if previous.is_some_and(|old| order <= old) || entries.len() >= MAX_ENTITIES {
             return None;
         }
-        previous = first;
+        previous = Some(order);
         entries.push(Entity {
             text,
             aliases,
@@ -69,13 +92,25 @@ fn parse(data: &str) -> Option<Vec<Entity<'_>>> {
             id,
             revision,
             official,
+            priority,
         });
     }
-    (!entries.is_empty()).then_some(entries)
+    let index = RankedKeys::new(entries.iter().enumerate().flat_map(|(id, entity)| {
+        entity
+            .aliases
+            .split(',')
+            .map(move |alias| (alias, id, entity.priority))
+    }))
+    .ok()?;
+    (!entries.is_empty()).then_some(Catalog { entries, index })
 }
-fn catalog() -> &'static [Entity<'static>] {
-    static CATALOG: OnceLock<Vec<Entity<'static>>> = OnceLock::new();
-    CATALOG.get_or_init(|| parse(DATA).unwrap_or_default())
+static CATALOG: OnceLock<Option<Catalog<'static>>> = OnceLock::new();
+pub(super) fn initialize() -> Result<(), String> {
+    CATALOG
+        .get_or_init(|| parse(DATA))
+        .as_ref()
+        .map(|_| ())
+        .ok_or_else(|| "Invalid modern entity catalog".into())
 }
 
 /// Return canonical brand spelling; callers merge this independently ranked
@@ -89,42 +124,48 @@ pub(super) fn complete(input: &str, limit: usize) -> Vec<Candidate> {
         return Vec::new();
     }
     let key = input.to_ascii_lowercase();
-    let mut found: Vec<_> = catalog()
-        .iter()
-        .enumerate()
-        .filter_map(|(ordinal, entity)| {
-            let matches = entity
-                .aliases
-                .split(',')
-                .any(|alias| alias.starts_with(&key));
-            let exact = entity.aliases.split(',').any(|alias| alias == key);
-            matches.then_some((!exact, ordinal, entity))
-        })
-        .collect();
-    found.sort_by_key(|(not_exact, ordinal, _)| (*not_exact, *ordinal));
-    found
-        .into_iter()
-        .take(limit.min(MAX_RESULTS))
-        .map(|(_, ordinal, entity)| {
-            let mut candidate = Candidate::new(entity.text, CandidateSource::Local);
-            candidate.language = CandidateLanguage::English;
-            candidate.consumed = input.len();
-            candidate.comment = format!("{} · {}", entity.kind, entity.definition);
-            candidate.annotation = Some(EnglishAnnotation {
-                part_of_speech: "专名".to_owned(),
-                definition: entity.definition.to_owned(),
-                entity_kind: entity.kind.to_owned(),
-                entity_source: format!(
-                    "Wikidata {}@{}; https://www.wikidata.org/w/index.php?title={}&oldid={}; {}",
-                    entity.id, entity.revision, entity.id, entity.revision, entity.official
-                ),
-                ..Default::default()
-            });
-            // A stable catalog ordinal, never an English-frequency probability.
-            candidate.score = -(ordinal as f32);
-            candidate
-        })
-        .collect()
+    #[cfg(any(test, feature = "test-data"))]
+    let _ = initialize();
+    let Some(catalog) = CATALOG.get().and_then(Option::as_ref) else {
+        return Vec::new();
+    };
+    catalog.complete(&key, input.len(), limit)
+}
+impl Catalog<'_> {
+    fn complete(&self, key: &str, consumed: usize, limit: usize) -> Vec<Candidate> {
+        self.index
+            .lookup(key, limit.min(MAX_RESULTS))
+            .into_iter()
+            .map(|(ordinal, _)| {
+                let entity = self.entries[ordinal];
+                let mut candidate = Candidate::new(entity.text, CandidateSource::Local);
+                candidate.language = CandidateLanguage::English;
+                candidate.consumed = consumed;
+                candidate.comment = format!("{} · {}", entity.kind, entity.definition);
+                candidate.annotation = Some(EnglishAnnotation {
+                    part_of_speech: "专名".to_owned(),
+                    definition: entity.definition.to_owned(),
+                    entity_kind: entity.kind.to_owned(),
+                    entity_source: format!(
+                        "Wikidata {}@{}; https://www.wikidata.org/w/index.php?title={}&oldid={}{}",
+                        entity.id,
+                        entity.revision,
+                        entity.id,
+                        entity.revision,
+                        if entity.official.is_empty() {
+                            String::new()
+                        } else {
+                            format!("; {}", entity.official)
+                        }
+                    ),
+                    ..Default::default()
+                });
+                // Producer commonness is local to this stream, not a language-model probability.
+                candidate.score = entity.priority as f32;
+                candidate
+            })
+            .collect()
+    }
 }
 
 #[cfg(test)]
@@ -132,7 +173,7 @@ mod tests {
     use super::*;
     #[test]
     fn reviewed_catalog_has_identity_revision_and_canonical_case() {
-        assert_eq!(parse(DATA).map(|entries| entries.len()), Some(51));
+        assert!(parse(DATA).is_some_and(|catalog| catalog.entries.len() >= 51));
         for (query, text, id) in [
             ("anthropic", "Anthropic", "Q116758847"),
             ("OPENAI", "OpenAI", "Q21708200"),
@@ -177,5 +218,29 @@ mod tests {
             "# EAMODEN1\t\nAnthropic\tanthropic\t公司\t描述\tQ1\t0\thttps://example.com\n"
         )
         .is_none());
+    }
+
+    #[test]
+    fn repeated_aliases_preserve_distinct_entity_identities_and_priority() {
+        let source = "# EAMODEN2\ttest\nAcronym One\timo\t组织\t组织甲\tQ1\t1\thttps://example.org/one\t900\nAcronym Two\timo\t组织\t组织乙\tQ2\t1\thttps://example.org/two\t800\n";
+        let catalog = parse(source).unwrap();
+        let hits = catalog.complete("imo", 3, 24);
+        assert_eq!(hits.len(), 2);
+        assert!(hits[0]
+            .annotation
+            .as_ref()
+            .unwrap()
+            .entity_source
+            .contains("Q1@1"));
+        assert!(hits[1]
+            .annotation
+            .as_ref()
+            .unwrap()
+            .entity_source
+            .contains("Q2@1"));
+        assert_eq!(catalog.complete("imo", 3, 1).len(), 1);
+        assert!(catalog.complete("imo", 3, 0).is_empty());
+        assert!(parse(&source.replace("\tQ2\t", "\tQ1\t")).is_none());
+        assert!(parse(&source.replace("\t800", "\t1000")).is_none());
     }
 }
