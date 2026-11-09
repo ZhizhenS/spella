@@ -1315,6 +1315,45 @@ fn run_host() -> Result<()> {
         );
         assert!(lock(&state.composition).is_none());
         let _ = stats::take_test_words();
+        // A segmented row exposes only the unfinished suffix, while Finalize
+        // replaces the complete owned composition once with its complete text.
+        let before_segmented = String::from_utf16_lossy(&lock(&data).text);
+        for ch in "qzxvfixture".chars() {
+            request(&state, &context, Work::Key(Key::Char(ch), Modifiers::NONE))?;
+        }
+        let mut segmented_candidate =
+            retype_types::Candidate::new("I am trying to", retype_types::CandidateSource::Local);
+        segmented_candidate.language = retype_types::CandidateLanguage::English;
+        segmented_candidate.display_text = Some("trying to".into());
+        segmented_candidate.comment = "v. 尝试".into();
+        segmented_candidate.consumed = "qzxvfixture".len();
+        let generation = session.backend.with_kernel(|kernel| kernel.generation());
+        session.submit(InputEvent::EnglishCompleted {
+            gen: generation,
+            candidates: vec![segmented_candidate],
+        });
+        let segmented = session.backend.with_kernel(|kernel| kernel.render_state());
+        let segmented_index = segmented
+            .candidates
+            .iter()
+            .position(|candidate| candidate.text == "I am trying to")
+            .ok_or(E_FAIL)?;
+        let layout = crate::popup::measure(&segmented, None, None);
+        let mut window = lock(&state.window).take().ok_or(E_FAIL)?;
+        window.update(&state, &manager, &context, &segmented, None, &layout)?;
+        let list = window.element_for_test().ok_or(E_FAIL)?;
+        *lock(&state.window) = Some(window);
+        let shown = list.GetString(segmented_index as u32)?.to_string();
+        assert!(shown.starts_with("trying to"));
+        assert!(!shown.contains("I am"));
+        list.SetSelection(segmented_index as u32)?;
+        list.Finalize()?;
+        assert_eq!(
+            String::from_utf16_lossy(&lock(&data).text),
+            format!("{before_segmented}I am trying to")
+        );
+        assert!(lock(&state.composition).is_none());
+        let _ = stats::take_test_words();
         // 1-5 choose an existing visible row; other digits (and missing rows)
         // remain literal in the complete TSF edit transaction.
         for digit in '0'..='9' {

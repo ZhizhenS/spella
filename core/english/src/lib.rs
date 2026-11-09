@@ -2,6 +2,7 @@
 #![forbid(unsafe_code)]
 use retype_types::{Candidate, CandidateLanguage, CandidateSource, LearningStore};
 use std::collections::{BinaryHeap, HashSet};
+mod continuous;
 mod image;
 pub mod lexicon;
 pub use image::{compile, current, Vocabulary, MAGIC, MAX_BYTES};
@@ -113,6 +114,62 @@ impl Vocabulary {
             &lexicon::current(),
             &lexicon::manual(),
         )
+    }
+    /// Incremental English decoding. Each candidate still replaces the whole
+    /// raw composition; only its display label may omit an inferred prefix.
+    pub fn complete_input(
+        &self,
+        input: &str,
+        learner: &dyn LearningStore,
+        limit: usize,
+        pinyin: bool,
+        segmentation: bool,
+        phrases: bool,
+    ) -> Vec<Candidate> {
+        let plain = self.complete_with_pinyin(input, learner, limit, pinyin);
+        if !segmentation || limit == 0 {
+            return plain;
+        }
+        let segmented = continuous::complete(self, input, limit, phrases);
+        if segmented.is_empty() {
+            return plain;
+        }
+        // Preserve explicit personal words, literal dictionary words, and the
+        // established exact-pinyin stream before competing model hypotheses.
+        let primary_pinyin = plain.first().is_some_and(|candidate| {
+            candidate
+                .annotation
+                .as_ref()
+                .is_some_and(|note| note.pinyin_match)
+        }) && !self.contains_word(input);
+        let mut pinned = Vec::new();
+        let mut ranked = Vec::new();
+        for mut candidate in plain {
+            if candidate.source == CandidateSource::User
+                || candidate.text.eq_ignore_ascii_case(input)
+                || (primary_pinyin
+                    && candidate
+                        .annotation
+                        .as_ref()
+                        .is_some_and(|note| note.pinyin_match))
+            {
+                pinned.push(candidate);
+            } else {
+                candidate.score = continuous::score(self, &candidate.text, input.len());
+                ranked.push(candidate);
+            }
+        }
+        ranked.extend(segmented);
+        ranked.sort_by(|a, b| {
+            b.score
+                .total_cmp(&a.score)
+                .then_with(|| a.text.cmp(&b.text))
+        });
+        pinned.extend(ranked);
+        let mut seen = HashSet::new();
+        pinned.retain(|candidate| seen.insert(candidate.text.to_ascii_lowercase()));
+        pinned.truncate(limit);
+        pinned
     }
     fn complete_from(
         &self,

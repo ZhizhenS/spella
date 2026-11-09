@@ -74,11 +74,11 @@ fn updated_flags(old: &RenderState, new: &RenderState, selection: Option<(u64, u
     if !old
         .candidates
         .iter()
-        .map(|c| (&c.text, &c.comment, &c.annotation))
+        .map(|c| (&c.text, c.display_text(), &c.comment, &c.annotation))
         .eq(new
             .candidates
             .iter()
-            .map(|c| (&c.text, &c.comment, &c.annotation)))
+            .map(|c| (&c.text, c.display_text(), &c.comment, &c.annotation)))
     {
         flags |= TF_CLUIE_STRING;
     }
@@ -472,9 +472,9 @@ impl ITfCandidateListUIElement_Impl for Candidates_Impl {
                 );
                 if c.language == retype_types::CandidateLanguage::English && !annotation.is_empty()
                 {
-                    BSTR::from(format!("{}  {}", c.text, annotation))
+                    BSTR::from(format!("{}  {}", c.display_text(), annotation))
                 } else {
-                    BSTR::from(c.text.as_str())
+                    BSTR::from(c.display_text())
                 }
             })
             .ok_or_else(|| E_INVALIDARG.into())
@@ -574,6 +574,18 @@ impl ITfIntegratableCandidateListUIElement_Impl for Candidates_Impl {
 mod tests {
     use super::*;
     use retype_types::{Candidate, CandidateSource};
+
+    #[test]
+    fn display_only_candidate_change_notifies_ui_less_hosts() {
+        let old = RenderState {
+            candidates: vec![Candidate::new("I am trying to", CandidateSource::Local)],
+            ..Default::default()
+        };
+        let mut new = old.clone();
+        new.candidates[0].display_text = Some("trying to".into());
+        assert_eq!(updated_flags(&old, &new, None), TF_CLUIE_STRING);
+        assert_eq!(new.candidates[0].text, old.candidates[0].text);
+    }
 
     #[test]
     fn flags_track_exposed_text_count_selection_and_variable_pages() {

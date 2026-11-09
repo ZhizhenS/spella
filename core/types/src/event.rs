@@ -119,6 +119,11 @@ pub enum PinyinScheme {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum InputEvent {
+    /// Continuous English segmentation and phrase suggestions, refreshed on focus.
+    SetEnglishContinuous {
+        segmentation: bool,
+        phrases: bool,
+    },
     Key {
         key: Key,
         mods: Modifiers,

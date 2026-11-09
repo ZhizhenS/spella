@@ -128,7 +128,7 @@ impl PaintKey {
                 .texts
                 .iter()
                 .map(String::as_str)
-                .eq(state.visible().iter().map(|c| c.text.as_str()))
+                .eq(state.visible().iter().map(|c| c.display_text()))
     }
 }
 
@@ -289,14 +289,15 @@ impl Surface {
                 .candidates
                 .iter()
                 .map(|candidate| {
+                    let text = candidate.display_text();
                     self.width_tick = self.width_tick.wrapping_add(1);
-                    let width = if let Some((width, used)) = self.widths.get_mut(&candidate.text) {
+                    let width = if let Some((width, used)) = self.widths.get_mut(text) {
                         *used = self.width_tick;
                         *width
                     } else {
                         let width = fonts
                             .layout_no_wrap(
-                                candidate.text.clone(),
+                                text.to_owned(),
                                 FontId::proportional(CANDIDATE_FONT_SIZE),
                                 INK,
                             )
@@ -304,9 +305,9 @@ impl Surface {
                             .x;
                         // Cache metrics, not galleys or font-atlas UV coordinates.
                         // The latter become invalid when egui rebuilds its atlas.
-                        if candidate.text.len() <= WIDTH_CACHE_BYTES / 8 {
+                        if text.len() <= WIDTH_CACHE_BYTES / 8 {
                             if self.widths.len() >= WIDTH_CACHE_ENTRIES
-                                || self.width_bytes + candidate.text.len() > WIDTH_CACHE_BYTES
+                                || self.width_bytes + text.len() > WIDTH_CACHE_BYTES
                             {
                                 let cutoff = self
                                     .width_tick
@@ -314,15 +315,15 @@ impl Surface {
                                 self.widths.retain(|_, (_, used)| *used > cutoff);
                                 self.width_bytes = self.widths.keys().map(String::len).sum();
                                 if self.widths.len() >= WIDTH_CACHE_ENTRIES
-                                    || self.width_bytes + candidate.text.len() > WIDTH_CACHE_BYTES
+                                    || self.width_bytes + text.len() > WIDTH_CACHE_BYTES
                                 {
                                     self.widths.clear();
                                     self.width_bytes = 0;
                                 }
                             }
-                            self.width_bytes += candidate.text.len();
+                            self.width_bytes += text.len();
                             self.widths
-                                .insert(candidate.text.clone(), (width, self.width_tick));
+                                .insert(text.to_owned(), (width, self.width_tick));
                         }
                         width
                     };
@@ -367,7 +368,7 @@ impl Surface {
                     .zip(widths)
                     .map(|(candidate, width)| {
                         fonts.layout(
-                            candidate.text.clone(),
+                            candidate.display_text().to_owned(),
                             FontId::proportional(CANDIDATE_FONT_SIZE),
                             INK,
                             (*width as f32 / scale - text_padding).max(1.0),
@@ -468,7 +469,11 @@ impl Surface {
         let bitmap = Arc::new(Bitmap { geometry, pixels });
         self.last_frame = Some((
             PaintKey {
-                texts: state.visible().iter().map(|c| c.text.clone()).collect(),
+                texts: state
+                    .visible()
+                    .iter()
+                    .map(|c| c.display_text().to_owned())
+                    .collect(),
                 comments: Vec::new(),
                 annotations: Vec::new(),
                 composition: String::new(),
@@ -666,11 +671,17 @@ impl Surface {
                         .as_ref()
                         .filter(|a| !a.phonetic.is_empty())
                         .map_or_else(
-                            || candidate.text.clone(),
-                            |a| format!("{}   /{}/", candidate.text, a.phonetic.trim_matches('/')),
+                            || candidate.display_text().to_owned(),
+                            |a| {
+                                format!(
+                                    "{}   /{}/",
+                                    candidate.display_text(),
+                                    a.phonetic.trim_matches('/')
+                                )
+                            },
                         )
                 } else {
-                    candidate.text.clone()
+                    candidate.display_text().to_owned()
                 };
                 let word = painter.layout_job(clipped_text(
                     &word_text,
@@ -735,7 +746,11 @@ impl Surface {
         let bitmap = Arc::new(Bitmap { geometry, pixels });
         self.last_frame = Some((
             PaintKey {
-                texts: state.visible().iter().map(|c| c.text.clone()).collect(),
+                texts: state
+                    .visible()
+                    .iter()
+                    .map(|c| c.display_text().to_owned())
+                    .collect(),
                 comments: state.visible().iter().map(|c| c.comment.clone()).collect(),
                 annotations: state
                     .visible()
@@ -1259,6 +1274,48 @@ mod tests {
         let compact = surface.render(&current, &widths, 2, 480, 1.0);
         assert!(compact.geometry.height < dark.geometry.height);
         assert!(compact.geometry.width < dark.geometry.width);
+    }
+    #[test]
+    fn english_suffix_label_is_painted_and_invalidates_without_changing_commit_text() {
+        let mut surface = Surface::default();
+        surface.set_appearance(retype_types::CandidateAppearance {
+            show_phonetics: true,
+            ..Default::default()
+        });
+        let mut current = state(&["I am trying to"]);
+        current.status = retype_types::StatusFlags::EMPTY;
+        current.composition = "iamt".into();
+        current.candidates[0].language = retype_types::CandidateLanguage::English;
+        current.candidates[0].display_text = Some("trying to".into());
+        current.candidates[0].annotation = Some(retype_types::EnglishAnnotation {
+            part_of_speech: "v.".into(),
+            definition: "尝试".into(),
+            phonetic: "traɪɪŋ".into(),
+            pinyin_match: false,
+        });
+        let widths = surface.measure(&current, 472, 1.0);
+        let suffix = surface.render(&current, &widths, 2, 480, 1.0);
+        current.candidates[0].text = "You are trying to".into();
+        let hidden_change = surface.render(&current, &widths, 2, 480, 1.0);
+        assert!(
+            Arc::ptr_eq(&suffix, &hidden_change),
+            "hidden commit prefixes must not change the painted row"
+        );
+        current.candidates[0].display_text = Some("trying".into());
+        let changed = surface.render(&current, &widths, 2, 480, 1.0);
+        assert!(!Arc::ptr_eq(&hidden_change, &changed));
+        assert_ne!(
+            suffix.pixels, changed.pixels,
+            "display-only changes must update actual pixels"
+        );
+        assert_eq!(current.candidates[0].text, "You are trying to");
+        current.candidates[0].text = "trying to".into();
+        current.candidates[0].display_text = None;
+        let plain_suffix = surface.render(&current, &widths, 2, 480, 1.0);
+        assert_eq!(
+            suffix.pixels, plain_suffix.pixels,
+            "the displayed suffix must not contain its completed prefix"
+        );
     }
     #[test]
     fn long_phrase_wraps_without_ellipsis_and_atlas_survives_updates() {

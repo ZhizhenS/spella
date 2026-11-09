@@ -45,6 +45,8 @@ pub struct Candidate {
     pub language: CandidateLanguage,
     /// 上屏文字
     pub text: String,
+    /// Optional candidate label, independent of the complete committed text.
+    pub display_text: Option<String>,
     /// Fallback display note, such as pinyin or a spelling hint.
     pub comment: String,
     /// Display-only dictionary fields; never included in committed text.
@@ -69,6 +71,7 @@ impl Candidate {
         Self {
             language: CandidateLanguage::Chinese,
             text: text.into(),
+            display_text: None,
             comment: String::new(),
             annotation: None,
             source,
@@ -77,6 +80,13 @@ impl Candidate {
             syllables: Vec::new(),
             score: 0.0,
         }
+    }
+
+    pub fn display_text(&self) -> &str {
+        self.display_text
+            .as_deref()
+            .filter(|text| !text.is_empty())
+            .unwrap_or(&self.text)
     }
 
     pub fn annotation_text(&self, meanings: bool, part_of_speech: bool, phonetics: bool) -> String {
@@ -98,6 +108,22 @@ impl Candidate {
             parts.push(annotation.definition.clone());
         }
         parts.join(" ")
+    }
+}
+
+#[cfg(test)]
+mod candidate_display_tests {
+    use super::*;
+
+    #[test]
+    fn suffix_label_does_not_change_complete_commit_text() {
+        let mut candidate = Candidate::new("I am trying to", CandidateSource::Local);
+        assert_eq!(candidate.display_text(), "I am trying to");
+        candidate.display_text = Some("trying to".into());
+        assert_eq!(candidate.display_text(), "trying to");
+        assert_eq!(candidate.text, "I am trying to");
+        candidate.display_text = Some(String::new());
+        assert_eq!(candidate.display_text(), "I am trying to");
     }
 }
 

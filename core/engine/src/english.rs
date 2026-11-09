@@ -34,11 +34,13 @@ impl Kernel {
         self.selected = 0;
         self.page_start = 0;
         self.page_starts.clear();
-        self.candidates = self.english.complete_with_pinyin(
+        self.candidates = self.english.complete_input(
             &self.buffer,
             self.learner.as_ref(),
             24,
             self.cfg.english_pinyin,
+            self.cfg.english_segmentation,
+            self.cfg.english_phrases,
         );
         actions.push(KernelAction::Render(self.render_state()));
         if self.cfg.english_spelling && self.buffer.len() >= 3 {

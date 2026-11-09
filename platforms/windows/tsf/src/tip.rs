@@ -508,6 +508,17 @@ impl TipState {
             let scheme = crate::preferences::scheme();
             let (enabled, spelling) = crate::preferences::english_options();
             let pinyin = crate::preferences::english_pinyin();
+            let (segmentation, phrases) = crate::preferences::english_continuous();
+            if session
+                .backend
+                .with_kernel(|k| (k.config().english_segmentation, k.config().english_phrases))
+                != (segmentation, phrases)
+            {
+                session.submit(InputEvent::SetEnglishContinuous {
+                    segmentation,
+                    phrases,
+                });
+            }
             if session.backend.with_kernel(|k| k.config().english_pinyin) != pinyin {
                 session.submit(InputEvent::SetEnglishPinyin(pinyin));
             }

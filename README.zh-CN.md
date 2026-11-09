@@ -7,8 +7,22 @@
 [English](README.md) · [英文输入操作](docs/english-input.md) ·
 [P0 验证记录](docs/english-assist/INPUT_VALIDATION.md)
 
-**当前检查点（2026-11-09）：R5 正式构建完成，Rust 合计 350 通过、0 失败、6 忽略，Python 19 通过，PowerShell 检查505项。**
-Rust 数量包含 x86 重复执行，不是唯一用例总数。升级退出 0，当前目录为
+**0.3 最终 R2 检查点：正式构建 Rust 364通过、0失败、6忽略（含x86重复），Python33通过、PowerShell508项通过；安装后x64/x86探针各2项通过，激活S_OK。** 当前目录 `0.3.0-20261109063014-912375` 的24项产物摘要及build.json匹配冻结清单。加载最终DLL的私有RichEdit宿主通过选词、退格、Esc和翻页，文档文本精确为 `I am trying to iambic apple iamt helped`。
+
+两个开关在前一个0.3设置程序中完成off/on并读取HKCU确认保存；最终设置exe摘要不同，另行确认输入页两项均on，未重复保存测试，也不代表全部控件通过。0.3 production CLI真实DeepSeek请求在升级后成功，凭据保留。本轮未重新做全部应用、x86编辑器键入、Notepad AI GUI、卸载或重启删除验收；下方0.2 R5结果仍为历史。
+
+## 0.3 连写英文
+
+- 本地同时保留整体单词前缀和多条词界解释，允许末尾单词尚未输入完整。
+- `ia` 可同时提供 `ia…` 开头单词和 `I am`；`iamt` 的行内候选可只显示 `trying`、`trying to`，确认时一次替换为完整 `I am trying`、`I am trying to`。
+- 推断前缀留在当前组合内，不提前上屏；Esc 保留原始串，未显式选词的空格保留原始串并加空格。
+- 连续输入超过48字符时停止连写搜索，回退普通单词补全路径，不截断原文。
+- Windows 的“输入与查词”默认开启“连写智能分词”和“短语候选”；共享 Kernel 两项默认关闭，其他前端须先支持显示/提交分离再显式启用。
+
+多条解释可能同时合理，以上示例不承诺唯一答案或固定排名。短语没有独立词典释义时显示“短语补全”，不挪用组成单词的词性/释义；词库查询耗时与GUI端到端耗时分别记录。
+
+**历史 0.2 R5 检查点（2026-11-09）：R5 正式构建完成，Rust 合计 350 通过、0 失败、6 忽略，Python 19 通过，PowerShell 检查505项。**
+Rust 数量包含 x86 重复执行，不是唯一用例总数。升级退出 0，当时验证的目录为
 `0.2.0-20261109035537-776110`，24 项产物及 build.json 与冻结构建一致；用户私下
 配置的凭据在升级后由实际成功请求确认保留。
 R5 安装后 x64/x86 探针各2项通过，激活均为 S_OK；不替代 x86 编辑器真实键入测试。
@@ -33,7 +47,7 @@ r2/r3 离线、生命周期、探针及设置截图属于此前版本证据，�
 - 本版关闭自动英文词汇学习，输入不启动学习后台服务，也不添加该服务的登录启动项。
 - 中文分类设置、候选外观、快捷键、手动词库增删改及导入导出。
 
-个人词库保存前保留上个版本备份；本版不提供下一词自动预测。AI 结果仍需人工检查，其他应用需分别验证兼容性。
+个人词库保存前保留上个版本备份；0.3 短语作为当前输入的候选，显式选择后才插入。AI 结果仍需人工检查，其他应用需分别验证兼容性。
 
 真正运行在 AppContainer 中的应用，在 AI 辅助进程尚未运行时不支持 AI 冷启动，
 从候选菜单打开设置也受限制；请从开始菜单打开“英文助手设置”。此限制不代表所有打包应用。
@@ -51,7 +65,7 @@ Python 3.11+，无需第三方 Python 包。使用 `-PythonPath` 或设置 `ENGL
 英文专用脚本构建 x64/x86 输入组件、设置程序、后台组件和固定版本英文词库，
 并执行其配置的检查；该脚本本身不安装产品，也不修改系统键盘列表。
 
-安装包为 dist/english-assist-0.2.0-windows-x64-setup.exe。
+已构建安装包为 dist/english-assist-0.3.0-windows-x64-setup.exe，安装及有限实测边界见验证记录。
 交付产物以版本化构建记录为准。不要使用继承的 Retype 安装器、register.ps1
 或上游发布页安装包来替代本项目构建。
 
@@ -78,11 +92,18 @@ python3 等原始串，可先 Esc 结束组字再输入数字。上下键显式�
 位于 data/dict/raw/english/；词义及拼音数据保留 ECDICT MIT 和 CC-CEDICT CC BY-SA 3.0
 署名，组合元数据文件按 CC BY-SA 3.0 分发，代码仍为 MIT。
 
+0.3 独立内嵌的双词偏好来自 SymSpell MIT 仓库固定提交
+`c239062ae02961df18ab7da1671d01b4388204e0` 的已发布文件，精确来源/许可哈希见
+data/dict/raw/english-bigrams/SOURCES.json，完整声明见 NOTICE-English-Assist.txt。
+它与 CC BY-SA 英汉侧车分别声明，不声称复现了该双词表的原始语料生成链，也不包含 Gboard 模型。
+
 配套源码 ZIP 必须包含当前修改源码、Cargo.lock、data/dict/raw/english/，以及
 data/dict/raw/english-assist/ 全目录中的 ecdict.csv.gz、cedict.txt.gz、SOURCES.json、
 完整许可和署名；同时保留 data/dict/english-lexicon.json、resources.json 及
 tools/english-assist/ 下的数据编译、准备、验证脚本和测试。新文件未提交时，
 仅归档 Git 已跟踪文件会漏掉这些工作树内容。
+0.3 还须保留 data/dict/raw/english-bigrams/ 与 core/english/assets/，包括原始gzip、
+许可、来源/输出清单及内嵌二进制。
 
 源码目录保留上游中文、其他平台与同步模块，用于后续整理和必要兼容；
 这不代表英文专用产品会安装或提供这些功能。

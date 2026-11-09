@@ -25,6 +25,7 @@ pub struct Vocabulary {
     count: usize,
     size: usize,
     arena: usize,
+    total_frequency: u64,
 }
 impl std::fmt::Debug for Vocabulary {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -78,14 +79,16 @@ impl Vocabulary {
         if arena > bytes.len() {
             return Err(bad());
         }
-        let result = Self {
+        let mut result = Self {
             image,
             count,
             size,
             arena,
+            total_frequency: 0,
         };
         let mut previous: &[u8] = &[];
         let mut end = 0;
+        let mut total_frequency = 0u64;
         for id in 0..count {
             let at = 16 + id * 16;
             let start = result.u32_at(at);
@@ -107,6 +110,7 @@ impl Vocabulary {
                 return Err(bad());
             }
             previous = word;
+            total_frequency = total_frequency.saturating_add(result.frequency(id));
         }
         if arena + end != result.image.as_ref().len() {
             return Err(bad());
@@ -137,6 +141,7 @@ impl Vocabulary {
                 return Err(bad());
             }
         }
+        result.total_frequency = total_frequency;
         Ok(result)
     }
     pub fn empty() -> Self {
@@ -149,6 +154,7 @@ impl Vocabulary {
             count: 0,
             size: 1,
             arena: 24,
+            total_frequency: 0,
         }
     }
     pub(super) fn u32_at(&self, at: usize) -> usize {
@@ -160,6 +166,9 @@ impl Vocabulary {
     }
     pub fn count(&self) -> usize {
         self.count
+    }
+    pub(super) fn total_frequency(&self) -> u64 {
+        self.total_frequency
     }
     pub(super) fn size(&self) -> usize {
         self.size

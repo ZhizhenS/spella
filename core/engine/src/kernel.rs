@@ -54,6 +54,8 @@ pub struct KernelConfig {
     pub english_enabled: bool,
     pub english_spelling: bool,
     pub english_pinyin: bool,
+    pub english_segmentation: bool,
+    pub english_phrases: bool,
     pub pinyin_scheme: retype_types::PinyinScheme,
     pub decode: DecodeOptions,
     /// 是否启用二刷（断网/未配置云端时应关掉，省掉无谓的等待与打点）
@@ -71,6 +73,9 @@ impl Default for KernelConfig {
             english_enabled: true,
             english_spelling: true,
             english_pinyin: true,
+            // Platform frontends opt in only after supporting independent labels.
+            english_segmentation: false,
+            english_phrases: false,
             pinyin_scheme: retype_types::PinyinScheme::Full,
             decode: DecodeOptions::default(),
             rerank_enabled: true,
@@ -301,6 +306,20 @@ impl Kernel {
             InputEvent::SetEnglishPinyin(enabled) => {
                 if self.cfg.english_pinyin != enabled {
                     self.cfg.english_pinyin = enabled;
+                    if !self.is_chinese() && self.has_composition() {
+                        self.refresh_english(&mut actions);
+                    }
+                }
+            }
+            InputEvent::SetEnglishContinuous {
+                segmentation,
+                phrases,
+            } => {
+                if self.cfg.english_segmentation != segmentation
+                    || self.cfg.english_phrases != phrases
+                {
+                    self.cfg.english_segmentation = segmentation;
+                    self.cfg.english_phrases = phrases;
                     if !self.is_chinese() && self.has_composition() {
                         self.refresh_english(&mut actions);
                     }

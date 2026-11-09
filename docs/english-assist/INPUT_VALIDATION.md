@@ -1,12 +1,42 @@
 # English Assist：交互与验证记录
 
-更新：2026-11-09。目标版本：0.2.0。上游基线：Retype `902e35e06ee4f744320cf995c39b1f64693034cf`。
+更新：2026-11-09。当前版本：0.3.0。上游基线：Retype `902e35e06ee4f744320cf995c39b1f64693034cf`。
 
 本文区分本子任务执行的定向检查和根任务负责的最终集成、安装及真实宿主验收。产品范围见 [产品规格](../english-assist-product.md)，操作说明见 [英文输入](../english-input.md)。最终安装包与宿主兼容结论以根任务的版本化构建记录为准。
 
-## 2026-11-09 集成交付检查点
+## 0.3 最终 R2 构建与有限实测检查点
 
-当前交付为 R5，原生文件已重新正式构建。下列证据区分生产 HTTP、真实记事本 GUI、保存文件核对及此前版本记录，不将旧 r3 的相同字节结论或卸载结果直接套到 R5。
+0.3最终R2已完成正式构建、冻结安装核对、双架构安装探针、私有RichEdit输入和CLI真实AI检查。下方0.2 R5的Notepad AI GUI、旧离线与生命周期结果继续保留版本边界，不自动扩大为本版全部应用或重新卸载通过。
+
+| 0.3 项目 | 实际结果 / 验收边界 |
+| --- | --- |
+| 本地连写 | 同时考虑完整词/整体前缀与多词边界，末尾允许未完成prefix；词频及独立bigram参与有限搜索。核心查询及一个真实私有RichEdit宿主已测，候选整体质量与GUI端到端耗时不据此泛化 |
+| 显示与提交 | Candidate.display_text仅作行内标签，Candidate.text保留当前组合的完整替换正文；Surface、PaintKey、UI-less GetString/更新通知和辅助名称使用显示字段，Finalize仍走完整text。显示刷新、完整提交与新增短语注释回归包含在最终完整流水中；缺少独立短语词典项时comment为“短语补全”，不借用trying等单词的词性/释义 |
+| 示例约定 | ia保留ia…整体前缀及I am等解释；iamt可显示trying/trying to，确认一次得到I am trying/I am trying to，已识别I am不重复成行内候选或正文。多解允许，不承诺固定排名 |
+| 原始输入与上限 | 推断前缀保留在同一组合范围，Esc及未显式选词的空格保留原始串；超过48输入字符退出连写搜索，沿用普通单词补全，不截断原文。退格与Esc已有下述GUI场景；失焦、边界、异步和最长输入的真实应用覆盖仍按有限范围解释 |
+| 两个设置 | Windows默认启用连写智能分词/短语候选，Disabled缺失为0；共享Kernel默认false。前一个0.3设置GUI完成两项off/on操作并读HKCU核对保存。最终设置exe摘要不同，PID25020仅确认两项on、读取/滚动及截图 `work/research/v0.3-final-settings-input-live.png`，未重复off/on测试，不宣称同字节或全部控件通过 |
+| 数据 | 独立双词资源、源码gzip及完整MIT声明已冻结，并经正式构建接入；精确来源见下文。数据来源、生成链边界与运行验证仍分别记录 |
+| 早期 core R2快照 | engine lib67通过、英文集成17通过、english crate18通过/1忽略、types14通过，合计116次通过；该快照早于新增注释回归，不改写它的计数。最终完整流水另计364通过并覆盖新增测试；本子任务没有运行Cargo |
+| 最终真实词库 CLI | annotation修复后的最终源码已重新生成CLI及renderer。ia/iam的I am位于首项；iamt的trying/trying to为第3/4项，iamtr为第1/2项；iamb回普通iambic，iambic/international/apple保持整体词路径，zzz/qzx没有该次词库补全结果。排名是本次观察值，不是固定产品保证；日志 `work/build-logs/v0.3.0-final-candidates.log` |
+| 最终有限查询耗时 | 11,400次词库查询：p50=0.0539ms，p95=0.3137ms，最大0.6508ms。仅最终源码的词库查询，不包含TSF编辑锁、候选绘制、IPC或GUI端到端耗时 |
+| 正式构建与安装 | 最终R2构建/安装成功；正式流水Rust364通过、0失败、6忽略（含x86重复），Python33通过，PowerShell508项通过。`work/build-logs/v0.3.0-final-r2-build.log`、`v0.3.0-final-r2-test-counts.json`。ActiveDir=`C:\Program Files\EnglishAssist\versions\0.3.0-20261109063014-912375`，24项产物摘要及build.json匹配冻结清单；升级日志 `work/build-logs/v0.3.0-final-r2-upgrade.log` |
+| 安装后探针 | x64/x86各2通过，ActivateProfile均S_OK；单独记录，不加进364。日志 `work/build-logs/v0.3.0-final-r2-installed-probes-x64.log`、`work/build-logs/v0.3.0-final-r2-installed-probes-x86.log`；不替代x86编辑器真实键入 |
+| 真实私有RichEdit | 自有宿主PID38236加载最终DLL；ia的am/ian两条解释同时可见；iamt第4项trying to按4完整提交I am trying to一次；继续iamt、Backspace、bic、Tab得到iambic；pingguo按1得到apple；iamt按Esc保留raw iamt；hel经ShiftEqual到2/6、ShiftMinus回1/6、Equal再翻页后按3得到helped |
+| 精确文本核对 | 最终可观察document_text精确为 `I am trying to iambic apple iamt helped`，无重复前缀或释义。收据 `work/research/v0.3-final-rich-edit-tests.json`、截图 `work/research/v0.3-final-iamt-live.png`。这是自有RichEdit的文档/可访问状态核对，不称为本轮Notepad live或保存文件验收；测试后自有宿主已关闭 |
+| 0.3真实production CLI AI | 升级后现有凭据实际请求成功，退出0：GrammarCorrect返回 `She goes to school every day.`，702ms；CompleteSentence返回 `I would like to know more about it.`，865ms。日志 `work/build-logs/v0.3.0-deepseek-live.log`，未输出密钥内容；这是CLI服务复验，不是本版AI GUI端到端复验 |
+| 未覆盖边界 | 不声明所有应用、x86编辑器真实键入、全部控件、长文本质量或GUI端到端延迟通过；本轮没有重新做Notepad AI GUI、卸载循环或重启删除。0.2相关成功保留为历史，用户已有Notepad及其他工作窗口未关闭或读取 |
+
+### 独立 bigram 来源记录
+
+- 仓库：SymSpell，MIT声明，固定提交 `c239062ae02961df18ab7da1671d01b4388204e0`。
+- 原路径：`SymSpell/frequency_bigramdictionary_en_243_342.txt`；实际242,342条，原文5,137,213字节；原文SHA-256 `fd892a160184101dd7ae807ac5a302d01fcea1c47304181a8ed7ed9c94545bcd`。
+- 无损gzip：`data/dict/raw/english-bigrams/frequency-bigrams.txt.gz`，1,953,535字节；SHA-256 `9af65d1e5ce272076ebd60e719f11b6341ca93294411af160d33c48e2b4f1fd1`。
+- 完整LICENSE-SymSpell SHA-256：`858e5c7e7a38824f33cf466719509884f2ee5e35992dbfce377fec0656545814`。来源/许可清单为同目录SOURCES.json；内嵌产物与编译器摘要见core/english/assets/bigrams.json。
+- 与CC BY-SA英汉侧车分别声明，保留NOTICE-English-Assist.txt新说明；不声称复现上游bigram原始语料生成链、Google Books V3重生成或包含Gboard模型。原 unigram 的SCOWL/Google Ngram许可继续分别适用。
+
+## 历史 0.2 R5 集成交付检查点
+
+以下为旧0.2 R5证据。它当时重新正式构建，区分生产HTTP、真实记事本GUI、保存文件核对及更早版本记录，不扩为0.3的新构建/安装通过。
 
 | R5 项目 | 当前结果及边界 |
 | --- | --- |
@@ -81,6 +111,8 @@ UI-less `ShowCandidateNumbers` 返回 TRUE；展示字符串可以含注释，Fi
 | 英文补全 | EnglishDisabled（1=关闭） | 开启 |
 | 拼写建议 | EnglishSpellingDisabled（1=关闭） | 开启 |
 | 拼音查英文 | EnglishPinyinDisabled（1=关闭） | 开启 |
+| 0.3 连写智能分词 | EnglishSegmentationDisabled（1=关闭） | Windows开启；共享Kernel默认关闭 |
+| 0.3 短语候选 | EnglishPhrasesDisabled（1=关闭） | Windows开启；共享Kernel默认关闭 |
 | 符号配对 | SymbolCompletionEnabled（1=开启） | 关闭 |
 | 候选主题 | CandidateTheme（0系统/1浅色/2深色） | 0 |
 | 字号 / 宽度 | CandidateFontSize / CandidateWidth | 17 / 420，范围14–22 / 320–460 |
@@ -139,6 +171,7 @@ UI-less `ShowCandidateNumbers` 返回 TRUE；展示字符串可以含注释，Fi
 
 - `data/dict/raw/english-assist/` 全目录：`ecdict.csv.gz`、`cedict.txt.gz`、`SOURCES.json`、`LICENSE-ECDICT`、`LICENSE-CC-CEDICT`、`NOTICE-English-Lexicon.txt`、README。
 - `data/dict/raw/english/` 的 frequency.txt、SOURCE 和 SymSpell/SCOWL/Google Ngram 完整许可。
+- 0.3 的 `data/dict/raw/english-bigrams/` 全目录及 `core/english/assets/`：原始gzip、完整MIT声明、来源/输出清单、内嵌image与独立编译/校验脚本及测试；不能只归档旧词义数据。
 - `data/dict/english-lexicon.json`、`data/dict/resources.json`、顶层 LICENSE、NOTICE.txt、NOTICE-English-Assist.txt。
 - `tools/english-assist/` 下的数据编译、准备、验证脚本及测试，以及该版本构建脚本、产品操作和验证说明。
 

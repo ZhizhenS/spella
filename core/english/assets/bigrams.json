@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "format": "RTENBG01",
+  "file": "bigrams.bin",
+  "bytes": 5629234,
+  "sha256": "fa716a24f58a7c26b0c19f7013937d0ea750528e783015b77c23d0ef98c93683",
+  "counts": {
+    "words": 19792,
+    "pairs": 242342,
+    "arena_bytes": 148938,
+    "tree_size": 262144
+  },
+  "source": {
+    "repository": "https://github.com/wolfgarbe/SymSpell",
+    "commit": "c239062ae02961df18ab7da1671d01b4388204e0",
+    "path": "SymSpell/frequency_bigramdictionary_en_243_342.txt",
+    "sha256": "9af65d1e5ce272076ebd60e719f11b6341ca93294411af160d33c48e2b4f1fd1",
+    "uncompressedSha256": "fd892a160184101dd7ae807ac5a302d01fcea1c47304181a8ed7ed9c94545bcd"
+  },
+  "source_manifest_sha256": "f04e3bd6b3ec1971cc57681e083bf5b766db018c78fed7345260d5a0b9d5b5a6",
+  "compiler_sha256": "29c027a777bc2c6f567df555ae98f55ef33dc4eaca706d3561a1d53e755e46fc"
+}

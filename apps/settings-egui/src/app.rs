@@ -1507,6 +1507,41 @@ impl SettingsApp {
             );
             ui.separator();
             ui.add_enabled_ui(self.preferences.english.0, |ui| {
+                if switch_row(
+                    ui,
+                    &mut self.preferences.english_segmentation,
+                    "连写智能分词",
+                ) {
+                    if let Err(error) = backend::set(
+                        "EnglishSegmentationDisabled",
+                        u32::from(!self.preferences.english_segmentation),
+                    ) {
+                        self.preferences.english_segmentation =
+                            !self.preferences.english_segmentation;
+                        self.error = Some(format!("保存设置失败：{error}"));
+                    }
+                }
+                ui.label(
+                    RichText::new("连写时识别已完成的单词，只显示当前词的候选。")
+                        .size(12.0)
+                        .color(MUTED),
+                );
+                ui.separator();
+                if switch_row(ui, &mut self.preferences.english_phrases, "短语候选") {
+                    if let Err(error) = backend::set(
+                        "EnglishPhrasesDisabled",
+                        u32::from(!self.preferences.english_phrases),
+                    ) {
+                        self.preferences.english_phrases = !self.preferences.english_phrases;
+                        self.error = Some(format!("保存设置失败：{error}"));
+                    }
+                }
+                ui.label(
+                    RichText::new("在本地单词候选中提供常用短语，确认后提交完整组合。")
+                        .size(12.0)
+                        .color(MUTED),
+                );
+                ui.separator();
                 if switch_row(ui, &mut self.preferences.english.1, "英文拼写建议") {
                     if let Err(error) = backend::set(
                         "EnglishSpellingDisabled",

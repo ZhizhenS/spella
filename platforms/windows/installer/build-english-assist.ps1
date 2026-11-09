@@ -23,6 +23,8 @@ if ($Version -ne $taskSourceVersion) { throw 'Installer version must equal Cargo
 . (Join-Path $taskRepo 'tools\english-assist\enter-env.ps1')
 Push-Location $taskRepo
 try {
+  # Embedded data must be reviewed/reproducible before Cargo reads include_bytes!.
+  & (Join-Path $taskRepo 'tools\english-assist\build-english-bigrams.ps1') -PythonPath $PythonPath -Test:(-not $NoTest)
   if (-not (Get-Command cargo -ErrorAction SilentlyContinue)) {
     throw 'Rust is missing. Install/configure the MSVC Rust toolchain before building.'
   }

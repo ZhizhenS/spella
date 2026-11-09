@@ -25,11 +25,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         ("hel", CandidateTheme::Light, "英文释义候选.png"),
         ("pingguo", CandidateTheme::Light, "拼音查英文候选.png"),
         ("nihao", CandidateTheme::Dark, "深色候选.png"),
+        ("iamt", CandidateTheme::Light, "连写短语候选.png"),
+        ("ia", CandidateTheme::Dark, "连写歧义候选.png"),
     ] {
         let state = RenderState {
             composition: query.into(),
             page_size: 5,
-            candidates: retype_english::complete(query, &ReadOnly, 24),
+            candidates: retype_english::current()
+                .complete_input(query, &ReadOnly, 24, true, true, true),
             ..Default::default()
         };
         let mut surface = Surface::default();

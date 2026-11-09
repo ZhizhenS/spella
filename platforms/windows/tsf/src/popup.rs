@@ -180,7 +180,7 @@ pub fn update(
                 .texts
                 .iter()
                 .map(String::as_str)
-                .eq(visible.iter().map(|c| c.text.as_str()))
+                .eq(visible.iter().map(|c| c.display_text()))
             || (*old).comments != notes;
         let invalidated = if reused {
             (*old).invalidated
@@ -191,7 +191,10 @@ pub fn update(
             generation: render.gen,
             page_start: render.page_start,
             composition: render.composition.clone(),
-            texts: visible.iter().map(|c| c.text.clone()).collect(),
+            texts: visible
+                .iter()
+                .map(|c| c.display_text().to_owned())
+                .collect(),
             comments: notes.clone(),
             context: context.clone(),
             tip: Arc::downgrade(tip),
@@ -221,7 +224,7 @@ pub fn update(
                     .iter()
                     .zip(&notes)
                     .enumerate()
-                    .map(|(i, (c, note))| format!("{} {} {}", i + 1, c.text, note))
+                    .map(|(i, (c, note))| format!("{} {} {}", i + 1, c.display_text(), note))
                     .collect::<Vec<_>>()
                     .join("  ")
             );

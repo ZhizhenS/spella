@@ -7,6 +7,8 @@ fn kernel() -> Kernel {
         KernelConfig {
             chinese_on_start: false,
             rerank_enabled: false,
+            english_segmentation: true,
+            english_phrases: true,
             ..Default::default()
         },
         Arc::new(retype_dict::single_char_fallback()),
@@ -36,6 +38,113 @@ fn commits(actions: &[KernelAction]) -> Vec<String> {
             _ => None,
         })
         .collect()
+}
+
+#[test]
+fn continuous_candidates_display_only_the_tail_and_commit_the_full_composition_once() {
+    let mut k = kernel();
+    type_word(&mut k, "iamt");
+    let state = k.render_state();
+    assert_eq!(state.composition, "iamt");
+    let index = state
+        .candidates
+        .iter()
+        .position(|candidate| {
+            candidate.text == "I am trying to" && candidate.display_text() == "trying to"
+        })
+        .expect("local context should offer a trying-to completion");
+    let actions = k.handle(InputEvent::CandidateChosen { index });
+    assert_eq!(commits(&actions), ["I am trying to"]);
+    assert!(!k.has_composition());
+    assert!(!actions
+        .iter()
+        .any(|action| matches!(action, KernelAction::Side(SideEffect::Learn(_)))));
+
+    type_word(&mut k, "iamt");
+    let first = k.render_state().candidates[0].text.clone();
+    assert_eq!(commits(&key(&mut k, Key::Tab, Modifiers::NONE)), [first]);
+}
+
+#[test]
+fn continuous_digits_use_visible_labels_but_commit_full_text_without_annotations() {
+    let mut k = kernel();
+    type_word(&mut k, "iamt");
+    let state = k.render_state();
+    let index = state
+        .candidates
+        .iter()
+        .position(|candidate| candidate.text == "I am trying to")
+        .expect("phrase candidate");
+    for _ in 0..index / 5 {
+        key(&mut k, Key::Char('='), Modifiers::NONE);
+    }
+    let actions = key(
+        &mut k,
+        Key::Char(char::from(b'1' + (index % 5) as u8)),
+        Modifiers::NONE,
+    );
+    assert_eq!(commits(&actions), ["I am trying to"]);
+    assert!(!actions.contains(&KernelAction::PassThrough));
+}
+
+#[test]
+fn continuous_raw_escape_backspace_and_settings_keep_original_input_authoritative() {
+    for ending in [Key::Escape, Key::Space, Key::Enter] {
+        let mut k = kernel();
+        type_word(&mut k, "iamt");
+        let actions = key(&mut k, ending, Modifiers::NONE);
+        assert_eq!(
+            commits(&actions),
+            [if ending == Key::Space {
+                "iamt "
+            } else {
+                "iamt"
+            }]
+        );
+    }
+    let mut k = kernel();
+    type_word(&mut k, "iamt");
+    let old_gen = k.generation();
+    key(&mut k, Key::Backspace, Modifiers::NONE);
+    type_word(&mut k, "bic");
+    assert_eq!(k.render_state().composition, "iambic");
+    assert_eq!(
+        k.render_state().candidates[0].text.to_ascii_lowercase(),
+        "iambic"
+    );
+    let before = k.render_state().candidates;
+    k.handle(InputEvent::EnglishCompleted {
+        gen: old_gen,
+        candidates: vec![Candidate::new("stale phrase", CandidateSource::Local)],
+    });
+    assert_eq!(k.render_state().candidates, before);
+
+    let mut k = kernel();
+    type_word(&mut k, "iamt");
+    k.handle(InputEvent::SetEnglishContinuous {
+        segmentation: true,
+        phrases: false,
+    });
+    assert!(k
+        .render_state()
+        .candidates
+        .iter()
+        .any(|candidate| candidate.text == "I am trying"));
+    assert!(k.render_state().candidates.iter().all(|candidate| candidate
+        .display_text()
+        .split_whitespace()
+        .count()
+        < 2));
+    k.handle(InputEvent::SetEnglishContinuous {
+        segmentation: false,
+        phrases: false,
+    });
+    assert_eq!(k.render_state().composition, "iamt");
+    assert!(k
+        .render_state()
+        .candidates
+        .iter()
+        .all(|candidate| !candidate.text.contains(' ')));
 }
 #[test]
 fn space_preserves_raw_and_tab_accepts_suggestion() {

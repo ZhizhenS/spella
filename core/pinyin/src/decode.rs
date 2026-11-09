@@ -499,6 +499,7 @@ fn word_candidate(edge: &Edge, consumed: usize) -> Option<Candidate> {
     Some(Candidate {
         language: Default::default(),
         text: text.to_string(),
+        display_text: None,
         comment: comment_of(&edge.syllables),
         annotation: None,
         source: CandidateSource::Local,
@@ -543,6 +544,7 @@ fn path_to_candidate(
         Candidate {
             language: Default::default(),
             text,
+            display_text: None,
             comment,
             annotation: None,
             source: if has_raw {
@@ -591,6 +593,7 @@ fn prefix_candidates(lattice: &Lattice, path: &[(usize, usize)]) -> Vec<Candidat
         out.push(Candidate {
             language: Default::default(),
             text: text.clone(),
+            display_text: None,
             comment: comment_of(&ids),
             annotation: None,
             source: if ids.len() == 1 {

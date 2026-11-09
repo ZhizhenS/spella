@@ -22,6 +22,8 @@ $taskStage = Join-Path $taskRepo ('dist\.english-assist-freeze-' + [Guid]::NewGu
 try {
   Write-Fixture (Join-Path $taskRepo 'Cargo.toml') "[workspace.package]`nversion = `"0.2.0`"`n[other]`nversion = `"9.0.0`"`n"
   Write-Fixture (Join-Path $taskRepo 'tools/english-assist/build-lexicon.py') '# compiler unit fixture'
+  $bigram = [ordered]@{schema=1;format='RTENBG01';file='bigrams.bin';bytes=128;sha256=('a'*64);compiler_sha256=('b'*64);source_manifest_sha256=('f'*64);counts=@{words=2;pairs=1};source=@{repository='https://github.com/wolfgarbe/SymSpell';commit=('c'*40);path='SymSpell/frequency_bigramdictionary_en_243_342.txt';sha256=('d'*64);uncompressedSha256=('e'*64)}}
+  Write-Fixture (Join-Path $taskRepo 'core/english/assets/bigrams.json') ($bigram | ConvertTo-Json -Depth 8)
   Assert-True ((Get-EnglishAssistSourceVersion $taskRepo) -eq '0.2.0') 'Workspace source version must be authoritative'
   $spec = @(Get-EnglishAssistPayloadSpec)
   Assert-True ($spec.Count -eq 24) 'Full explicit payload file list'
@@ -38,6 +40,7 @@ try {
   Assert-True ($metadata.artifacts.Count -eq 24) 'Every packaged file has bytes/hash'
   Assert-True (@($metadata.artifacts | Where-Object { $_.kind -in @('tip-x64','tip-x86','settings','helper') }).Count -eq 6) 'All six production DLL/EXE files recorded'
   Assert-True ($metadata.metadataCompilerSha256.Length -eq 64) 'Python compiler digest recorded'
+  Assert-True ($metadata.EnglishContinuous.sha256 -eq ('a'*64)) 'Embedded bigram image digest retained without another runtime artifact'
   Assert-True ($metadata.lexicon.sha256 -eq (Get-EnglishAssistPayloadHash (Join-Path $taskStage 'dictionaries/english-lexicon-v1.bin'))) 'Python metadata binary digest recorded'
   Assert-Denied { Assert-EnglishAssistFrozenPayload $taskStage '0.3.0' } 'Repack cannot relabel source version'
   Assert-Denied { Complete-EnglishAssistPayload $taskRepo $taskStage '0.3.0' } 'Freeze version must match source'
@@ -62,13 +65,15 @@ try {
   $bytes = [IO.File]::ReadAllBytes($file); [IO.File]::Delete($file)
   Assert-Denied { Assert-EnglishAssistFrozenPayload $taskStage '0.2.0' } 'Missing x86 native rejected'
   [IO.File]::WriteAllBytes($file, $bytes)
-  foreach ($mutation in @('duplicate','traversal','sourceVersion','lexicon')) {
+  foreach ($mutation in @('duplicate','traversal','sourceVersion','lexicon','bigram','bigramSource')) {
     $bad = ConvertFrom-Json $originalText
     switch ($mutation) {
       'duplicate' { $bad.artifacts[1].path = $bad.artifacts[0].path }
       'traversal' { $bad.artifacts[0].path = '../outside.dll' }
       'sourceVersion' { $bad.sourceVersion = '0.1.0' }
       'lexicon' { $bad.lexicon.sha256 = '0' * 64 }
+      'bigram' { $bad.EnglishContinuous.format = 'unknown' }
+      'bigramSource' { $bad.EnglishContinuous.source.commit = 'unreviewed' }
     }
     Write-EnglishAssistPayloadManifest $taskStage $bad
     Assert-Denied { Assert-EnglishAssistFrozenPayload $taskStage '0.2.0' } "Invalid manifest rejected: $mutation"

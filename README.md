@@ -8,9 +8,38 @@ AI grammar correction and sentence completion, through a real English TSF entry.
 [简体中文](README.zh-CN.md) · [English input](docs/english-input.md) ·
 [P0 validation](docs/english-assist/INPUT_VALIDATION.md)
 
-**Current checkpoint (2026-11-09):** the formal R5 build completed with 350 Rust
+**0.3 final R2 checkpoint:** the formal build passed 364 Rust tests with 0 failures
+and 6 ignored results (including repeated x86 runs), 33 Python tests and 508
+PowerShell checks. Installed x64/x86 probes each passed 2 checks with activation
+S_OK. Payload `0.3.0-20261109063014-912375` matched all 24 artifact hashes and
+build.json. A private RichEdit host loading that DLL produced the exact document
+text `I am trying to iambic apple iamt helped` through the tested selection,
+backspace, Escape and paging actions.
+
+Both new switches were saved off/on in an earlier 0.3 settings build. The final
+settings executable has a different hash; its input page was separately checked
+with both switches on, without repeating the save test or claiming all controls
+tested. Production CLI DeepSeek requests also passed after upgrade with the
+existing credential. This release was not tested in every application, in an x86
+editor, or in a fresh Notepad AI GUI cycle; uninstall/reboot deletion were not
+repeated. Detailed version-specific receipts are in the validation record.
+
+## 0.3 continuous English
+
+- Local decoding keeps ordinary whole-word prefixes alongside multiple word-boundary alternatives, with the final word allowed to remain unfinished.
+- `ia` can offer an `ia…` word and `I am`; for `iamt`, a row can show only `trying` or `trying to`, while confirmation replaces the owned composition once with `I am trying` or `I am trying to`.
+- An inferred prefix stays inside the current composition until explicit confirmation. Escape and an unselected Space preserve the original input; Space adds its normal space.
+- Beyond 48 input characters, continuous search falls back to the ordinary word-completion path without truncating the original text.
+- Windows opts in by default through “连写智能分词” and “短语候选” in Input and lookup. The shared Kernel defaults both options off so another frontend must support independent display/commit text before opting in.
+
+Candidate ranking can have multiple valid interpretations; these examples do not
+promise a unique result or fixed position. A phrase without its own dictionary
+entry uses a phrase-completion hint instead of borrowing a component word's
+definition or part of speech. Query timings are recorded separately from GUI latency.
+
+**Historical 0.2 R5 checkpoint (2026-11-09):** the formal R5 build completed with 350 Rust
 test passes, 0 failures and 6 ignored results across x64/x86 runs (including
-repeated tests), plus 19 Python passes and 505 PowerShell checks. Upgrade returned 0; the current payload is
+repeated tests), plus 19 Python passes and 505 PowerShell checks. Upgrade returned 0; that tested payload was
 `0.2.0-20261109035537-776110`, with all 24 artifacts and build.json matching the
 frozen build. Successful requests confirmed that the privately configured
 credential survived the upgrade.
@@ -42,8 +71,8 @@ reboot deletion of queued old files is still unverified. See the
 - Grouped Chinese settings for input, candidate appearance, shortcuts, manual words and explicit AI editing.
 
 Manual words support explicit editing, import/export and previous-version backups.
-Automatic next-word prediction is outside this release; AI results still require
-your review, and other applications need their own compatibility checks.
+0.3 phrase alternatives require explicit selection; they do not silently insert
+text. AI results still require review, and other applications need their own compatibility checks.
 
 In a genuine AppContainer, AI cannot cold-start if its helper is not already
 running, and opening settings from the candidate menu is restricted; open
@@ -64,8 +93,8 @@ The English-specific script builds both TSF architectures, the settings/helper
 programs and the pinned English vocabulary, then runs its configured checks.
 It does not install the product or modify the system keyboard list.
 
-Installer output:
-dist/english-assist-0.2.0-windows-x64-setup.exe. See the versioned build record for the delivered artifact.
+Built 0.3 installer:
+dist/english-assist-0.3.0-windows-x64-setup.exe. See the versioned build record for the delivered artifact.
 Do not use the inherited Retype installer, register.ps1 or upstream release
 download links for this fork.
 
@@ -94,12 +123,21 @@ under data/dict/raw/english/. Definitions and pinyin data retain ECDICT MIT and
 CC-CEDICT CC BY-SA 3.0 attribution; the combined metadata file is distributed
 under CC BY-SA 3.0. Data licenses do not become MIT because the code is MIT.
 
+The separate 0.3 embedded bigram preferences use the frozen published SymSpell
+file from MIT repository commit `c239062ae02961df18ab7da1671d01b4388204e0`.
+Exact source/license hashes and provenance are in `data/dict/raw/english-bigrams/SOURCES.json`;
+the full notice is in NOTICE-English-Assist.txt. This is independent of the CC BY-SA
+lexicon sidecar, with no claim of reproducing the bigram file's original corpus
+generation chain or shipping a Gboard model.
+
 The matching source ZIP must include the current modified sources, Cargo.lock,
 `data/dict/raw/english/`, and the complete `data/dict/raw/english-assist/` directory,
 including `ecdict.csv.gz`, `cedict.txt.gz`, `SOURCES.json`, full licenses and notices.
 Include `data/dict/english-lexicon.json`, `data/dict/resources.json` and the compiler,
 preparation and verification scripts/tests in `tools/english-assist/`. A tracked-files-only
 archive omits new working-tree files until they are committed.
+For 0.3 also retain `data/dict/raw/english-bigrams/` and `core/english/assets/`,
+including the frozen gzip, license, source/output manifests and embedded image.
 Inherited modules for Chinese input, other platforms and synchronization remain
 in the checkout; their existence does not imply those features ship in this
 English-only product.

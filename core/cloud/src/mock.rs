@@ -157,6 +157,7 @@ impl LlmReranker for MockLlmReranker {
                 extra.push(Candidate {
                     language: Default::default(),
                     text: hw.clone(),
+                    display_text: None,
                     comment: "热词".into(),
                     annotation: None,
                     source: CandidateSource::Hotword,

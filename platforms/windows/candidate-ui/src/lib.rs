@@ -145,8 +145,8 @@ pub fn format_state(state: &RenderState) -> String {
         };
         out.push_str(&format!(
             "   {mark} {key}. {}{} [{}]{comment}\n",
-            c.text,
-            " ".repeat(c.text.chars().count().min(1)),
+            c.display_text(),
+            " ".repeat(c.display_text().chars().count().min(1)),
             source_tag(c.source),
         ));
     }

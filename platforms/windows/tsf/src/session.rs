@@ -197,6 +197,8 @@ impl Session {
                 english_enabled: crate::preferences::english_options().0,
                 english_spelling: crate::preferences::english_options().1,
                 english_pinyin: crate::preferences::english_pinyin(),
+                english_segmentation: crate::preferences::english_continuous().0,
+                english_phrases: crate::preferences::english_continuous().1,
                 pinyin_scheme: crate::preferences::scheme(),
                 decode: retype_pinyin::DecodeOptions {
                     page_size: 8,

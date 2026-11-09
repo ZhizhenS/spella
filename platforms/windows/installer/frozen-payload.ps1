@@ -93,6 +93,7 @@ function Complete-EnglishAssistPayload([string]$RepoRoot, [string]$PayloadRoot, 
     englishProfile='{F395A724-DC88-4E75-B3D4-9063A552B8F4}'; languageId='0409'
     lexicon=(ConvertFrom-Json ([IO.File]::ReadAllText((Join-Path $PayloadRoot 'dictionaries/english-lexicon-v1.json'))))
     metadataCompilerSha256=(Get-EnglishAssistPayloadHash (Join-Path $RepoRoot 'tools/english-assist/build-lexicon.py'))
+    EnglishContinuous=(ConvertFrom-Json ([IO.File]::ReadAllText((Join-Path $RepoRoot 'core/english/assets/bigrams.json'))))
     artifacts=@(Get-EnglishAssistPayloadRecords $PayloadRoot)
   }
   Write-EnglishAssistPayloadManifest $PayloadRoot $metadata
@@ -125,6 +126,25 @@ function Assert-EnglishAssistFrozenPayload([string]$PayloadRoot, [string]$Versio
   if ($lexicon.schema -ne 1 -or $lexicon.format -ne 'RTENLX01' -or
       $lexicon.sha256 -ne $image.sha256 -or $lexicon.bytes -ne $image.bytes -or
       $metadata.metadataCompilerSha256 -cnotmatch '^[a-f0-9]{64}$') { throw 'Frozen Python metadata digest is inconsistent.' }
+  # The bigram image is embedded in the production TIP, not another runtime file.
+  # Preserve its reviewed input/compiler/image receipt; native artifacts above
+  # remain the authority for the exact DLL shipped. Older 0.2 freezes may lack it.
+  $continuous = $metadata.EnglishContinuous
+  if ($continuous -or [version]$Version -ge [version]'0.3.0') {
+    if ($continuous.schema -ne 1 -or $continuous.format -ne 'RTENBG01' -or
+        $continuous.file -ne 'bigrams.bin' -or $continuous.bytes -le 32 -or
+        $continuous.sha256 -cnotmatch '^[a-f0-9]{64}$' -or
+        $continuous.compiler_sha256 -cnotmatch '^[a-f0-9]{64}$' -or
+        $continuous.source_manifest_sha256 -cnotmatch '^[a-f0-9]{64}$' -or
+        $continuous.counts.words -le 0 -or $continuous.counts.pairs -le 0 -or
+        $continuous.source.repository -cne 'https://github.com/wolfgarbe/SymSpell' -or
+        $continuous.source.commit -cnotmatch '^[a-f0-9]{40}$' -or
+        $continuous.source.path -cne 'SymSpell/frequency_bigramdictionary_en_243_342.txt' -or
+        $continuous.source.sha256 -cnotmatch '^[a-f0-9]{64}$' -or
+        $continuous.source.uncompressedSha256 -cnotmatch '^[a-f0-9]{64}$') {
+      throw 'Frozen embedded English bigram receipt is missing or inconsistent.'
+    }
+  }
   $metadata
 }
 

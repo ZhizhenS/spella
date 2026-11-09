@@ -1,2 +1,11 @@
 platforms/macos/*.sh text eol=lf
 platforms/macos/*.command text eol=lf
+
+# Pinned embedded bigram hashes must survive Windows/Linux source checkouts.
+/tools/english-assist/build-bigrams.py text eol=lf
+/tools/english-assist/test-build-bigrams.py text eol=lf
+/core/english/assets/bigrams.json text eol=lf
+/core/english/assets/bigrams.bin -text
+/data/dict/raw/english-bigrams/SOURCES.json text eol=lf
+/data/dict/raw/english-bigrams/LICENSE-SymSpell -text
+/data/dict/raw/english-bigrams/frequency-bigrams.txt.gz -text

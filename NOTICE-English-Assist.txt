@@ -22,6 +22,24 @@ tree and the original upstream build are in the source distribution NOTICE.txt.
 - The compiled English data retains its upstream notices and applicable data licenses;
   those licenses are separate from retype's MIT code license.
 
+## Embedded English bigram preferences
+
+- Source: https://github.com/wolfgarbe/SymSpell, commit c239062ae02961df18ab7da1671d01b4388204e0
+- Published file: SymSpell/frequency_bigramdictionary_en_243_342.txt, by Wolf Garbe.
+- The exact frozen file contains 242,342 distinct pairs (despite the upstream filename),
+  5,137,213 bytes, SHA256 fd892a160184101dd7ae807ac5a302d01fcea1c47304181a8ed7ed9c94545bcd.
+- This existing file is distributed under the upstream repository's MIT declaration;
+  the complete copyright and permission notice is included as LICENSE-SymSpell.
+- English Assist losslessly freezes this file and independently compiles its pairs
+  and counts into an embedded binary with sorted lookup and range-maximum indexes.
+  No Gboard model or Google trademark is included.
+- The precise upstream bigram generation chain is not established by the cited
+  documentation. This product does not claim to regenerate it from Google Books V3.
+  The unigram Google Ngram/SCOWL notices above remain separately applicable.
+- Frozen source/license hashes and the deterministic compiler are in the matching
+  source archive at data/dict/raw/english-bigrams and tools/english-assist;
+  installed build.json records the embedded image/compiler/source summary.
+
 ## English definitions, POS, IPA and pinyin lookup
 
 The separate english-lexicon-v1.bin data file is compiled from ECDICT (MIT),

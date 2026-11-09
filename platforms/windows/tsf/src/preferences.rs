@@ -94,6 +94,13 @@ pub fn english_pinyin() -> bool {
     read_dword(w!("EnglishPinyinDisabled")) == 0
 }
 
+pub fn english_continuous() -> (bool, bool) {
+    (
+        read_dword(w!("EnglishSegmentationDisabled")) == 0,
+        read_dword(w!("EnglishPhrasesDisabled")) == 0,
+    )
+}
+
 pub fn manual_words_generation() -> u32 {
     read_dword(w!("ManualWordsGeneration"))
 }
