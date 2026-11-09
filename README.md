@@ -8,7 +8,33 @@ AI grammar correction and sentence completion, through a real English TSF entry.
 [简体中文](README.zh-CN.md) · [English input](docs/english-input.md) ·
 [P0 validation](docs/english-assist/INPUT_VALIDATION.md)
 
-**0.3 final R2 checkpoint:** the formal build passed 364 Rust tests with 0 failures
+**0.3.1 final checkpoint:** the formal build exited 0 with 368 Rust passes,
+0 failures and 6 ignored results across 24 suites (including repeated x86 runs),
+33 Python passes and 508 PowerShell checks. Installed x64/x86 probes each passed
+2 checks with activation S_OK. Upgrade exited 0; payload
+`0.3.1-20261109070929-873493` matched all 24 artifact hashes and build.json.
+
+Continuous completion now allows a bounded word-frequency
+fallback after a reliable multiword prefix, so missing adjacent-word pairs do not
+hide tails such as `gay` or `good`. The candidate header explains the selected
+boundary, for example `iamg` → `I am · g`; candidate rows still show only the tail,
+and confirmation still commits the complete composition once.
+
+The reported `iamg` screenshot came from Notepad PID39900, which still had the
+0.2 R5 DLL loaded despite the system-wide 0.3 installation. This was not caused by
+the two settings switches. Opening a new window can reuse the same process:
+save your work, fully exit the application, then reopen it after upgrading.
+After all old Notepad processes exited, fresh Notepad PID46068 was confirmed to
+load that 0.3.1 DLL. Its live header showed `I am · g` with `going` first for
+`iamg`; `iamga` + 3, `iamgood` + Tab, and `iamt` + 4 saved the exact three lines
+`I am gay`, `I am good`, and `I am trying to`. Other restored tabs were not read.
+Ranks are snapshots, not guarantees; this local decoder is not a full grammar or
+neural sentence-understanding model, and `imag` follows a different ordinary-word
+path from `iamg`. AI HTTP/GUI requests were not repeated for 0.3.1; the earlier
+0.3 CLI and 0.2 R5 GUI results remain version-specific. See the
+[validation record](docs/english-assist/INPUT_VALIDATION.md) for receipts and limits.
+
+**Historical 0.3 final R2 checkpoint:** the formal build passed 364 Rust tests with 0 failures
 and 6 ignored results (including repeated x86 runs), 33 Python tests and 508
 PowerShell checks. Installed x64/x86 probes each passed 2 checks with activation
 S_OK. Payload `0.3.0-20261109063014-912375` matched all 24 artifact hashes and
@@ -93,16 +119,17 @@ The English-specific script builds both TSF architectures, the settings/helper
 programs and the pinned English vocabulary, then runs its configured checks.
 It does not install the product or modify the system keyboard list.
 
-Built 0.3 installer:
-dist/english-assist-0.3.0-windows-x64-setup.exe. See the versioned build record for the delivered artifact.
+Built 0.3.1 installer:
+dist/english-assist-0.3.1-windows-x64-setup.exe. See the versioned build record for the delivered artifact.
 Do not use the inherited Retype installer, register.ps1 or upstream release
 download links for this fork.
 
 A validated installation should appear under Windows Settings → Time & language
 → Language & region → English (United States) → Language options → Keyboards,
 and be selectable with Win+Space. It must preserve the existing default keyboard.
-See the validation record for the R5 build, upgrade and Notepad AI checks, with
-earlier r3 lifecycle results and remaining reboot/application checks kept separate.
+See the validation record for the 0.3.1 upgrade and fresh Notepad input checks;
+earlier AI and r3 lifecycle results remain separate from outstanding application
+and reboot-deletion coverage.
 
 ## Everyday keyboard behavior
 

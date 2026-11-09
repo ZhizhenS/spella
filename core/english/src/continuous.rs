@@ -15,6 +15,8 @@ const COMPLETION_CHAR_COST: f64 = 0.04;
 const EXTRA_WORD_COST: f64 = 0.15;
 const CONTEXT_WEIGHT: f64 = 0.95;
 const PHRASE_CONFIDENCE: f64 = 0.7;
+const MIN_ANCHOR_PROBABILITY: f64 = 0.005;
+const BACKOFF_PREFIX_CANDIDATES: usize = BEAM * 2;
 const DATA: &[u8] = include_bytes!("../assets/bigrams.bin");
 
 #[derive(Clone, Copy)]
@@ -148,14 +150,17 @@ impl<'a> Model<'a> {
         (CONTEXT_WEIGHT * observed + (1. - CONTEXT_WEIGHT) * unigram).max(f64::MIN_POSITIVE)
     }
     fn observed(&self, previous: &str, next: &str) -> bool {
-        let Some((first, end, _)) = self.find(previous).and_then(|id| self.row(id)) else {
-            return false;
-        };
-        let Some(id) = self.find(next) else {
-            return false;
-        };
+        self.observed_probability(previous, next).is_some()
+    }
+    fn observed_probability(&self, previous: &str, next: &str) -> Option<f64> {
+        let (first, end, total) = self.find(previous).and_then(|id| self.row(id))?;
+        if total == 0 {
+            return None;
+        }
+        let id = self.find(next)?;
         let edge = self.edge_lower(first, end, id);
-        edge < end && self.target(edge) == id && self.count(edge) > 0
+        (edge < end && self.target(edge) == id && self.count(edge) > 0)
+            .then(|| (self.count(edge) as f64 / total as f64).min(1.))
     }
     fn top(&self, previous: &str, prefix: &str, limit: usize) -> Vec<(usize, u64, u64)> {
         let Some((first, end, total)) = self.find(previous).and_then(|id| self.row(id)) else {
@@ -292,6 +297,15 @@ fn unigram_top(vocab: &Vocabulary, prefix: &str, limit: usize) -> Vec<usize> {
 struct Path {
     parts: Vec<(usize, usize)>,
     score: f32,
+    // Sum only genuinely observed completed-word transitions, never unigram
+    // smoothing. This is an admission check, independent of candidate ranking.
+    context_log_sum: f64,
+}
+impl Path {
+    fn allows_tail_backoff(&self) -> bool {
+        self.parts.len() >= 2
+            && self.context_log_sum / (self.parts.len() - 1) as f64 >= MIN_ANCHOR_PROBABILITY.ln()
+    }
 }
 fn path_text(input: &str, parts: &[(usize, usize)]) -> String {
     parts
@@ -375,6 +389,7 @@ pub(super) fn complete(
     paths[0].push(Path {
         parts: Vec::new(),
         score: 0.,
+        context_log_sum: 0.,
     });
     for start in 0..input.len() - 1 {
         if paths[start].is_empty() {
@@ -398,15 +413,18 @@ pub(super) fn complete(
                 // A dictionary token alone is insufficient evidence for a new
                 // boundary (e.g. repeated "zzz"). Every completed transition
                 // must be observed in the frozen context model.
-                if path
-                    .parts
-                    .last()
-                    .is_some_and(|(left, right)| !model.observed(&key[*left..*right], token))
-                {
-                    continue;
-                }
+                let context_log = if let Some((left, right)) = path.parts.last() {
+                    let Some(probability) = model.observed_probability(&key[*left..*right], token)
+                    else {
+                        continue;
+                    };
+                    probability.ln()
+                } else {
+                    0.
+                };
                 let mut next = path.clone();
                 next.parts.push((start, end));
+                next.context_log_sum += context_log;
                 next.score = score(vocab, &path_text(input, &next.parts), end);
                 admit_path(&mut paths[end], next);
             }
@@ -424,16 +442,31 @@ pub(super) fn complete(
             };
             let previous = &key[previous_start..previous_end];
             let observed = model.top(previous, prefix, BEAM);
-            if observed.is_empty() {
+            let backoff = path.allows_tail_backoff();
+            if observed.is_empty() && !backoff {
                 continue;
             }
             let mut tails: Vec<String> = observed
                 .into_iter()
                 .map(|(id, _, _)| model.word(id).to_owned())
                 .collect();
-            for id in unigram_top(vocab, prefix, BEAM) {
+            // A sparse bigram table is not an exhaustive vocabulary. A reliable
+            // multiword anchor can complete its final unfinished word from the
+            // bounded unigram stream, still ranked by the same smoothed model.
+            // A lone dictionary token (including repeated noise) grants no such access.
+            for id in unigram_top(
+                vocab,
+                prefix,
+                if backoff {
+                    BACKOFF_PREFIX_CANDIDATES
+                } else {
+                    BEAM
+                },
+            ) {
                 let word = vocab.word(id);
-                if model.observed(previous, word) && !tails.iter().any(|tail| tail == word) {
+                if (backoff || model.observed(previous, word))
+                    && !tails.iter().any(|tail| tail == word)
+                {
                     tails.push(word.to_owned());
                 }
             }
@@ -667,5 +700,61 @@ mod tests {
                 .map(|candidate| (&candidate.text, &candidate.display_text))
                 .collect::<Vec<_>>()
         );
+    }
+    #[test]
+    fn reliable_multiword_anchor_keeps_sparse_corpus_gaps_in_the_tail_vocabulary() {
+        // Use the actual frozen unigram source, rather than adding target words
+        // only to a tiny fixture and accidentally hiding top-K ranking mistakes.
+        let source = std::fs::File::open(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../data/dict/raw/english/frequency.txt"
+        ))
+        .unwrap();
+        let mut bytes = Vec::new();
+        super::super::compile(std::io::BufReader::new(source), &mut bytes).unwrap();
+        let vocab = Vocabulary::from_bytes(bytes).unwrap();
+        let model = model().unwrap();
+        assert!(!model.observed("am", "gay"));
+        assert!(!model.observed("am", "good"));
+        for (input, expected) in [
+            ("iamg", "I am good"),
+            ("iamgo", "I am good"),
+            ("iamgay", "I am gay"),
+            ("iamgood", "I am good"),
+            ("iamt", "I am trying"),
+        ] {
+            assert!(
+                complete(&vocab, input, 24, true)
+                    .iter()
+                    .any(|candidate| candidate.text == expected),
+                "missing {input} -> {expected}"
+            );
+        }
+        let ga = complete(&vocab, "iamga", 5, true);
+        assert!(
+            ga.iter().any(|candidate| candidate.text == "I am gay"),
+            "ga first page: {:?}",
+            ga.iter()
+                .map(|candidate| &candidate.text)
+                .collect::<Vec<_>>()
+        );
+        for (input, expected) in [("iamgay", "I am gay"), ("iamgood", "I am good")] {
+            assert_eq!(complete(&vocab, input, 5, true)[0].text, expected);
+        }
+        for input in [
+            "zzzzzzzzzz",
+            "zzzga",
+            "zzzgood",
+            "qzxqzx",
+            "apple",
+            "iambic",
+            "international",
+            "imag",
+        ] {
+            assert!(
+                complete(&vocab, input, 24, true).is_empty(),
+                "unexpected split for {input}"
+            );
+        }
     }
 }

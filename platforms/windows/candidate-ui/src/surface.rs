@@ -78,6 +78,7 @@ struct PaintKey {
     comments: Vec<String>,
     annotations: Vec<Option<retype_types::EnglishAnnotation>>,
     composition: String,
+    english_header: String,
     page_start: usize,
     page_count: usize,
     selected: Option<usize>,
@@ -95,6 +96,40 @@ fn painted_selection(state: &RenderState) -> Option<usize> {
         .filter(|&index| index < state.visible().len())
 }
 
+/// Explain a candidate's inferred boundary without changing the raw composition.
+fn english_header(state: &RenderState) -> String {
+    let raw = &state.composition;
+    if state.status.contains(retype_types::StatusFlags::CHINESE) || !raw.is_ascii() {
+        return raw.clone();
+    }
+    let Some(candidate) = state.visible().get(painted_selection(state).unwrap_or(0)) else {
+        return raw.clone();
+    };
+    let Some(display) = candidate
+        .display_text
+        .as_deref()
+        .filter(|text| !text.is_empty())
+    else {
+        return raw.clone();
+    };
+    let Some(prefix) = candidate
+        .text
+        .strip_suffix(display)
+        .filter(|prefix| prefix.ends_with(' '))
+    else {
+        return raw.clone();
+    };
+    let compact: String = prefix.chars().filter(|&c| c != ' ').collect();
+    if compact.is_empty()
+        || !compact.bytes().all(|c| c.is_ascii_alphabetic())
+        || raw.len() <= compact.len()
+        || !raw[..compact.len()].eq_ignore_ascii_case(&compact)
+    {
+        return raw.clone();
+    }
+    format!("{} · {}", prefix.trim_matches(' '), &raw[compact.len()..])
+}
+
 impl PaintKey {
     fn matches(
         &self,
@@ -109,6 +144,7 @@ impl PaintKey {
             && self.numbered == state.status.contains(retype_types::StatusFlags::CHINESE)
             && (!english
                 || (self.composition == state.composition
+                    && self.english_header == english_header(state)
                     && self.page_start == state.page_start
                     && self.page_count == state.page_count()
                     && self
@@ -477,6 +513,7 @@ impl Surface {
                 comments: Vec::new(),
                 annotations: Vec::new(),
                 composition: String::new(),
+                english_header: String::new(),
                 page_start: 0,
                 page_count: 0,
                 selected: painted_selection(state),
@@ -580,7 +617,7 @@ impl Surface {
                 ),
                 egui::StrokeKind::Inside,
             );
-            let mut label = state.composition.clone();
+            let mut label = english_header(state);
             if label.chars().count() > 30 {
                 label = label.chars().take(29).chain(['…']).collect();
             }
@@ -758,6 +795,7 @@ impl Surface {
                     .map(|c| c.annotation.clone())
                     .collect(),
                 composition: state.composition.clone(),
+                english_header: english_header(state),
                 page_start: state.page_start,
                 page_count: state.page_count(),
                 selected: painted_selection(state),
@@ -1081,6 +1119,95 @@ mod tests {
         }
     }
     #[test]
+    fn inferred_english_header_requires_an_exact_raw_prefix_and_stays_display_only() {
+        for (raw, commit, display, chinese, expected) in [
+            ("iamg", "I am going", Some("going"), false, "I am · g"),
+            ("ia", "I am", Some("am"), false, "I · a"),
+            (
+                "iamt",
+                "I am trying to",
+                Some("trying to"),
+                false,
+                "I am · t",
+            ),
+            ("iamtr", "I am trying", Some("trying"), false, "I am · tr"),
+            ("IAMG", "I am going", Some("going"), false, "I am · G"),
+            (
+                "wearego",
+                "We are going",
+                Some("going"),
+                false,
+                "We are · go",
+            ),
+            ("iamg", "You are going", Some("going"), false, "iamg"),
+            ("iamg", "I am going", Some("trying"), false, "iamg"),
+            ("iamg", "Iamgoing", Some("going"), false, "iamg"),
+            ("iam", "I am going", Some("going"), false, "iam"),
+            ("going", "going", Some("going"), false, "going"),
+            ("going", "going", None, false, "going"),
+            ("你好g", "你好 going", Some("going"), false, "你好g"),
+            ("iamg", "I am going", Some("going"), true, "iamg"),
+        ] {
+            let mut current = state(&[commit]);
+            current.status = if chinese {
+                retype_types::StatusFlags::CHINESE
+            } else {
+                retype_types::StatusFlags::EMPTY
+            };
+            current.composition = raw.into();
+            current.candidates[0].display_text = display.map(str::to_owned);
+            let before = current.clone();
+            assert_eq!(
+                english_header(&current),
+                expected,
+                "{raw:?} / {commit:?} / {display:?}"
+            );
+            assert_eq!(
+                current, before,
+                "deriving a header must not change input or commit text"
+            );
+        }
+        let mut empty = state(&[]);
+        empty.status = retype_types::StatusFlags::EMPTY;
+        empty.composition = "iamg".into();
+        assert_eq!(english_header(&empty), "iamg");
+    }
+
+    #[test]
+    fn inferred_header_tracks_selection_page_and_hidden_commit_boundary_changes() {
+        let mut current = state(&["I am going", "I am glad"]);
+        current.status = retype_types::StatusFlags::EMPTY;
+        current.composition = "iamg".into();
+        current.candidates[0].display_text = Some("going".into());
+        current.candidates[1].display_text = Some("am glad".into());
+        assert_eq!(english_header(&current), "I am · g");
+        current.selected = 1;
+        assert_eq!(english_header(&current), "I · amg");
+        current.page_size = 1;
+        current.page_start = 1;
+        assert_eq!(english_header(&current), "I · amg");
+
+        current.page_start = 0;
+        current.selected = 0;
+        let mut surface = Surface::default();
+        let widths = surface.measure(&current, 472, 1.0);
+        let first = surface.render(&current, &widths, 2, 480, 1.0);
+        current.candidates[0].text = "I a m going".into();
+        assert_eq!(english_header(&current), "I a m · g");
+        let changed = surface.render(&current, &widths, 2, 480, 1.0);
+        assert!(
+            !Arc::ptr_eq(&first, &changed),
+            "derived header changes must invalidate an otherwise identical row"
+        );
+        assert_ne!(first.pixels, changed.pixels);
+        let row_start = first.geometry.cells[0].min.y as usize * first.geometry.width;
+        assert_eq!(
+            &first.pixels[row_start..],
+            &changed.pixels[row_start..],
+            "the inferred prefix belongs only in the header"
+        );
+    }
+    #[test]
     fn candidate_text_survives_font_atlas_recreation() {
         fn small_atlas(surface: &mut Surface, scale: f32) {
             let mut input = surface.input(480.0, 38.0, scale);
@@ -1298,8 +1425,14 @@ mod tests {
         current.candidates[0].text = "You are trying to".into();
         let hidden_change = surface.render(&current, &widths, 2, 480, 1.0);
         assert!(
-            Arc::ptr_eq(&suffix, &hidden_change),
-            "hidden commit prefixes must not change the painted row"
+            !Arc::ptr_eq(&suffix, &hidden_change),
+            "a changed inferred header must repaint"
+        );
+        let row_start = suffix.geometry.cells[0].min.y as usize * suffix.geometry.width;
+        assert_eq!(
+            &suffix.pixels[row_start..],
+            &hidden_change.pixels[row_start..],
+            "hidden commit prefixes must not change the candidate row"
         );
         current.candidates[0].display_text = Some("trying".into());
         let changed = surface.render(&current, &widths, 2, 480, 1.0);
@@ -1313,7 +1446,8 @@ mod tests {
         current.candidates[0].display_text = None;
         let plain_suffix = surface.render(&current, &widths, 2, 480, 1.0);
         assert_eq!(
-            suffix.pixels, plain_suffix.pixels,
+            &suffix.pixels[row_start..],
+            &plain_suffix.pixels[row_start..],
             "the displayed suffix must not contain its completed prefix"
         );
     }

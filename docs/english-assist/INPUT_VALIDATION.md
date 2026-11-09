@@ -1,10 +1,31 @@
 # English Assist：交互与验证记录
 
-更新：2026-11-09。当前版本：0.3.0。上游基线：Retype `902e35e06ee4f744320cf995c39b1f64693034cf`。
+更新：2026-11-09。当前正式安装检查点：0.3.1。上游基线：Retype `902e35e06ee4f744320cf995c39b1f64693034cf`。
 
 本文区分本子任务执行的定向检查和根任务负责的最终集成、安装及真实宿主验收。产品范围见 [产品规格](../english-assist-product.md)，操作说明见 [英文输入](../english-input.md)。最终安装包与宿主兼容结论以根任务的版本化构建记录为准。
 
-## 0.3 最终 R2 构建与有限实测检查点
+## 0.3.1 最终构建、升级与真实记事本检查点
+
+本次正式构建、升级、产物核对、双架构安装探针，以及冷启动真实记事本有限输入与保存文件核对已完成。下方0.3私有RichEdit、CLI AI与0.2 Notepad AI通过项仍属于其历史版本，不移作0.3.1重新联机、AI GUI或全部应用验收。
+
+| 0.3.1 项目 | 实际结果 / 验收边界 |
+| --- | --- |
+| 用户截图来源 | iamg只出现iamb的截图来自记事本PID39900；只读模块核对证实它仍加载 `C:\Program Files\EnglishAssist\versions\0.2.0-20261109035537-776110` 下DLL，尽管系统全局已安装0.3。不是两个开关失效；新开窗口会复用旧进程，不能用该截图推断0.3解码效果 |
+| 备份与应用边界 | `work/backups/20261109-before-0.3.1-065410` 已保存Notepad LocalState的18个文件及产品配置，停止前另刷新before-stop备份。按用户已有直接退出/不保存授权退出全部旧记事本后冷启动，新PID46068已核对本次DLL；旧0.2进程消失，未读取其他恢复标签，验收后新记事本留开 |
+| 可靠前缀的尾词回退 | 已完成至少2个词、内部相邻词边有实际记录且几何平均归一化概率>=0.005的多词前缀，允许有限unigram尾词回退，覆盖am gay/good缺pair的情形；单词前缀及噪声仍严格。候选上限和整段组合只提交一次的约定不变 |
+| 词界提示 | 英文顶部按当前选项从完整text减去display_text推断前缀；前缀去空格须与raw起始字母ASCII大小写不敏感严格匹配，且有实际词间空格，才显示 `I am · g`、`I · a`、`I am · t`。不匹配、普通整体词或中文模式保留原串；不更改raw、候选主行或完整提交。选择、页码与推断前缀变化均参与绘制缓存失效；表驱动helper与渲染回归随本轮正式流水通过，iamg提示另经真实记事本核对 |
+| 先行核心检查 | 根任务已执行engine lib67、英文集成18、english crate20通过/1忽略，合计105通过。正式完整流水另计368通过，不把此先行结果相加或把旧0.3的364移作本版结果 |
+| 真实词库CLI | iamg首项going，后续有glad/getting；iamga第3项gay，iamgay和iamgood各首项gay、good。iamg在0.3本来也应能提供going，不能把旧进程现象当作该功能刚加入；字符不同的imag仍走image，zzzga无候选。排名仅为本次观察值 |
+| 有限查询耗时 | 4,000次词库查询p50=0.0784ms、p95=0.2789ms、最大0.4046ms；仅词库查询，不含TSF编辑、绘制、IPC或GUI端到端耗时 |
+| 正式构建 | `work/build-logs/v0.3.1-full-build.log` 退出0；24套Rust汇总368通过、0失败、6忽略（含x86重复），Python33通过、PowerShell508项通过。计数收据 `work/build-logs/v0.3.1-test-counts.json`；不是368个唯一用例 |
+| 升级与产物核对 | `work/build-logs/v0.3.1-upgrade.log` 升级退出0；ActiveDir=`C:\Program Files\EnglishAssist\versions\0.3.1-20261109070929-873493`，24项文件摘要及build.json匹配。收据 `work/research/v0.3.1-installed-hashes.json` |
+| 安装后双架构探针 | x64/x86各2通过，激活均S_OK；日志 `work/build-logs/v0.3.1-installed-probes-x64.log`、`v0.3.1-installed-probes-x86.log`。单列，不加进368；不替代x86编辑器真实键入 |
+| 冷启动真实Notepad | PID46068实际加载本次 `retype_ime.dll`，模块收据 `work/research/v0.3.1-notepad-module.json`。iamg顶部为 `I am · g`、首项going；iamga第3项gay按3提交 `I am gay`；下一行iamgood按Tab提交 `I am good`；下一行iamt按4提交 `I am trying to`，均无重复前缀 |
+| 精确保存核对 | Ctrl+S后自有测试文件精确为三行 `I am gay\nI am good\nI am trying to`。收据 `work/research/v0.3.1-notepad-live.json`；裁剪截图 `work/research/v0.3.1-notepad-iamga-live.png`、`v0.3.1-notepad-iamt-live.png`。仅代表本次实际Notepad受控场景，不扩大为全部应用 |
+| 源码字节策略 | 源码构建策略测试14通过；不再强制JSON使用LF，而验证Git归一化后的哈希必须与已审核收据一致。此项为归档/构建完整性检查，不是运行时行为变化，不额外叠加进上述正式计数 |
+| 本轮未声明通过 | 全部应用、x86编辑器真实键入、全部设置控件、AI联机请求或AI GUI重新验收、卸载循环及重启删除；0.3 CLI AI与0.2 R5记事本AI、生命周期证据保留历史版本边界。本地解码不具备完整语法或神经语言模型句意理解，候选排名是快照而非保证，raw imag与iamg不同且仍走单词路径 |
+
+## 历史 0.3 最终 R2 构建与有限实测检查点
 
 0.3最终R2已完成正式构建、冻结安装核对、双架构安装探针、私有RichEdit输入和CLI真实AI检查。下方0.2 R5的Notepad AI GUI、旧离线与生命周期结果继续保留版本边界，不自动扩大为本版全部应用或重新卸载通过。
 

@@ -6,11 +6,11 @@ impl LearningStore for ReadOnly {
     fn record(&self, _: retype_types::LearningEvent) {}
 }
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let root = PathBuf::from(
-        std::env::args_os()
-            .nth(1)
-            .ok_or("pass a dictionary directory")?,
-    );
+    let mut args = std::env::args_os().skip(1);
+    let root = PathBuf::from(args.next().ok_or("pass a dictionary directory")?);
+    let queries: Vec<String> = args
+        .map(|value| value.to_string_lossy().into_owned())
+        .collect();
     let path = std::fs::read_dir(&root)?
         .filter_map(Result::ok)
         .map(|entry| entry.path())
@@ -22,7 +22,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .ok_or("English vocabulary not found")?;
     retype_english::install(&path).map_err(std::io::Error::other)?;
     let vocabulary = retype_english::current();
-    let samples = [
+    let defaults = [
         "ia",
         "iam",
         "iamb",
@@ -42,7 +42,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "qzxvfixture",
         "zzzzzzzzzz",
     ];
-    for input in samples {
+    let samples: Vec<&str> = if queries.is_empty() {
+        defaults.to_vec()
+    } else {
+        queries.iter().map(String::as_str).collect()
+    };
+    for input in samples.iter().copied() {
         let hits = vocabulary.complete_input(input, &ReadOnly, 24, true, true, true);
         println!("sample={input}");
         for (index, candidate) in hits.iter().take(5).enumerate() {
@@ -57,7 +62,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     let mut timings = Vec::new();
     for _ in 0..100 {
-        for input in samples {
+        for input in samples.iter().copied() {
             for end in 1..=input.len() {
                 let start = Instant::now();
                 std::hint::black_box(vocabulary.complete_input(

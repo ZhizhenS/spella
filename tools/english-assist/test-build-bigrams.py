@@ -188,18 +188,33 @@ class FrozenTests(unittest.TestCase):
         self.assertLess(hook, build.index("& cargo build"))
         self.assertNotIn("--refresh-manifest", build)
 
-    def test_pinned_files_have_explicit_git_byte_policies(self):
+    def test_git_checkout_preserves_reviewed_input_and_image_hashes(self):
         repo = SCRIPT.resolve().parents[2]
         attributes = (repo / ".gitattributes").read_text(encoding="utf-8")
-        for policy in [
-            "/tools/english-assist/build-bigrams.py text eol=lf",
-            "/core/english/assets/bigrams.json text eol=lf",
-            "/core/english/assets/bigrams.bin -text",
-            "/data/dict/raw/english-bigrams/SOURCES.json text eol=lf",
-            "/data/dict/raw/english-bigrams/LICENSE-SymSpell -text",
-            "/data/dict/raw/english-bigrams/frequency-bigrams.txt.gz -text",
-        ]:
-            self.assertIn(policy, attributes.splitlines())
+        policies = {}
+        for line in attributes.splitlines():
+            parts = line.split()
+            if len(parts) > 1 and parts[0].startswith("/"):
+                policies[parts[0][1:]] = parts[1:]
+        manifest = json.loads((repo / compiler.ASSET_ROOT / "bigrams.json").read_bytes())
+        source = json.loads((repo / compiler.SOURCE_ROOT / "SOURCES.json").read_bytes())
+        pinned = {
+            "tools/english-assist/build-bigrams.py": manifest["compiler_sha256"],
+            "core/english/assets/bigrams.bin": manifest["sha256"],
+            "data/dict/raw/english-bigrams/SOURCES.json": manifest["source_manifest_sha256"],
+            "data/dict/raw/english-bigrams/frequency-bigrams.txt.gz": source["source"]["sha256"],
+            "data/dict/raw/english-bigrams/LICENSE-SymSpell": source["licenses"]["LICENSE-SymSpell"]["sha256"],
+        }
+        for path, expected in pinned.items():
+            with self.subTest(path=path):
+                policy = policies.get(path, [])
+                data = (repo / path).read_bytes()
+                if "-text" not in policy:
+                    self.assertIn("text", policy)
+                    self.assertIn("eol=lf", policy)
+                    data = data.replace(b"\r\n", b"\n")
+                self.assertEqual(compiler.sha256(data), expected,
+                                 "Git checkout normalization would break the frozen receipt")
 
     def test_real_pinned_image_and_known_pairs(self):
         repo = SCRIPT.resolve().parents[2]

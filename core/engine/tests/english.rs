@@ -146,6 +146,29 @@ fn continuous_raw_escape_backspace_and_settings_keep_original_input_authoritativ
         .iter()
         .all(|candidate| !candidate.text.contains(' ')));
 }
+
+#[test]
+fn continuous_known_phrase_anchor_accepts_a_valid_tail_missing_from_the_bigram_table() {
+    for input in ["iamga", "iamgay", "iamgood"] {
+        let expected = if input == "iamgood" {
+            "I am good"
+        } else {
+            "I am gay"
+        };
+        let mut k = kernel();
+        type_word(&mut k, input);
+        let render = k.render_state();
+        let index = render
+            .candidates
+            .iter()
+            .position(|candidate| candidate.text == expected)
+            .unwrap_or_else(|| panic!("missing {input} -> {expected}: {:?}", render.candidates));
+        assert!(!render.candidates[index].display_text().contains("I am"));
+        let actions = k.handle(InputEvent::CandidateChosen { index });
+        assert_eq!(commits(&actions), [expected]);
+        assert!(!k.has_composition());
+    }
+}
 #[test]
 fn space_preserves_raw_and_tab_accepts_suggestion() {
     let mut k = kernel();
