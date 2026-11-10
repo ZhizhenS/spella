@@ -1,6 +1,7 @@
 ﻿# Pure validation helpers shared by enrollment and cleanup. Importing has no side effects.
 [CmdletBinding()]
-param([switch]$CheckPendingRenames,[string]$PendingPolicyInstallRoot,[string]$PendingPolicyNewPayload)
+param([switch]$CheckPendingRenames,[string]$PendingPolicyInstallRoot,[string]$PendingPolicyNewPayload,
+  [switch]$PruneRetiredPayloads,[string]$PreviousPayload)
 function Get-EnglishAssistInputPreferenceNames {
   # EAINPF01 v1: these indices are shared with common/user_preferences.rs.
   @('PinyinScheme','EnglishDisabled','EnglishSpellingDisabled','EnglishPinyinDisabled',
@@ -439,9 +440,63 @@ function Assert-EnglishAssistPendingRenameSafety([string]$InstallRoot,[string]$N
   })
   $null=Test-EnglishAssistPendingRenamePolicy $layout.Root $layout.Payload $entries $links -RootAliases $aliases -VerifiedDirectories $verifiedDirectories
 }
+# Pure policy: retired payload directory names that may be pruned. The active
+# payload and the previous one (rollback, still loaded by running apps) stay;
+# anything not shaped like an installer payload name is never touched.
+function Get-EnglishAssistRetiredPayloads([string]$InstallRoot,[string]$ActivePayload,[string]$PreviousPayload,[string[]]$Names=@(),
+  [string]$ProgramFilesDirectory=$(if ($env:ProgramW6432) { $env:ProgramW6432 } else { $env:ProgramFiles })) {
+  $layout=Assert-EnglishAssistLayout $InstallRoot $ActivePayload $ProgramFilesDirectory
+  $versions=Join-Path $layout.Root 'versions'
+  $keep=@([IO.Path]::GetFileName($layout.Payload))
+  if (-not [string]::IsNullOrWhiteSpace($PreviousPayload)) {
+    try {
+      $previous=Get-EnglishAssistCanonicalPath $PreviousPayload
+      if ([IO.Path]::GetDirectoryName($previous) -eq $versions) { $keep+=[IO.Path]::GetFileName($previous) }
+    } catch {}
+  }
+  @($Names | Where-Object { (Test-EnglishAssistVersionDirectoryName $_) -and ($keep -notcontains $_) } | Sort-Object)
+}
+# A retired payload is deleted only when every file opens exclusively, i.e. no
+# running application still has its TIP DLL loaded or its dictionaries mapped.
+# COM already points at the new payload, so nothing can newly load an old one.
+function Test-EnglishAssistPayloadUnlocked([string]$Directory) {
+  foreach ($item in @(Get-ChildItem -LiteralPath $Directory -Recurse -Force -ErrorAction Stop)) {
+    if (($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) { return $false }
+    if (-not $item.PSIsContainer) {
+      try { ([IO.File]::Open($item.FullName,'Open','ReadWrite','None')).Dispose() } catch { return $false }
+    }
+  }
+  $true
+}
+# Best effort after a committed install. Locked payloads are left for a later
+# install; the OS pending-rename queue is never used (the pre-install guard
+# refuses queued operations that touch this product).
+function Remove-EnglishAssistRetiredPayloads([string]$InstallRoot,[string]$ActivePayload,[string]$PreviousPayload,
+  [string]$ProgramFilesDirectory=$(if ($env:ProgramW6432) { $env:ProgramW6432 } else { $env:ProgramFiles })) {
+  $layout=Assert-EnglishAssistLayout $InstallRoot $ActivePayload $ProgramFilesDirectory
+  $versions=Join-Path $layout.Root 'versions'
+  if (((Get-Item -LiteralPath $versions -Force).Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
+    throw 'The EnglishAssist versions directory must not be a reparse point.'
+  }
+  $names=@(Get-ChildItem -LiteralPath $versions -Directory -Force | ForEach-Object { $_.Name })
+  $removed=0; $kept=0
+  foreach ($name in (Get-EnglishAssistRetiredPayloads $layout.Root $layout.Payload $PreviousPayload $names $ProgramFilesDirectory)) {
+    $path=Join-Path $versions $name
+    if ((((Get-Item -LiteralPath $path -Force).Attributes -band [IO.FileAttributes]::ReparsePoint) -eq 0) -and
+        (Test-EnglishAssistPayloadUnlocked $path)) {
+      try { Remove-Item -LiteralPath $path -Recurse -Force -ErrorAction Stop; $removed++; continue } catch {}
+    }
+    $kept++
+  }
+  [pscustomobject]@{ Removed=$removed; Kept=$kept }
+}
 if ($CheckPendingRenames) {
   # Read-only pre-install guard: scheduled operations are never added or removed.
   Assert-EnglishAssistPendingRenameSafety $PendingPolicyInstallRoot $PendingPolicyNewPayload
+}
+if ($PruneRetiredPayloads) {
+  $report=Remove-EnglishAssistRetiredPayloads $PendingPolicyInstallRoot $PendingPolicyNewPayload $PreviousPayload
+  Write-Output "Retired payloads removed=$($report.Removed) kept=$($report.Kept)"
 }
 
 

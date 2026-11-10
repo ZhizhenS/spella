@@ -47,6 +47,12 @@ try {
   }
   & $PythonPath (Join-Path $taskRepo 'tools\english-assist\build-modern-lexicon.py') --check
   if ($LASTEXITCODE -ne 0) { throw 'Reviewed modern-lexicon offline check failed.' }
+  if (-not $NoTest) {
+    & $PythonPath (Join-Path $taskRepo 'tools\english-assist\test-build-english-ranking.py')
+    if ($LASTEXITCODE -ne 0) { throw 'English ranking overlay fixtures failed.' }
+  }
+  & $PythonPath (Join-Path $taskRepo 'tools\english-assist\build-english-ranking.py') --check
+  if ($LASTEXITCODE -ne 0) { throw 'English ranking overlay offline check failed.' }
   # Embedded data must be reviewed/reproducible before Cargo reads include_bytes!.
   & (Join-Path $taskRepo 'tools\english-assist\build-english-bigrams.ps1') -PythonPath $PythonPath -Test:(-not $NoTest)
   if (-not (Get-Command cargo -ErrorAction SilentlyContinue)) {
@@ -86,6 +92,7 @@ try {
   if (-not $NoTest) {
     & (Join-Path $PSScriptRoot 'tests\install-state.tests.ps1')
     & (Join-Path $PSScriptRoot 'tests\pending-renames.tests.ps1')
+    & (Join-Path $PSScriptRoot 'tests\retired-payloads.tests.ps1')
     & (Join-Path $PSScriptRoot 'tests\frozen-payload.tests.ps1')
     foreach ($taskShell in @('System32', 'SysWOW64')) {
       foreach ($taskMode in @('Missing','CoreOnly','Foreign')) {

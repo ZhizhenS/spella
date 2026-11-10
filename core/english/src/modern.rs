@@ -176,6 +176,14 @@ struct Catalog<'a> {
     entries: Vec<Entry<'a>>,
     index: RankedKeys<'a>,
 }
+fn mixed_case(text: &str) -> bool {
+    let letters: Vec<u8> = text.bytes().filter(u8::is_ascii_alphabetic).collect();
+    letters.iter().skip(1).any(u8::is_ascii_uppercase) && letters.iter().any(u8::is_ascii_lowercase)
+}
+/// Registers shown only when their exact spelling is typed, never as completions.
+pub(super) fn exact_only(usage: &str) -> bool {
+    matches!(usage, "粗俗" | "旧义")
+}
 fn clean(value: &str, max: usize, empty: bool) -> bool {
     (empty || !value.is_empty())
         && value.chars().count() <= max
@@ -220,7 +228,7 @@ impl<'a> Catalog<'a> {
                 })
                 || !matches!(
                     *usage,
-                    "词汇" | "网络" | "缩写" | "俚语" | "非正式" | "专业" | "旧义"
+                    "词汇" | "网络" | "缩写" | "俚语" | "非正式" | "专业" | "旧义" | "粗俗"
                 )
                 || !clean(full_form, 256, true)
                 || !clean(source, 512, false)
@@ -244,7 +252,8 @@ impl<'a> Catalog<'a> {
                 source,
                 sense,
                 priority,
-                canonical: !full_form.is_empty() || *pos == "专名",
+                // Mixed-case brand spellings (YouTube, iPhone) keep their casing.
+                canonical: !full_form.is_empty() || *pos == "专名" || mixed_case(text),
             });
         }
         if entries.is_empty() {

@@ -173,6 +173,18 @@ begin
       Log('English keyboard enrollment exception: ' + GetExceptionMessage);
     end;
     Log(Format('English keyboard enrollment: %d', [Code]));
+    // Best effort: retired payloads that no running application still loads.
+    // Never fails the committed installation.
+    try
+      Exec(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'),
+        '-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "' + GetPayloadDir('') +
+        '\install-state.ps1" -PruneRetiredPayloads -PendingPolicyInstallRoot "' +
+        RemoveBackslash(ExpandConstant('{app}')) + '" -PendingPolicyNewPayload "' + GetPayloadDir('') +
+        '" -PreviousPayload "' + PreviousPayload + '"', '', SW_HIDE, ewWaitUntilTerminated, Code);
+      Log(Format('Retired payload pruning: %d', [Code]));
+    except
+      Log('Retired payload pruning exception: ' + GetExceptionMessage);
+    end;
     if not RegQueryStringValue(HKLM64, '{#ProductKey}', 'ActiveDir', ActiveReport) then
       ActiveReport := '<missing>';
     Log('English Assist install report: SourceVersion={#MyAppVersion}; ActualActiveDir=' + ActiveReport);

@@ -1,191 +1,145 @@
 # EAMODEN2	text	aliases	kind	definition_zh	wikidata_id	revision	official_url	priority
 Actor-Based Concurrent Language	abcl,actorbasedconcurrentlanguage	编程语言	基于演员并发语言（编程语言）	Q2818994	2504047167		230
 AbiWord	abiword	软件	自由文字處理程式	Q136775	2561530616		4125
-Abt Sportsline	abtschaeffleraudisport,abtsportsline,audisportabt	公司	ABT舍夫勒奥迪运动车队（公司）	Q202468	2534553034		2020
-Assassin's Creed	ac,assassinscreed,assassinscreedi	软件	刺客信条；2007年的電子遊戲	Q200864	2558374990	https://www.ubisoft.com/en-us/game/assassins-creed/	5925
-Assassin's Creed II	ac,assassinscreed,assassinscreedii	软件	刺客信条II；2009年電子遊戲	Q211735	2562194631	https://www.ubisoft.com/en-us/game/assassins-creed-2	4525
-Assassin's Creed IV: Black Flag	ac,assassinscreed,assassinscreedivblackflag	软件	刺客教條IV：黑旗；2013電子遊戲	Q6052688	2560280085	https://www.ubisoft.com/en-us/game/assassins-creed-iv-black-flag/	4525
+Abt Sportsline	abtsportsline	公司	ABT舍夫勒奥迪运动车队（公司）	Q202468	2534553034		2020
 AccuWeather	accuweather,accuweatherinc	公司	美国气象公司	Q2822885	2544471137		1920
-ActionScript	actionscript,as	编程语言	面向对象的编程语言	Q234657	2535928860		5530
-Active Server Pages	activeserverpages,asp,aspnet,classicasp	编程语言	動態伺服器網頁；服務器端腳本引擎	Q344266	2547735543	https://learn.microsoft.com/en-us/previous-versions/iis/6.0-sdk/ms526064(v=vs.90)	5130
+ActionScript	actionscript	编程语言	面向对象的编程语言	Q234657	2535928860		5530
+Active Server Pages	activeserverpages,asp	编程语言	動態伺服器網頁；服務器端腳本引擎	Q344266	2547735543	https://learn.microsoft.com/en-us/previous-versions/iis/6.0-sdk/ms526064(v=vs.90)	5130
 Ada	ada,adaprogramminglanguage	编程语言	Ada程序设计语言；編程語言	Q154755	2564834404	https://adaic.org	7930
-Cardano	ada,cardano	软件	卡爾達諾（软件）	Q47273538	2551156001	https://www.cardano.org/	4225
-Adobe After Effects	adobeaftereffects,efectossecundarios	软件	视觉特效和动态图形软体	Q83380	2565169966	https://www.adobe.com/au/products/aftereffects.html	4625
-Adobe Dreamweaver	adobedreamweaver,dreamweaver,dw,macromediadreamweaver	软件	專有的Web開發應用程序	Q192324	2545230617	https://www.adobe.com/jp/products/dreamweaver.html	5225
-Adobe Flash	adobeflash,fla,flash,flashcs,flashlinux,flashmx,futuresplashanimator,macromediaflash,shockwaveflash,swf,uira	软件	多媒體平台，用於為網頁添加動畫，影片和交互性	Q165658	2560680567		6725
-Adobe Flash Player	adobeflashplayer,flash,flashplayer,macromediaflashplayer	软件	多媒體播放器	Q857177	2484420645	https://www.adobe.com/products/flashplayer.html	4325
-Adobe Illustrator	adobeillustrator,ai,illustrator	软件	矢量圖形編輯器由奧多比系统開發和銷售	Q215016	2565169932	https://www.adobe.com/products/illustrator.html	5625
+Adobe After Effects	adobeaftereffects	软件	视觉特效和动态图形软体	Q83380	2565169966	https://www.adobe.com/au/products/aftereffects.html	4625
+Adobe Dreamweaver	adobedreamweaver	软件	專有的Web開發應用程序	Q192324	2545230617	https://www.adobe.com/jp/products/dreamweaver.html	5225
+Adobe Flash	adobeflash	软件	多媒體平台，用於為網頁添加動畫，影片和交互性	Q165658	2560680567		6725
+Adobe Flash Player	adobeflashplayer	软件	多媒體播放器	Q857177	2484420645	https://www.adobe.com/products/flashplayer.html	4325
+Adobe Illustrator	adobeillustrator,ai	软件	矢量圖形編輯器由奧多比系统開發和銷售	Q215016	2565169932	https://www.adobe.com/products/illustrator.html	5625
 Adobe InDesign	adobeindesign	软件	桌面出版應用	Q218924	2555973348		4525
-Adobe Premiere Pro	adobepremiere,adobepremierepro,premierepro	软件	基于时间线的视频编辑软件应用程序	Q360424	2565169953	https://www.adobe.com/au/products/premiere.html	4625
-Advanced Encryption Standard	advancedencryptionstandard,aes,rijndael	软件	高级加密标准；分組密碼標準	Q190746	2512383667		5325
-APT	advancedpackagetool,apt	软件	高级包装工具；Debian系Linux系统的包管理器	Q230724	2555425351		4525
-Call of Duty: Advanced Warfare	advancedwarfare,callofduty,callofdutyadvancedwarfare,codaw	软件	使命召唤：进阶战争；2014年電子遊戲	Q16743064	2530889586		4325
-Afrikaans Wikipedia	afrikaanswikipedia	软件	南非语维基百科；维基百科南非语版	Q766705	2562996804	https://af.wikipedia.org/	6125
-AlphaGo	ag,alphago,deepmindalphago,googlealphago,googledeepmindalphago	软件	围棋程序	Q22329209	2466466558	https://deepmind.com/research/case-studies/alphago-the-story-so-far	4125
+Adobe Premiere Pro	adobepremierepro	软件	基于时间线的视频编辑软件应用程序	Q360424	2565169953	https://www.adobe.com/au/products/premiere.html	4625
+Advanced Encryption Standard	advancedencryptionstandard,aes	软件	高级加密标准；分組密碼標準	Q190746	2512383667		5325
 Age of Empires	ageofempires,aoe	软件	1997年电子游戏，《帝国时代》系列第一部	Q220767	2559537923		4925
-Age of Empires III	ageofempiresiii,aoe,aoeiii	软件	世紀帝國III；2005年電子遊戲	Q34869	2561467169	https://www.ageofempires.com/games/aoeiii/	4325
-Age of Empires II: The Age of Kings	ageofempiresiitheageofkings,ageofempirestheageofkings,ageofkings,aoe,aoeii,aok,theageofkings	软件	世紀帝國II：帝王世紀；1999年電子遊戲	Q34852	2562195430		5425
+Age of Empires III	ageofempiresiii	软件	世紀帝國III；2005年電子遊戲	Q34869	2561467169	https://www.ageofempires.com/games/aoeiii/	4325
+Age of Empires II: The Age of Kings	ageofempiresiitheageofkings	软件	世紀帝國II：帝王世紀；1999年電子遊戲	Q34852	2562195430		5425
 Age of Mythology	ageofmythology,aom	软件	神话时代；世紀帝國的衍生遊戲	Q271062	2558048557	https://www.ageofempires.com/games/aom/	4425
-American Institute of Electrical Engineers	aiee,americaninstituteofelectricalengineers	公司	美国电气工程师协会；美國電氣工程師組織	Q465190	2534548842	https://www.ieee.org/	1720
-Anglo-Persian Oil Company	aioc,angloiranianoilcompany,anglopersianoilcompany,apoc,scottishoils	公司	英伊石油公司（公司）	Q267380	2563185740		2920
 Airbnb	airbnb	软件	爱彼迎；美国民宿出租網站	Q63327	2560718269	https://de.airbnb.lu/	5325
-Airbus Commercial Aircraft	airbus,airbuscommercialaircraft,airbusgie,airbusintegratedcompanysas,airbussas,airbussnc	公司	空中客车；欧洲飞机制造公司	Q67	2560719646	https://www.airbus.com/	9820
-Akita Shoten	akitapublishingcoltd,akitashoten	公司	秋田書店；日本出版社	Q419352	2559087943	https://akitashoten.co.jp/	2220
-Apex Legends	al,apex,apexlegends	软件	Apex英雄；2019年第一人称大逃杀类型电子游戏	Q61478103	2565316709	https://www.ea.com/games/apex-legends	4425
-Albanian Wikipedia	albanianwikipedia	软件	阿尔巴尼亚语维基百科；维基百科阿尔巴尼亚语版	Q208533	2562995876	https://sq.wikipedia.org/	6525
+Airbus Commercial Aircraft	airbuscommercialaircraft	公司	空中客车；欧洲飞机制造公司	Q67	2560719646	https://www.airbus.com/	9820
+Akita Shoten	akitashoten	公司	秋田書店；日本出版社	Q419352	2559087943	https://akitashoten.co.jp/	2220
+Apex Legends	al,apexlegends	软件	Apex英雄；2019年第一人称大逃杀类型电子游戏	Q61478103	2565316709	https://www.ea.com/games/apex-legends	4425
 Alef	alef	编程语言	Alef (程式語言)（编程语言）	Q1895587	2490934186		1030
 algebraic semantics	algebraicsemantics	编程语言	代数语义学（编程语言）	Q4724011	2440445610		330
 Alibaba Cloud	alibabacloud	公司	中国云计算公司	Q17062154	2564823187	https://www.alibabacloud.com/	2170
 AliExpress	aliexpress	软件	全球速卖通；网购平台	Q29904317	2564702140		4925
+AlphaGo	alphago	软件	围棋程序	Q22329209	2466466558	https://deepmind.com/research/case-studies/alphago-the-story-so-far	4125
 Amarok	amarok	软件	跨平台的自由且開放原始碼音樂播放程式	Q185037	2548037122	https://amarok.kde.org/	4125
 Amazon	amazon,amazoncominc	软件	亚马逊；美国科技公司	Q3884	2564873879	https://www.amazon.co.jp/	12425
-Amblin Partners	amblinpartners,storytellerdistributioncollc,storytellerholdingcollc	公司	安倍林集团（公司）	Q22079339	2562963766	https://amblin.com/	1520
-American Society for Testing and Materials	americansocietyfortestingandmaterials,americansocietyfortestingmaterials,americansocietyfortestingofmaterials,americansocietyoftestingmaterials,astm,astmsociety	公司	美国材料和试验协会（公司）	Q621977	2564431074	https://www.astm.org	3220
-American Society of Composers, Authors and Publishers	americansocietyofcomposersauthorsandpublishers,ascap	公司	ASCAP奖（公司）	Q373087	2534560281	https://www.ascap.com/	3020
-AOL	americaonline,aol,aolcom,aolred,tegic	软件	加拿大的AOL(美国在线)；公司	Q27585	2564189548	https://aol.com/	5225
-AMOS	amos,amosbasic,amosbasicprogramminglanguage,amospro,amosprofessional,easyamos	编程语言	AMOS BASIC語言（编程语言）	Q295232	2516302978	https://amigaboing.net/amos30/	1730
-Android Nougat	android,androidnougat,nougat	软件	Android作業系統的第七個主要版本	Q22274379	2556841872	https://www.android.com/versions/nougat-7-0/	4225
+Amblin Partners	amblinpartners	公司	安倍林集团（公司）	Q22079339	2562963766	https://amblin.com/	1520
+American Institute of Electrical Engineers	americaninstituteofelectricalengineers	公司	美国电气工程师协会；美國電氣工程師組織	Q465190	2534548842	https://www.ieee.org/	1720
+American Society for Testing and Materials	americansocietyfortestingandmaterials	公司	美国材料和试验协会（公司）	Q621977	2564431074	https://www.astm.org	3220
+American Society of Composers, Authors and Publishers	americansocietyofcomposersauthorsandpublishers	公司	ASCAP奖（公司）	Q373087	2534560281	https://www.ascap.com/	3020
+AMOS	amos,amosbasic,amosbasicprogramminglanguage,amospro,amosprofessional	编程语言	AMOS BASIC語言（编程语言）	Q295232	2516302978	https://amigaboing.net/amos30/	1730
+Android Nougat	androidnougat	软件	Android作業系統的第七個主要版本	Q22274379	2556841872	https://www.android.com/versions/nougat-7-0/	4225
 Anglo American plc	angloamerican,angloamericanplc	公司	英美資源集團股份（公司）	Q541451	2565524584	https://angloamerican.com/	2420
+Anglo-Persian Oil Company	anglopersianoilcompany,apoc	公司	英伊石油公司（公司）	Q267380	2563185740		2920
 Anthropic	anthropic	公司	美国人工智能公司；Claude 开发商	Q116758847	2562358338	https://www.anthropic.com/company	6250
-Apache HTTP Server	apache,apachehttpserver,apachewebserver,httpd	软件	阿帕奇超文本协议服务；开源网页服务器软件	Q11354	2565766877	https://httpd.apache.org/	7225
-Apache NetBeans	apachenetbeans,netbeans	软件	维基媒体分类	Q264456	2558449474	https://netbeans.apache.org	4425
-Apache Subversion	apachesubversion,subversion,svn	软件	开源版本控制系统	Q46794	2549075652	https://projects.apache.org/project.html?subversion	5725
-APL	apl,apllanguage,aplprogramminglanguage,aplprogramminglanguagefamily,aprogramminglanguage,arrayprocessinglanguage,xj	编程语言	APL語言（编程语言）	Q296187	2556070254		5030
+AOL	aol,aolcom,aolred	软件	加拿大的AOL(美国在线)；公司	Q27585	2564189548	https://aol.com/	5225
+Apache HTTP Server	apachehttpserver	软件	阿帕奇超文本协议服务；开源网页服务器软件	Q11354	2565766877	https://httpd.apache.org/	7225
+Apache NetBeans	apachenetbeans	软件	维基媒体分类	Q264456	2558449474	https://netbeans.apache.org	4425
+Apache Subversion	apachesubversion	软件	开源版本控制系统	Q46794	2549075652	https://projects.apache.org/project.html?subversion	5725
+APL	apl,apllanguage,aplprogramminglanguage,aplprogramminglanguagefamily	编程语言	APL語言（编程语言）	Q296187	2556070254		5030
 Apple	apple,appleinc	公司	总部位于美国加州的跨国科技公司	Q312	2564760385	https://www.apple.com/	18450
-Swift	appleswift,swift,swiftappleprogramminglanguage,swiftlang,swiftlanguage,swiftorg,swiftprogramminglanguage	编程语言	Swift語言；蘋果公司開發的編程語言	Q17118377	2563335624	https://www.swift.org/	5830
+APT	apt	软件	高级包装工具；Debian系Linux系统的包管理器	Q230724	2555425351		4525
 Automatically Programmed Tool	apt,automaticallyprogrammedtool	编程语言	自動化程式化工具（编程语言）	Q787227	2497706464		630
-Arabic Wikipedia	arabicwikipedia,arawiki	软件	阿拉伯语维基百科；网站	Q199700	2562984081	https://ar.wikipedia.org/	9625
-Aragonese Wikipedia	aragonesewikipedia	软件	阿拉贡语维基百科；维基百科阿拉贡语版	Q1147071	2562995033	https://an.wikipedia.org/	4625
 Arena Zagreb	arenazagreb	公司	札格瑞布體育館（公司）	Q641519	2506752710		2720
 Argus	argus	编程语言	Argus (编程语言)（编程语言）	Q3622471	2525905759		1130
 Australian Recording Industry Association	aria,australianrecordingindustryassociation	公司	澳大利亚唱片业协会（公司）	Q550239	2565446401		3520
-Armenian Wikipedia	armenianwikipedia	软件	亚美尼亚语维基百科；维基百科亚美尼亚语版	Q1975217	2565189691	https://hy.wikipedia.org/	6125
-ASCII Media Works	asciimediaworks,dengeki,dengekigamebunko,sylphcomics	公司	日本出版公司	Q297315	2517672645	https://asciimw.kadokawa.co.jp/	2420
-assembly language	asm,assemblerlanguage,assembly,assemblycode,assemblylanguage	编程语言	汇编语言；低级编程语言	Q165436	2557271381		8630
+ASCII Media Works	asciimediaworks	公司	日本出版公司	Q297315	2517672645	https://asciimw.kadokawa.co.jp/	2420
+Assassin's Creed	assassinscreed,assassinscreedi	软件	刺客信条；2007年的電子遊戲	Q200864	2558374990	https://www.ubisoft.com/en-us/game/assassins-creed/	5925
 Assassin's Creed: Brotherhood	assassinscreedbrotherhood	软件	刺客信条：兄弟会；2010年電子遊戲	Q677351	2558564820	https://www.ubisoft.com/en-us/game/assassins-creed-brotherhood/	4325
-KornShell	astksh,kornshell,ksh	编程语言	二十世纪八十年代早期在贝尔实验室开发的Unix shell	Q204222	2525015604		2230
-Asturian Wikipedia	asturianwikipedia	软件	阿斯图里亚语维基百科；维基百科的阿斯图里亚语版	Q1071918	2522820677	https://ast.wikipedia.org/	5125
-Pong	ataripong,pong	软件	乓；街机游戏	Q216293	2564823267		6025
+Assassin's Creed II	assassinscreedii	软件	刺客信条II；2009年電子遊戲	Q211735	2562194631	https://www.ubisoft.com/en-us/game/assassins-creed-2	4525
+Assassin's Creed IV: Black Flag	assassinscreedivblackflag	软件	刺客教條IV：黑旗；2013電子遊戲	Q6052688	2560280085	https://www.ubisoft.com/en-us/game/assassins-creed-iv-black-flag/	4525
+assembly language	assemblylanguage	编程语言	汇编语言；低级编程语言	Q165436	2557271381		8630
 ATLAS Transformation Language	atlastransformationlanguage	编程语言	ATLAS轉換語言（编程语言）	Q667812	2358629853		630
-x86 assembly language	attsyntax,bitxassemblyprogramming,intelassembly,intelassemblysyntax,intelsyntax,xasm,xassembly,xassemblylanguage,xassemblylanguageinlongmode,xassemblylanguageinprotectedmode,xassemblylanguageinrealmode,xassemblyprogramminginlongmode,xassemblyprogramminginprotectedmode,xassemblyprogramminginrealmode	编程语言	X86 汇编；x86架構中使用的組合語言	Q297868	2534456736		2330
 AutoCAD	autocad	软件	商業計算機輔助設計和繪圖軟件應用程序	Q83570	2565170936	https://www.autodesk.com/products/autocad/overview	6525
-Autodesk 3ds Max	autodeskdsmax,dmax,dsmax	软件	Autodesk开发的全功能三维计算机图形软件	Q212324	2546535952	https://www.autodesk.com/products/3ds-max/overview	5425
-Autodesk Maya	autodeskmaya,maya	软件	三维计算机图形软件	Q272597	2558682143	https://www.autodesk.com/maya	4525
-Wikipedia:AutoWikiBrowser	autowikibrowser,awb,wikipediaautowikibrowser	软件	半自动的MediaWiki编辑器	Q4063270	2565376995		17025
+Autodesk 3ds Max	autodeskdsmax	软件	Autodesk开发的全功能三维计算机图形软件	Q212324	2546535952	https://www.autodesk.com/products/3ds-max/overview	5425
+Autodesk Maya	autodeskmaya	软件	三维计算机图形软件	Q272597	2558682143	https://www.autodesk.com/maya	4525
 Avast Antivirus	avastantivirus	软件	防毒軟件	Q1574	2564963249	https://www.avast.ua/free-antivirus-download	4925
-Avex Group	avexgroup,avexinc	公司	愛貝克思；日本企业	Q790686	2558668054		2220
-Azerbaijani Wikipedia	azerbaijaniwikipedia,azerbaijanwikipedia	软件	阿塞拜疆语维基百科；维基百科的阿塞拜疆语版	Q58251	2562998014	https://az.wikipedia.org/	9725
-Google Search	backrub,google,googlecom,googlehomepage,googlesearch,googlesearchengine,googlewebsearch,search,wwwgooglecom	软件	Google搜索；Google開發的網路搜索引擎	Q9366	2564813609	https://google.be	12925
-Baidu	baidu,baiducom,baidugroup,baiduinc,beijingbaidunetcomscienceandtechnologycoltdbeijing,bidu	软件	百度；中国互联网公司	Q14772	2549119346	https://www.baidu.com/	7125
+Avex Group	avexgroup	公司	愛貝克思；日本企业	Q790686	2558668054		2220
+Baidu	baidu,baiducom,baidugroup,baiduinc	软件	百度；中国互联网公司	Q14772	2549119346	https://www.baidu.com/	7125
 Baku Metro	bakumetro	公司	巴库地铁（公司）	Q213271	2564598006	https://metro.gov.az/	7820
-Bangla Wikipedia	banglawikipedia,bengaliwikipedia,bnwikipedia,bnwp	软件	孟加拉语维基百科；维基百科的孟加拉语版	Q427715	2562996493	https://bn.wikipedia.org/	6625
-Barclay	barclay,disquesbarclay,lc	公司	巴克莱唱片；法国唱片公司	Q2535085	2387340327		1620
-GNU Bash	bash,bashprogramminglanguage,bashshell,bashunixshell,bourneagainshell,gnubash,shell	软件	對布恩Shell程式的GNU替換	Q189248	2544591042	https://tiswww.case.edu/php/chet/bash/bashtop.html	6425
-BASIC	basic,basicprogramminglanguage,symbolicinstructioncode	编程语言	初學者通用符號指令代碼；編程語言	Q42979	2556588261		9530
-IBM BASIC	basica,ibmbasic	编程语言	IBM个人计算机BASIC（编程语言）	Q174841	2514928566		1130
-BCPL	basiccombinedprogramminglanguage,bcpl	编程语言	基本組合編程語言；多範式編程語言	Q810009	2541302417		3530
-BIOS	basicinputoutputsystem,bios,legacybios,pcbios,rombios,systembios	软件	电子计算机启动时用于初始化硬件的通用固件系统	Q226264	2521746677		7125
-Basque Wikipedia	basquewikipedia,euskarawikipedia	软件	巴斯克语维基百科；维基百科巴斯克语版	Q207260	2564823153	https://eu.wikipedia.org/	7225
-Battlefield 3	battlefield,bf	软件	戰地風雲3；2011年電子遊戲	Q791454	2562194385		4325
-Li Auto	beijingchjinformationtechnologycoltd,beijingcowheelstechnologycoltd,leadingidealinc,liauto,liautoinc,lixiang	公司	理想汽车；中國新能源汽車公司	Q98139925	2566440797	https://liautoofficial.ru/	2220
+Barclay	barclay	公司	巴克莱唱片；法国唱片公司	Q2535085	2387340327		1620
+BASIC	basic,basicprogramminglanguage	编程语言	初學者通用符號指令代碼；編程語言	Q42979	2556588261		9530
+Battlefield 3	battlefield	软件	戰地風雲3；2011年電子遊戲	Q791454	2562194385		4325
+BCPL	bcpl	编程语言	基本組合編程語言；多範式編程語言	Q810009	2541302417		3530
 BeOS	beos	软件	操作系统	Q62563	2550074764		5425
-Berkshire Hathaway	berkshirehathaway,berkshirehathawayinc,berkshirehathawayincorperation,valleyfallscompany	公司	伯克希尔·哈撒韦；美國跨國企業集團控股公司	Q217583	2552991597	https://www.berkshirehathaway.com/	5520
-BETA	beta,chhattisgarhi	编程语言	BETA (编程语言)（编程语言）	Q830842	2516304166		1630
-translatewiki.net	betawiki,translatewiki,translatewikinet,twn	软件	翻译自由软件的网站	Q9376349	2532720454	https://translatewiki.net/	5125
-Bharat Biotech International	bharatbiotech,bharatbiotechinternational,bharatbiotechinternationallimited	公司	巴拉特生技（公司）	Q4901103	2534551538		1920
-Bilibili	bilibili,bsite,mikufans	公司	哔哩哔哩；中国大陆弹幕视频网站	Q3077586	2558030048	https://www.bilibili.com/	3320
-Microsoft Copilot	bingchat,copilot,copilotmicrosoftcom,microsoftcopilot,mscopilot,thenewbing	软件	微软AI助手	Q116793893	2564134489	https://copilot.com/	5625
-Microsoft Bing	bingsearch,microsoftbing	软件	微軟網絡搜尋引擎	Q182496	2525354800	https://www.bing.com	8025
-Resident Evil 4	biohazard,residentevil	软件	生化危机4；在2005年发行的一款流行电子游戏	Q275950	2559011847		5025
-Resident Evil	biohazard,residentevil	软件	生化危机；卡普空于1996年推出的電子遊戲	Q1248594	2559008371		4425
-Resident Evil 2	biohazard,re,residentevil	软件	生化危机2；卡普空推出的電子遊戲	Q733992	2561391395		4225
+Berkshire Hathaway	berkshirehathaway,berkshirehathawayinc,berkshirehathawayincorperation	公司	伯克希尔·哈撒韦；美國跨國企業集團控股公司	Q217583	2552991597	https://www.berkshirehathaway.com/	5520
+BETA	beta	编程语言	BETA (编程语言)（编程语言）	Q830842	2516304166		1630
+Bharat Biotech International	bharatbiotechinternational,bharatbiotechinternationallimited	公司	巴拉特生技（公司）	Q4901103	2534551538		1920
+Bilibili	bilibili	公司	哔哩哔哩；中国大陆弹幕视频网站	Q3077586	2558030048	https://www.bilibili.com/	3320
+BIOS	bios	软件	电子计算机启动时用于初始化硬件的通用固件系统	Q226264	2521746677		7125
 BioShock	bioshock	软件	生化奇兵；2007年电子游戏	Q57270	2562195046	https://2k.com/en-US/game/bioshock	5425
 Bitcoin	bitcoin	软件	比特币；一种加密虚拟货币	Q131723	2562990173		15425
-Call of Duty: Black Ops II	blackops,blackopsii,bo,callofdutyblackops,callofdutyblackopsii,codbo	软件	決勝時刻：黑色行動2；2012年電子遊戲	Q380918	2561011296		4425
-BlackRock	blackrock,blackrockinc,blk	公司	贝莱德；美国投资管理公司	Q219635	2539869115	https://www.blackrock.com	5620
+BlackRock	blackrock,blackrockinc	公司	贝莱德；美国投资管理公司	Q219635	2539869115	https://www.blackrock.com	5620
 Blender	blender,blenderd,blenderdorg,blenderorg	软件	软件	Q173136	2565171276	https://www.blender.org	9225
-Blockly	blockly,googleblockly	编程语言	可视化编程语言	Q18202981	2556788581	https://developers.google.com/blockly/	1430
-Blogger	blogger,bloggerbeta,bloggercom,blogspot,blogspotcom,googleblogger	软件	博客平台	Q171186	2547048834	https://www.blogger.com	7425
+Blockly	blockly	编程语言	可视化编程语言	Q18202981	2556788581	https://developers.google.com/blockly/	1430
+Blogger	blogger,bloggerbeta,bloggercom	软件	博客平台	Q171186	2547048834	https://www.blogger.com	7425
 Broadcast Music, Inc.	bmi,broadcastmusicinc	公司	廣播音樂公司（公司）	Q891885	2541645274	https://www.bmi.com	2220
-Bolt	bolt,bolttechnologies,mtakso,taxify	公司	總部位於愛沙尼亞塔林的跨國交通網路公司	Q20529164	2533324483	https://bolt.eu/	3020
-Help:Books	booktool,helpbooks	软件	帮助:图书（软件）	Q6540841	2555422086		8825
+Bolt	bolt,bolttechnologies	公司	總部位於愛沙尼亞塔林的跨國交通網路公司	Q20529164	2533324483	https://bolt.eu/	3020
 Bootstrap	bootstrap	软件	网页前端框架	Q893195	2555540175	https://getbootstrap.com	4825
-Bopomofo	bopo,bopomofo,bpmf,mandarinphoneticsymbols,zhuyin,zhuyinscript	软件	注音符号；汉语标音系统	Q198269	2561381126		4525
-Paradox	borlandparadox,corelparadox,paradox,paradoxdatabase	编程语言	Paradox (資料庫)（编程语言）	Q1779923	2516301259		1730
-Bosnian Wikipedia	bosnianwikipedia	软件	波斯尼亚语维基百科；维基百科波斯尼亚语版	Q1047829	2566228118	https://bs.wikipedia.org/	5225
-The Legend of Zelda: Breath of the Wild	botw,breathofthewild,thelegendofzeldabotw,thelegendofzeldabreathofthewild,zeldabreathofthewild	软件	塞尔达传说 旷野之息；2017年日本電子遊戲	Q17185964	2565048048	https://www.nintendo.co.jp/zelda/botw/	5225
-Business Process Execution Language	bpel,bpelws,businessprocessexecutionlanguage,wsbpel	编程语言	业务流程执行语言（编程语言）	Q787631	2515882735		1930
+Bopomofo	bopomofo	软件	注音符号；汉语标音系统	Q198269	2561381126		4525
+Business Process Execution Language	bpel,businessprocessexecutionlanguage	编程语言	业务流程执行语言（编程语言）	Q787631	2515882735		1930
 B (programming language)	bprogramminglanguage	编程语言	B語言；程序編程語言	Q797302	2550086989		3830
 Braun	braun,braunag,braunagfrankfurtgermanyest	公司	德国博朗（公司）	Q631220	2515875732	https://de.braun-clocks.com	3320
 Brave	brave,bravewebbrowser	软件	Brave浏览器；免费开源的注重隐私保护的网页浏览器	Q22906900	2565170423	https://brave.com/	5225
-Breton Wikipedia	bretonwikipedia	软件	布列塔尼语维基百科；维基百科的布列塔尼语版	Q846871	2565186861	https://br.wikipedia.org/	5625
-BSI Group	britishstandardsinstitution,bsi,bsigroup	公司	BSI 集团；英國非營利機構	Q3778585	2565339006	https://www.bsigroup.com	1820
-National State Television and Radio Company of the Republic of Belarus	btrc,nationalstatetelevisionandradiocompanyoftherepublicofbelarus	公司	白俄羅斯國家電視廣播公司；白俄罗斯的国营电视和广播公司	Q1778984	2465828432	https://www.news.by/	3120
-Bulgarian Wikipedia	bulgarianwikipedia	软件	保加利亚语维基百科；维基百科保加利亚语版	Q11913	2565183725	https://bg.wikipedia.org/	7225
-Bully	bully,caniscanemedit	软件	惡霸魯尼（软件）	Q822849	2558465959		4225
+BSI Group	bsi,bsigroup	公司	BSI 集团；英國非營利機構	Q3778585	2565339006	https://www.bsigroup.com	1820
+Bully	bully	软件	惡霸魯尼（软件）	Q822849	2558465959		4225
 Bun	bun	开发工具	JavaScript 运行环境	Q113048518	2559664788	https://bun.sh/	1350
-Burmese Wikipedia	burmesewikipedia,myanmarwikipedia	软件	缅甸语维基百科；维基百科缅甸语版	Q4614845	2522821289	https://my.wikipedia.org/	5025
-Bursa Malaysia	bursamalaysia,bursamalaysiaberhad,bursamalaysiabhd,klse,myx,xkls	公司	马来西亚股票交易所（公司）	Q43335	2549685917	https://www.bursamalaysia.com	2220
+Bursa Malaysia	bursamalaysia,bursamalaysiaberhad,bursamalaysiabhd	公司	马来西亚股票交易所（公司）	Q43335	2549685917	https://www.bursamalaysia.com	2220
 Bybit	bybit	公司	加密货币交易所	Q109424729	2564442496	https://www.bybit.com/en/	2020
-Snap!	byob,construyetuspropiosbloques,snap	编程语言	以JavaScript編寫的圖形化程式語言	Q1002996	2565859119	https://snap.berkeley.edu	1930
-coarray Fortran	caf,coarrayfortran	编程语言	协同数组Fortran（编程语言）	Q1104016	2137097016		430
-Call of Duty 4: Modern Warfare	callofduty,callofdutymodernwarfare,cod,modernwarfare,mw	软件	決勝時刻4：現代戰爭；2007年电子游戏	Q76255	2558450447		6025
-Call of Duty: World at War	callofduty,callofdutyworldatwar,finalfronts,waw,worldatwar	软件	決勝時刻：世界战争；2008年发售的一款电子游戏	Q207797	2558695469		5225
 Call of Duty 2	callofduty,cod	软件	使命召唤2；2005年发售的一款电子游戏	Q210298	2523513142		4525
 Call of Duty 3	callofduty,cod	软件	使命召唤3；2006年发售的一款电子游戏	Q308961	2546823846		4425
-Call of Duty: Modern Warfare 2	callofdutymodernwarfare,modernwarfare,mw	软件	使命召唤：现代战争2；2009年電子遊戲	Q486351	2565317677		5325
-Call of Duty: Modern Warfare 3	callofdutymodernwarfare,callofdutymw,cod,codmw,modernwarfare	软件	使命召唤：现代战争3；2011年電子遊戲	Q486233	2559538331		4925
-PerkinElmer	cambridgesoft,perkinelmer	公司	珀金埃尔默（公司）	Q2066858	2534546203	https://www.perkinelmer.com/	1620
-Candy Crush Saga	candycrush,candycrushsaga	软件	糖果大爆險；電子遊戲	Q8768018	2535432906		4725
+Call of Duty: Advanced Warfare	callofdutyadvancedwarfare,codaw	软件	使命召唤：进阶战争；2014年電子遊戲	Q16743064	2530889586		4325
+Call of Duty: Black Ops II	callofdutyblackopsii	软件	決勝時刻：黑色行動2；2012年電子遊戲	Q380918	2561011296		4425
+Call of Duty 4: Modern Warfare	callofdutymodernwarfare	软件	決勝時刻4：現代戰爭；2007年电子游戏	Q76255	2558450447		6025
+Call of Duty: Modern Warfare 2	callofdutymodernwarfare	软件	使命召唤：现代战争2；2009年電子遊戲	Q486351	2565317677		5325
+Call of Duty: Modern Warfare 3	callofdutymodernwarfare,codmw	软件	使命召唤：现代战争3；2011年電子遊戲	Q486233	2559538331		4925
+Call of Duty: World at War	callofdutyworldatwar	软件	決勝時刻：世界战争；2008年发售的一款电子游戏	Q207797	2558695469		5225
+Candy Crush Saga	candycrushsaga	软件	糖果大爆險；電子遊戲	Q8768018	2535432906		4725
 Cangjie	cangjie	编程语言	仓颉；华为开发的编程语言	Q127766413	2501434496	https://cangjie-lang.cn/	430
-Cantonese Wikipedia	cantonesewikipedia,yuechinesewikipedia,yuewiki,yuewikipediaorg,zhyuewiki,zhyuewikipedia,zhyuewp	软件	粤文维基百科；免費內容百科全書的版本	Q1190962	2562995127	https://zh-yue.wikipedia.org/	4925
 Canva	canva	软件	可画；線上影像設計平台	Q23498528	2565169996	https://www.canva.com/	5025
-Need for Speed: Carbon	carbon,needforspeedcarbon,nfsc,nfscarbon	软件	极品飞车：生死卡本谷（软件）	Q219795	2566696316		4425
 Carbon	carbon,carbonlang,carbonlanguage,carbonprogramminglanguage	编程语言	Carbon (编程语言)（编程语言）	Q113157814	2557654603	https://github.com/carbon-language/carbon-lang/blob/trunk/README.md	2030
+Cardano	cardano	软件	卡爾達諾（软件）	Q47273538	2551156001	https://www.cardano.org/	4225
 Cascading Style Sheets	cascadingstylesheets	编程语言	层叠样式表；用于调整文档样式的标记语言	Q46441	2562604672	https://drafts.csswg.org/	13530
-Catalan Wikipedia	catalanwikipedia,viquipedia	软件	加泰罗尼亚语维基百科；维基百科加泰罗尼亚语版	Q199693	2564828076	https://ca.wikipedia.org/	7825
-Commodore BASIC	cbmbasic,commodorebasic,petbasic	编程语言	康懋達BASIC（编程语言）	Q337272	2511972799		1230
-C++/CLI	ccli,ccommonlanguageinfrastructure,cpluspluscli	编程语言	編程語言	Q1022268	2516303900	https://docs.microsoft.com/en-us/cpp/dotnet/dotnet-programming-with-cpp-cli-visual-cpp	1630
-Cebuano Wikipedia	cebuanowikipedia	软件	宿务语维基百科；维基百科宿务语版	Q837615	2565185366	https://ceb.wikipedia.org/	8125
-Celebrity Cruises	celebrity,celebritycruise,celebritycruises	公司	菁英邮轮（公司）	Q1052823	2547881415	https://www.celebritycruises.jp/	2220
+C++/CLI	ccli	编程语言	編程語言	Q1022268	2516303900	https://docs.microsoft.com/en-us/cpp/dotnet/dotnet-programming-with-cpp-cli-visual-cpp	1630
+Celebrity Cruises	celebritycruises	公司	菁英邮轮（公司）	Q1052823	2547881415	https://www.celebritycruises.jp/	2220
 Celestron	celestron	公司	星特朗（公司）	Q1052893	2558023880	https://celestron.fr	1820
-ColdFusion Markup Language	cfml,coldfusionmarkuplanguage	编程语言	ColdFusion标记语言（编程语言）	Q2524362	2549067062		830
-Cg	cforgraphics,cg	编程语言	Cg語言（编程语言）	Q1024657	2441251212	https://developer.nvidia.com/cg-toolkit	1530
+Cg	cg	编程语言	Cg語言（编程语言）	Q1024657	2441251212	https://developer.nvidia.com/cg-toolkit	1530
 ChatGPT	chatgpt	产品	OpenAI 开发的人工智能聊天助手	Q115564437	2565170281	https://chatgpt.com/	14075
-Chechen Wikipedia	chechenwikipedia	软件	车臣语维基百科；维基百科车臣语版	Q4783991	2562996530	https://ce.wikipedia.org/	5325
 CHICKEN	chicken,chickenscheme	编程语言	一个Scheme语言的解释器	Q283456	2474718081	https://www.call-cc.org/	730
 Chinese BASIC	chinesebasic	编程语言	中文培基；培基編程語言的幾個中文本地化版本	Q2876705	1900866853		430
-Chinese Wikipedia	chinesewikipedia	软件	中文维基百科；维基百科的中文版本	Q30239	2564823164	https://zh.wikipedia.org/	8725
 Constraint Handling Rules	chr,constrainthandlingrules	编程语言	约束处理规则（编程语言）	Q5164373	2283453211		330
-Google Chrome	chromebrowser,googlechrome	软件	网页浏览器	Q777	2565538002	https://www.google.com/chrome/	12725
-ChromeOS	chromeos,googlechromeos	软件	由谷歌公司开发的基于Linux的通用操作系统	Q79531	2565986891	https://chromeos.google	5925
+ChromeOS	chromeos	软件	由谷歌公司开发的基于Linux的通用操作系统	Q79531	2565986891	https://chromeos.google	5925
 ChucK	chuck	编程语言	音频编程语言	Q850484	2419421354		730
-Chuvash Wikipedia	chuvashwikipedia	软件	楚瓦什语维基百科；维基百科楚瓦什语版	Q58215	2562998008	https://cv.wikipedia.org/	5325
-Colour Index International	ci,colourindex,colourindexinternational	公司	国际颜料索引（公司）	Q868387	2494305527		1620
 Ciao	ciao	编程语言	Ciao语言（编程语言）	Q5119098	2340214539		230
-Common Intermediate Language	cil,commonintermediatelanguage,msil	编程语言	通用中间语言（编程语言）	Q263544	2515899888	https://docs.microsoft.com/en-us/dotnet/welcome	2830
-Citizendium	citizendium,citizendiumorg,cz	软件	大众百科；网络百科全书	Q187801	2555919434	https://en.citizendium.org	4525
-Civilization	civilization,sidmeierscivilization	软件	文明；1991年电子游戏	Q368286	2558409362		4325
-Control Language	cl,clle,controllanguage,ibmicontrollanguage	编程语言	IBM i 控制语言（编程语言）	Q263490	2541296753		430
-C programming language	clanguage,cprogramminglanguage	编程语言	C语言；一种编程语言	Q15777	2556588281	https://www.c-language.org/	16530
-CLIPS	clanguageintegratedproductionsystem,clips	编程语言	CLIPS程序设计语言；用于建立专家系统的软件工具	Q165372	2517989423	https://clipsrules.net/	1730
+Common Intermediate Language	cil,commonintermediatelanguage	编程语言	通用中间语言（编程语言）	Q263544	2515899888	https://docs.microsoft.com/en-us/dotnet/welcome	2830
+Citizendium	citizendium,citizendiumorg	软件	大众百科；网络百科全书	Q187801	2555919434	https://en.citizendium.org	4525
+Civilization	civilization	软件	文明；1991年电子游戏	Q368286	2558409362		4325
+Control Language	cl,controllanguage	编程语言	IBM i 控制语言（编程语言）	Q263490	2541296753		430
 Clash of Clans	clashofclans,coc	软件	部落冲突；免费的大型多人在线战略游戏	Q13399098	2523454671	https://clashofclans.com/	6825
-Classic Visual Basic	classicvisualbasic,vb,visualbasic	编程语言	事件驱动编程语言	Q2378	2566607494	https://learn.microsoft.com/en-us/previous-versions/visualstudio/visual-basic-6/visual-basic-6.0-documentation	9230
+Classic Visual Basic	classicvisualbasic	编程语言	事件驱动编程语言	Q2378	2566607494	https://learn.microsoft.com/en-us/previous-versions/visualstudio/visual-basic-6/visual-basic-6.0-documentation	9230
 Claude	claude	产品	Anthropic 开发的大语言模型系列	Q118876059	2566710367	https://www.anthropic.com/claude	6075
+CLIPS	clips	编程语言	CLIPS程序设计语言；用于建立专家系统的软件工具	Q165372	2517989423	https://clipsrules.net/	1730
 Clojure	clojure	编程语言	編程語言	Q51798	2549075630	https://clojure.org/	4130
 Cloudflare	cloudflare	公司	提供互联网基础设施和网站安全服务的公司	Q4778915	2564909288	https://www.cloudflare.com/	4050
-Concurrent ML	cml,concurrentml	编程语言	并发ML（编程语言）	Q2992227	1421811059		430
+coarray Fortran	coarrayfortran	编程语言	协同数组Fortran（编程语言）	Q1104016	2137097016		430
 Cobra	cobra	编程语言	Cobra (程式語言)（编程语言）	Q608565	2468582780		1230
 Codex	codex,openaicodex	产品	OpenAI 开发的软件工程智能体	Q138940795	2552162450	https://openai.com/codex/	750
 Cohere	cohere	公司	加拿大人工智能公司	Q110363143	2562497641	https://cohere.com/	1150
-Wikimedia Commons	commons,commonswiki,commonswikimedia,commonswikimediaorg,wikicommons,wikimediacommons,wikipediacommons	软件	维基共享资源；存放自由开放的图片、声音及其他多媒体档案的地方	Q565	2565246469	https://commons.wikimedia.org/	18025
-HotCat	commonshotcat,gadgethotcat,helphotcat,hotcat,projecthotcat,wikipediahotcat	软件	Wikipedia:维基百科工具/HotCat；可以很容易地删除、更改和添加维基百科页面的分类的JavaScript程序	Q3396208	2491734425		15325
+ColdFusion Markup Language	coldfusionmarkuplanguage	编程语言	ColdFusion标记语言（编程语言）	Q2524362	2549067062		830
+Colour Index International	colourindexinternational	公司	国际颜料索引（公司）	Q868387	2494305527		1620
+Commodore BASIC	commodorebasic	编程语言	康懋達BASIC（编程语言）	Q337272	2511972799		1230
 Communication Access Programming Language	communicationaccessprogramminglanguage	编程语言	德國Vector Informatik開發的script程式語言	Q97376437	1712664677		230
-CP/M	controlprogramformicrocomputers,controlprogrammonitor,cpm	软件	微型计算机控制程序；操作系統	Q219528	2563214109		4525
+Concurrent ML	concurrentml	编程语言	并发ML（编程语言）	Q2992227	1421811059		430
 GitHub Copilot	copilot,githubcopilot	产品	GitHub 的人工智能编程助手	Q107435063	2565170135	https://github.com/features/copilot	2550
-Croatian Wikipedia	croatianwikipedia	软件	克罗地亚语维基百科；维基百科的克罗地亚语版	Q203488	2566228575	https://hr.wikipedia.org/	6625
+CP/M	cpm	软件	微型计算机控制程序；操作系統	Q219528	2563214109		4525
+C programming language	cprogramminglanguage	编程语言	C语言；一种编程语言	Q15777	2556588281	https://www.c-language.org/	16530
 Crysis	crysis	软件	孤岛危机；一款科幻题材的第一人称射击游戏	Q237484	2565817126		4225
-Telefonica	ctne,telefonica,telefonicasa	公司	西班牙电信；西班牙馬德里的一家電信公司	Q160229	2564550832	https://www.telefonica.com/	4620
 Cuneiform	cuneiform	编程语言	Cuneiform (编程语言)（编程语言）	Q28452212	1891548807		430
 Cuphead	cuphead	软件	茶杯头；2D横向卷轴跑动射击游戏	Q18149495	2560825418	https://cupheadgame.com	4125
 Curl	curl	编程语言	Curl语言（编程语言）	Q1144631	2498057778	https://www.curl.com/	1430
@@ -194,240 +148,195 @@ Cyberpunk 2077	cyberpunk	软件	赛博朋克2077；2020年電子遊戲	Q3182559	
 Cyclone	cyclone	编程语言	Cyclone (程式語言)（编程语言）	Q79598	2474717756		1030
 Cygwin	cygwin	软件	Windows機器的Unix子系統	Q216192	2542533979	https://cygwin.com/	4125
 Cython	cython	编程语言	與Python相容的程式語言	Q975594	2563754656	https://cython.org	2130
-Welsh Wikipedia	cywp,welshwikipedia,wicipedia	软件	威尔士语维基百科；维基百科威尔士语版	Q848525	2562996945	https://cy.wikipedia.org/	5625
-Czech Wikipedia	czechwikipedia	软件	捷克语维基百科；维基百科捷克语版	Q191168	2562995742	https://cs.wikipedia.org/	7425
-DHL	dalseyhillblomlynn,dhl,dhlexpress,dhlinternationalgmbh	公司	中外运敦豪；运输物流服务公司	Q489815	2565609584	https://dhl.es	5520
-Danish Wikipedia	danishwikipedia	软件	丹麦语维基百科（软件）	Q181163	2562995718	https://da.wikipedia.org/	7425
-Dart	dart,ecma,googledart	编程语言	程式語言	Q406009	2559954297	https://dart.dev	4030
-DoorDash	dash,doordash,doordashinc	公司	美国网上订餐公司	Q20714323	2560236906	https://www.doordash.com/	2220
-Data Encryption Standard	dataencryptionalgorithm,dataencryptionstandard,dea,des	软件	数据加密标准；块密码	Q135035	2517816248		5225
-Wikidata	datawiki,wikidata	软件	维基数据；人人可编辑的自由知识库	Q2013	2565241311	https://wikidata.org/	15225
+Dart	dart	编程语言	程式語言	Q406009	2559954297	https://dart.dev	4030
+Data Encryption Standard	dataencryptionstandard,des	软件	数据加密标准；块密码	Q135035	2517816248		5225
 DIGITAL Command Language	dcl,digitalcommandlanguage	编程语言	DIGITAL命令语言（编程语言）	Q427002	2497251849		730
 Disney Character Voices International	dcvi,disneycharactervoicesinternational,disneycharactervoicesinternationalinc	公司	迪士尼角色之聲國際公司（公司）	Q5282435	2401655440		1520
-DuckDuckGo	ddg,duckcom,duckduckgo,duckduckgocom	软件	注重隐私的搜索引擎	Q12805	2564791213	https://duckduckgo.com	6525
 Deepin	deepin,deepingnulinux,deepinlinux	软件	深度操作系统；中国大陆Linux发行版	Q129145	2517394071	https://www.deepin.com/	4325
 Google DeepMind	deepmind,googledeepmind	公司	谷歌旗下的人工智能公司	Q15733006	2553464846	https://deepmind.google/	5750
 DeepSeek	deepseek	公司	中国人工智能公司	Q131577453	2557174282	https://www.deepseek.com/	8150
-Dota 2	defenseoftheancients,dota	软件	線上遊戲	Q771541	2562195443		6025
 Deno	deno	开发工具	JavaScript 与 TypeScript 安全运行环境	Q65070939	2559572864	https://deno.com/	2450
-Deutsche Werke	deutschewerke,dwag,dwk	公司	德意志造船厂（公司）	Q641314	2533024906		1820
-German Wikipedia	dewiki,dewikipedia,dewp,germanlanguagewikipedia,germanwikipedia,wikipediade	软件	德语维基百科；维基百科德语版	Q48183	2564828082	https://de.wikipedia.org/	11025
+Deutsche Werke	deutschewerke	公司	德意志造船厂（公司）	Q641314	2533024906		1820
+DHL	dhl,dhlexpress,dhlinternationalgmbh	公司	中外运敦豪；运输物流服务公司	Q489815	2565609584	https://dhl.es	5520
 Diablo	diablo	软件	暗黑破坏神（软件）	Q220960	2559472274		4325
 Django	django,djangoproject	软件	Python编程语言的Web开发框架	Q842014	2564687873	https://www.djangoproject.com/	4725
-Dlang	dlang,dlanguage,dprogramminglanguage	编程语言	D语言；编程语言	Q319268	2533176429	https://dlang.org	4930
+Dlang	dlang,dlanguage	编程语言	D语言；编程语言	Q319268	2533176429	https://dlang.org	4930
 Docker	docker	开发工具	用于部署和运行容器化应用的软件	Q15206305	2565169662	https://www.docker.com/	5250
-Google Docs	docs,docsgooglecom,docsgooglecomdocument,documents,googledocs,googledocuments	软件	Google文件；Google文档是一个基于云的文字处理软件应用程序，同时是Google Workspace的一部分	Q9344	2559973078	https://www.docs.google.com/	5225
-4DOS	dos,jpsoftwaredos	编程语言	命令行解释器	Q238106	2459060055		930
+DoorDash	doordash,doordashinc	公司	美国网上订餐公司	Q20714323	2560236906	https://www.doordash.com/	2220
+4DOS	dos	编程语言	命令行解释器	Q238106	2459060055		930
+Dota 2	dota	软件	線上遊戲	Q771541	2562195443		6025
 DRAKON	drakon	编程语言	DRAKON圖（编程语言）	Q2671999	2427470994		1430
 Dropbox	dropbox	软件	网络存储	Q142539	2565171032	https://www.dropbox.com	4725
 Drupal	drupal	软件	網路內容管理系統	Q170855	2547641283	https://www.drupal.org/	6425
+DuckDuckGo	duckduckgo,duckduckgocom	软件	注重隐私的搜索引擎	Q12805	2564791213	https://duckduckgo.com	6525
 Duolingo	duolingo	软件	多邻国；免费语言学习平台	Q2918660	2565170896	https://ar.duolingo.com	10225
-Dutch Wikipedia	dutchwikipedia,nederlandstaligewikipedia	软件	荷兰语维基百科；荷兰语版本的维基百科	Q10000	2562997901	https://nl.wikipedia.org/	9325
 DVD Forum	dvdforum	公司	DVD论坛（公司）	Q1071679	2527659409		1920
 Dylan	dylan	编程语言	编程语言	Q1268744	2547775682	https://opendylan.org/	2230
 Easy Programming Language	easyprogramminglanguage,epl	编程语言	易语言；中文編程語言	Q11088328	1955389442		430
 EBNF	ebnf	编程语言	扩展巴科斯范式（编程语言）	Q1165219	2555221633		2530
 Ecosia	ecosia,ecosiaorg,ecosiasearchengine	软件	德国搜索引擎	Q1282139	2534563776	https://www.ecosia.org	4125
-Emacs	editormacros,emacs,emacsfamilyeditors,emacsfamilyoftexteditors,mittecoemacs	软件	文字編輯器家族	Q189722	2545564678		5325
-Egyptian Arabic Wikipedia	egyptianarabicwikipedia,egyptianwikipedia	软件	埃及阿拉伯语维基百科（软件）	Q2374285	2562984600	https://arz.wikipedia.org/	5725
 EHang	ehang,ehangholdingsltd	公司	亿航智能（公司）	Q18124524	2553752838	https://ehang.com/	1920
-Jakarta Expression Language	el,eltbd,expressionlanguage,jakartaexpressionlanguage,unifiedexpressionlanguage	编程语言	统一表达式语言（编程语言）	Q1399846	2211002866	https://javadoc.io/doc/jakarta.el/jakarta.el-api/	930
-Unified Expression Language	el,expressionlanguage,unifiedexpressionlanguage	编程语言	表达式语言；脚本语言	Q850712	1851424936		230
-The Elder Scrolls IV: Oblivion	elderscrolls,elderscrollsiv,elderscrollsivoblivion,elderscrollsoblivion,oblivion,tesiv,theelderscrollsivoblivion	软件	上古卷轴IV：湮没；2006年電子遊戲	Q49607	2558537792	https://elderscrolls.bethesda.net/oblivion/	4525
-elementary OS	elementary,elementaryos,eos	软件	基於Ubuntu的操作系统	Q1321517	2530742982	https://elementary.io/	4325
+elementary OS	elementaryos	软件	基於Ubuntu的操作系统	Q1321517	2530742982	https://elementary.io/	4325
 Elixir	elixir	编程语言	编程语言	Q5362035	2562555526	https://elixir-lang.org/	3230
 Elm	elm	编程语言	Elm (编程语言)（编程语言）	Q5366250	2553774904	https://elm-lang.org/	1930
+Emacs	emacs,emacsfamilyeditors,emacsfamilyoftexteditors	软件	文字編輯器家族	Q189722	2545564678		5325
 Embedded C	embeddedc	编程语言	嵌入式C；用于嵌入式系统包括单片机之类的C语言变种。	Q5369984	2453398071		530
-Embracer Group	embracer,embracergroup,embracergroupab,nordicgamespublishingab,thqnordicab	公司	恩布雷瑟集团（公司）	Q65083539	2553131065	https://embracer.com	1920
-English Wikipedia	englishwikipedia,enwiki,wikipediaenglish,wikipediainenglish	软件	英语维基百科；维基百科协作计划的英语版本	Q328	2565979498	https://en.wikipedia.org/	13725
-Esperanto Wikipedia	eowiki,eowikipedia,eowikipediaorg,eowp,esperantavikipedio,esperantlingvavikipedio,esperantowikipedia,vikipedio,vikipedioenesperanto	软件	世界语维基百科；维基百科世界语版	Q190551	2562995731	https://eo.wikipedia.org/	8025
-Module:Episode table	episodetablewikimedialuamodule,moduleepisodetable	软件	模块:Episode table（软件）	Q26001137	2503494035		5325
+Embracer Group	embracer,embracergroup,embracergroupab	公司	恩布雷瑟集团（公司）	Q65083539	2553131065	https://embracer.com	1920
 Executive Systems Problem Oriented Language	espol,executivesystemsproblemorientedlanguage	编程语言	面向可执行系统问题语言（编程语言）	Q1275955	2504074699		230
-Estonian Wikipedia	estonianwikipedia	软件	爱沙尼亚语维基百科；维基百科爱沙尼亚语版	Q200060	2562984245	https://et.wikipedia.org/	7525
-Spanish Wikipedia	eswiki,eswikipedia,eswp,spanishlanguagewikipedia,spanishwikipedia	软件	西班牙语维基百科；维基百科的西班牙语版	Q8449	2564828080	https://es.wikipedia.org/	9725
-Ethereum	eth,ethblockchain,ether,ethereum,ethereumblockchain,ethereumchain,ethereumnetwork,ethereumorg,ethereumplatform,ethmainnet,ethnetwork	软件	以太币；公共區塊鏈平台	Q16783523	2550601839	https://www.ethereum.org	7425
-Euphoria	euphoria,robertcraig	编程语言	Euphoria语言（编程语言）	Q1374139	2444514238	https://openeuphoria.org/index.wc	1630
-Extensible Application Markup Language	extensibleapplicationmarkuplanguage,xaml	编程语言	定义程序界面的标记语言	Q258778	2516086746		2630
-XML	extensiblemarkuplanguage,xml	编程语言	可扩展标记语言；一种标记语言	Q2115	2552242108		10130
+Ethereum	ethereum,ethereumblockchain,ethereumchain,ethereumnetwork,ethereumorg,ethereumplatform	软件	以太币；公共區塊鏈平台	Q16783523	2550601839	https://www.ethereum.org	7425
+Euphoria	euphoria	编程语言	Euphoria语言（编程语言）	Q1374139	2444514238	https://openeuphoria.org/index.wc	1630
+Extensible Application Markup Language	extensibleapplicationmarkuplanguage	编程语言	定义程序界面的标记语言	Q258778	2516086746		2630
 Faber-Castell	fabercastell	公司	辉柏嘉；德國文具及美術用品生產商	Q455476	2556985554	https://www.faber-castell.com/	3320
-Facebook	facebook,mfacebookcom,webfacebookcom,wwwfacebookcom	软件	在线社交网络服务网站	Q355	2562917271	https://facebookwkhpilnemxj7asaniu7vnjjbiltxjqhye3mhbshg7kx5tfyd.onion	26425
-Messenger	facebookchat,facebookmessenger,messenger	软件	即時通訊服務和軟體應用程式	Q116947	2555584041	https://www.messenger.com/	6125
+Facebook	facebook	软件	在线社交网络服务网站	Q355	2562917271	https://facebookwkhpilnemxj7asaniu7vnjjbiltxjqhye3mhbshg7kx5tfyd.onion	26425
 Factor	factor	编程语言	Factor语言（编程语言）	Q1391724	2556820581	https://factorcode.org	1430
 Fantom	fantom,fantomprogramminglanguage	编程语言	Fantom语言（编程语言）	Q2699404	2419373553		930
 Far Cry 3	farcry	软件	孤岛惊魂3；一款开放世界第一人称动作冒险游戏	Q796529	2558466654	https://www.ubisoft.com/en-us/game/far-cry-3	5225
 Far Cry	farcry	软件	孤岛惊魂（软件）	Q337865	2549436415	https://store.ubisoft.com/us/far-cry/56c4948488a7e300458b4740.html?lang=en_US	4625
 Far Cry 4	farcry	软件	孤岛惊魂4；2014年游戏	Q15992359	2566691048	https://www.ubisoft.com/en-us/game/far-cry-4	4525
 Far Cry 5	farcry,fc	软件	孤岛惊魂5；2018年一款邪教题材的电子游戏	Q30015130	2558801174	https://www.ubisoft.com/en-us/game/far-cry/far-cry-5	4525
-Persian Wikipedia	farsiwikipedia,persianwikipedia	软件	波斯语维基百科；维基百科波斯语版	Q48952	2565179029	https://fa.wikipedia.org/	8225
 FastAPI	fastapi	框架	Python 网络应用开发框架	Q101119404	2566472760	https://fastapi.tiangolo.com/	1250
 Fuzzy Control Language	fcl,fuzzycontrollanguage	编程语言	模糊控制語言（编程语言）	Q5511064	1569953123		230
 Fedora Linux	fedoralinux	软件	Linux 发行版	Q48267	2564379582	https://fedoraproject.org	7625
-Final Fantasy VII	ff,ffvii,finalfantasy,finalfantasyseven,finalfantasyvii	软件	最终幻想VII；1997年日本電子遊戲	Q214232	2554780123	https://finalfantasyviipc.square-enix-games.com/en	4925
-Final Fantasy X	ff,ffx,finalfantasy,finalfantasyx	软件	最终幻想X；2001年電子遊戲	Q223381	2558467994		4425
 Final Fantasy	ff,finalfantasy,finalfantasyi	软件	最终幻想；奇幻角色扮演电子游戏	Q1415970	2558449111	https://www.jp.square-enix.com/game/detail/ff/	4125
-Final Fantasy VIII	ffviii,finalfantasyviii	软件	最终幻想VIII（软件）	Q245006	2565320600		4325
-Tagalog Wikipedia	filipinowikipedia,tagalogwikipedia,tlwiki,tlwikipedia,tlwikipediaorg,tlwp	软件	塔加洛语维基百科；维基百科塔加洛语版	Q877685	2565187701	https://tl.wikipedia.org/	4525
-Pidgin	finch,gaim,pidgin	软件	圖形化多協定即時通訊客戶端	Q71380	2529212112	https://pidgin.im	5025
-Finnish Wikipedia	finnishwikipedia,fiwiki,fiwikipedia,fiwikipediaorg,fiwp	软件	芬兰语维基百科；维基百科芬兰语版	Q175482	2562995711	https://fi.wikipedia.org/	7725
-Gecko	firefoxgecko,gecko,geckoengine,geckorenderingengine,mozillagecko	软件	排版引擎	Q487834	2565687838	https://developer.mozilla.org/en-US/docs/Glossary/Gecko	4225
-Five Nights at Freddy's	fivenightsatfreddys,fnaf	软件	玩具熊的五夜后宫；2014年发行的电子游戏	Q17618314	2557623992	https://fnaffree.io	4125
+Final Fantasy X	ffx,finalfantasyx	软件	最终幻想X；2001年電子遊戲	Q223381	2558467994		4425
+Final Fantasy VII	finalfantasyvii	软件	最终幻想VII；1997年日本電子遊戲	Q214232	2554780123	https://finalfantasyviipc.square-enix-games.com/en	4925
+Final Fantasy VIII	finalfantasyviii	软件	最终幻想VIII（软件）	Q245006	2565320600		4325
+Five Nights at Freddy's	fivenightsatfreddys	软件	玩具熊的五夜后宫；2014年发行的电子游戏	Q17618314	2557623992	https://fnaffree.io	4125
 FL	fl	编程语言	FL (编程语言)（编程语言）	Q5426589	1891552274		530
-Free Lossless Audio Codec	flacaudio,flacformat,flaclosslesscompressedaudio,freelosslessaudiocodec	软件	用來處理FLAC編碼音訊的參考軟體	Q219848	2548974701	https://xiph.org/flac	4125
 Flickr	flickr	软件	圖片託管和視頻託管網站	Q103204	2534296969	https://www.flickr.com	7425
-Forever Living Products	flp,foreverliving,foreverlivingproducts	公司	永久生活產品（公司）	Q1002866	2490489133	https://foreverliving.com/	1820
+Forever Living Products	flp,foreverlivingproducts	公司	永久生活產品（公司）	Q1002866	2490489133	https://foreverliving.com/	1820
 FoxPro	foxpro	编程语言	数据库管理系统	Q2507721	2515634545		1430
 FP	fp	编程语言	FP語言（编程语言）	Q1474061	1891550584		930
 FreeBSD	freebsd	软件	自由伯克利軟件套件；一种自由的类Unix操作系统	Q34236	2545842693	https://www.freebsd.org	7525
-FreeDOS	freedos,pddos	软件	自由授權的PC相容DOS再製版本	Q473751	2494826419	https://freedos.org	4325
-French Wikipedia	frenchlanguagewikipedia,frenchwikipedia,frenchwp,wikipediainfrench	软件	法语维基百科；维基百科法语版	Q8447	2564828087	https://fr.wikipedia.org/	10625
+FreeDOS	freedos	软件	自由授權的PC相容DOS再製版本	Q473751	2494826419	https://freedos.org	4325
+Free Lossless Audio Codec	freelosslessaudiocodec	软件	用來處理FLAC編碼音訊的參考軟體	Q219848	2548974701	https://xiph.org/flac	4125
 FSharp	fsharp	编程语言	微軟的編程語言	Q648619	2550076413	https://fsharp.org/	3730
 Futhark	futhark	编程语言	Futhark (编程语言)（编程语言）	Q51159967	2561612901	https://futhark-lang.org/	330
-Google Analytics	ga,googleanalytics,ua,universalanalytics	软件	Google分析（软件）	Q220577	2548077029	https://marketingplatform.google.com/about/analytics/	5225
-Galician Wikipedia	galicianwikipedia	软件	加利西亚语维基百科；维基百科加利西亚语版	Q841208	2564828079	https://gl.wikipedia.org/	6225
-Gambit	gambc,gambit,gambitc	编程语言	Gambit (Scheme实现)（编程语言）	Q5519637	2529497633		330
+Google Analytics	ga,googleanalytics	软件	Google分析（软件）	Q220577	2548077029	https://marketingplatform.google.com/about/analytics/	5225
+Gambit	gambit,gambitc	编程语言	Gambit (Scheme实现)（编程语言）	Q5519637	2529497633		330
 Game Oriented Assembly Lisp	gameorientedassemblylisp,goal	编程语言	面向游戏汇编Lisp（编程语言）	Q5519874	1966790708		330
-GAP	gap,groupsalgorithmsandprogramming	编程语言	GAP (計算機代數系統)（编程语言）	Q677161	2550170175	https://www.gap-system.org/	1230
-Irish Wikipedia	gawiki,gawikipedia,gawikipediaorg,gawp,irishgaelicwikipedia,irishwikipedia	软件	爱尔兰语维基百科；维基百科爱尔兰语版	Q875631	2565187491	https://ga.wikipedia.org/	5225
-GNU Awk	gawk,gnuawk	编程语言	文字掃描與處理語言	Q6024222	2516077578	https://www.gnu.org/software/gawk/	330
-Gazprom	gazprom,paogazprom,publicjointstockcompanygazprom	公司	俄罗斯天然气工业股份公司；俄羅斯天然氣開採企業	Q102673	2563831204	https://gazprom-agnks.ru/	7820
-Google Talk	gchat,gmailchat,googletalk	软件	即时通讯服务	Q51713	2525753553	https://web.archive.org/web/20130514014126/http://www.google.com/talk/	5025
+GAP	gap	编程语言	GAP (計算機代數系統)（编程语言）	Q677161	2550170175	https://www.gap-system.org/	1230
+Gazprom	gazprom	公司	俄罗斯天然气工业股份公司；俄羅斯天然氣開採企業	Q102673	2563831204	https://gazprom-agnks.ru/	7820
 G-code	gcode	编程语言	G代码（编程语言）	Q620464	2515900102		2830
 Google Earth	ge,googleearth	软件	Google地球；谷歌开发的地图软件	Q42274	2565108263	https://earth.google.com/	9125
+Gecko	gecko,geckoengine,geckorenderingengine	软件	排版引擎	Q487834	2565687838	https://developer.mozilla.org/en-US/docs/Glossary/Gecko	4225
 gedit	gedit	软件	GNOME的开源文本编辑器	Q194501	2549361770	https://gedit-text-editor.org/	4225
-GNU Guile	gel,gnuextensionlanguage,gnuguile,gnuubiquitousintelligentlanguageforextensions,guile	编程语言	專門用於擴充套件的Scheme實作	Q1486208	2541293887	https://www.gnu.org/software/guile/	1630
 Gemini	gemini	产品	Google 开发的人工智能聊天助手	Q116698014	2566819604	https://gemini.google.com/	7875
-Genshin Impact	genshin,genshinimpact,yuanshen	软件	原神；2020年电子游戏	Q65059474	2566777809	https://genshin.hoyoverse.com/de	6225
-GeoGebra	geogebra,ggb	软件	数学软件	Q795066	2538724547	https://www.geogebra.org/	4525
-Laning and Zierler system	george,laningandzierlersystem	编程语言	Laning与Zierler系统（编程语言）	Q6487099	2322089570		230
-Hormel	georgeahormelcompany,hormel,hormelfoods,hormelfoodscorporation,hormelfoodsinternational	公司	荷美爾（公司）	Q1454852	2534562614		3720
-Georgian Wikipedia	georgianwikipedia	软件	格鲁吉亚语维基百科；维基百科格鲁吉亚语版	Q848974	2565187132	https://ka.wikipedia.org/	6225
-Gumpert	germansportscarmanufacturer,gumpert	公司	Apollo智慧出行（公司）	Q688366	2522026380		2020
+Genshin Impact	genshinimpact	软件	原神；2020年电子游戏	Q65059474	2566777809	https://genshin.hoyoverse.com/de	6225
+GeoGebra	geogebra	软件	数学软件	Q795066	2538724547	https://www.geogebra.org/	4525
 Ghost of Tsushima	ghostoftsushima,got	软件	对马岛之魂；2020年電子遊戲	Q42564798	2556609537	https://www.suckerpunch.com/#games	4225
-Kuaishou	gifshow,kuaicom,kuaishou,kuaishoucom,kwai,quickhand,snackvideo	公司	快手；短视频社交软件	Q47015540	2551274258	https://www.kuaishou.com	1920
 GitHub	github	平台	基于 Git 的源代码托管平台	Q364	2560835238	https://github.com/	8150
 Glencore	glencore,glencoreplc	公司	嘉能可；總部位於瑞士巴爾的跨國商品交易商	Q169339	2564558060	https://www.glencore.com/	4020
 GNU	gnu,gnusnotunix	软件	类Unix操作系统	Q44571	2528930223	https://gnu.org	8325
-GNU Compiler Collection	gnuccompiler,gnucompilercollection	软件	支援各種程式語言的編譯器系統	Q178940	2544047143	https://gcc.gnu.org	5525
-GNU Octave	gnuoctave,octave	编程语言	數值計算軟體	Q223679	2545226366	https://octave.org	5330
-GNU Privacy Guard	gnupg,gnuprivacyguard,gpg	软件	OpenPGP與S/MIME標準的完整實作	Q223204	2554016238	https://gnupg.org/	4125
-GNU R	gnur,gnus,rlanguage,rprogramminglanguage	编程语言	R语言；用于统计计算的编程语言	Q206904	2562780000	https://www.r-project.org	7730
-SCM	gnuscm,scm	编程语言	SCM (Scheme实现)（编程语言）	Q7389181	2548207573	https://www.gnu.org/software/scm/	230
+GNU Awk	gnuawk	编程语言	文字掃描與處理語言	Q6024222	2516077578	https://www.gnu.org/software/gawk/	330
+GNU Bash	gnubash	软件	對布恩Shell程式的GNU替換	Q189248	2544591042	https://tiswww.case.edu/php/chet/bash/bashtop.html	6425
+GNU Compiler Collection	gnucompilercollection	软件	支援各種程式語言的編譯器系統	Q178940	2544047143	https://gcc.gnu.org	5525
+GNU Guile	gnuguile	编程语言	專門用於擴充套件的Scheme實作	Q1486208	2541293887	https://www.gnu.org/software/guile/	1630
+GNU Octave	gnuoctave	编程语言	數值計算軟體	Q223679	2545226366	https://octave.org	5330
+GNU Privacy Guard	gnuprivacyguard,gpg	软件	OpenPGP與S/MIME標準的完整實作	Q223204	2554016238	https://gnupg.org/	4125
+GNU R	gnur	编程语言	R语言；用于统计计算的编程语言	Q206904	2562780000	https://www.r-project.org	7730
 Go	go,golang	编程语言	由 Google 与开源社区开发的编程语言	Q37227	2559105801	https://go.dev/	6950
 GOAL	goal	编程语言	GOAL代理编程语言（编程语言）	Q5514049	2352387026		230
 God of War	godofwar,gow	软件	战神；2005年電子遊戲	Q817369	2566140108		4525
-Godot	godohengine,godot,godotengine,godotgameengine	软件	用於製作2D與3D遊戲的自由與開放原始碼跨平台遊戲引擎	Q16972633	2565171300	https://godotengine.org/	4425
+Godot	godot,godotengine,godotgameengine	软件	用於製作2D與3D遊戲的自由與開放原始碼跨平台遊戲引擎	Q16972633	2565171300	https://godotengine.org/	4425
 Google	google	公司	美国跨国科技公司	Q95	2565591271	https://about.google/	21275
-Google Workspace	googleappsparatudominio,googleworkspace	软件	谷歌Workspace；谷歌办公协作套件	Q509284	2565943300	https://workspace.google.com/	4225
 Google Assistant	googleassistant	软件	Google助理；Google推出的智能助理	Q25025241	2542911799	https://assistant.google.com/	4725
 Google Calendar	googlecalendar	软件	Google日历；由Google提供的日历服务	Q223563	2565566282	https://calendar.google.com/	4625
-Google Hangouts	googlehangouts,hangouts	软件	Google环聊；谷歌开发的即时通讯软件	Q13231451	2508784443	https://hangouts.google.com/	4225
-Google Maps	googlelocal,googlemaps,wheretechnologies	软件	Google地图；Google公司提供的电子地图服务	Q12013	2564828064	https://google.ch/maps	10425
-Google News	googlenews,newsgooglecom	软件	Google新闻（软件）	Q12020	2547046531	https://news.google.com	5525
+Google Chrome	googlechrome	软件	网页浏览器	Q777	2565538002	https://www.google.com/chrome/	12725
+Google Docs	googledocs	软件	Google文件；Google文档是一个基于云的文字处理软件应用程序，同时是Google Workspace的一部分	Q9344	2559973078	https://www.docs.google.com/	5225
+Google Hangouts	googlehangouts	软件	Google环聊；谷歌开发的即时通讯软件	Q13231451	2508784443	https://hangouts.google.com/	4225
+Google Maps	googlemaps	软件	Google地图；Google公司提供的电子地图服务	Q12013	2564828064	https://google.ch/maps	10425
+Google News	googlenews	软件	Google新闻（软件）	Q12020	2547046531	https://news.google.com	5525
 Google Scholar	googlescholar	软件	Google学术搜索；谷歌（Google）的學術搜索服務	Q494817	2522830261	https://scholar.google.com/	6025
-Google Street View	googlestreetview,stanfordcityblockproject,streetview	软件	Google街景（软件）	Q213602	2548784303	https://www.google.com/streetview/	6025
-Google Translate	googletranslate,translategooglecom	软件	谷歌翻译；多语种机器翻译服务	Q135622	2566075242	https://translate.google.ca	12425
+Google Search	googlesearch,googlesearchengine	软件	Google搜索；Google開發的網路搜索引擎	Q9366	2564813609	https://google.be	12925
+Google Street View	googlestreetview	软件	Google街景（软件）	Q213602	2548784303	https://www.google.com/streetview/	6025
+Google Talk	googletalk	软件	即时通讯服务	Q51713	2525753553	https://web.archive.org/web/20130514014126/http://www.google.com/talk/	5025
+Google Translate	googletranslate	软件	谷歌翻译；多语种机器翻译服务	Q135622	2566075242	https://translate.google.ca	12425
+Google Workspace	googleworkspace	软件	谷歌Workspace；谷歌办公协作套件	Q509284	2565943300	https://workspace.google.com/	4225
 Gosu	gosu	编程语言	Gosu语言（编程语言）	Q5587589	2564601726		330
-GraalVM	graal,graalvm,graalvmcommunityedition,oracleenterpriseedition,oraclegraalvm	编程语言	虛擬機器軟體	Q16928072	2512372975	https://www.graalvm.org	930
+GraalVM	graalvm,graalvmcommunityedition	编程语言	虛擬機器軟體	Q16928072	2512372975	https://www.graalvm.org	930
 Grand Theft Auto III	grandtheftautoiii	软件	俠盜獵車手III；2001年電子遊戲	Q149106	2564801289	https://www.rockstargames.com/grandtheftauto3/	7525
 Grand Theft Auto IV	grandtheftautoiv	软件	俠盜獵車手IV；俠盜獵車手第十一作遊戲	Q94797	2558498926	https://www.rockstargames.com/IV/	7925
 Grand Theft Auto: San Andreas	grandtheftautosanandreas	软件	俠盜獵車手：聖安地列斯；2004年開放世界電子遊戲	Q83265	2558793837	https://www.rockstargames.com/games/sanandreas	8825
 Grand Theft Auto V	grandtheftautov	软件	俠盜獵車手V；2013年電子遊戲	Q17452	2564810828	https://www.rockstargames.com/V	9625
 Grand Theft Auto VI	grandtheftautovi	软件	侠盗猎车手VI；2026年电子游戏	Q23648408	2567306617	https://www.rockstargames.com/VI	6725
 Grand Theft Auto: Vice City	grandtheftautovicecity	软件	俠盜獵車手：罪惡城市（软件）	Q94671	2558872622		7825
-Greek Wikipedia	greekwikipedia	软件	希臘語維基百科（软件）	Q11918	2562993839	https://el.wikipedia.org/	6925
 Gremlin	gremlin	编程语言	图遍历语言	Q5607337	1855012296	https://tinkerpop.apache.org/	630
 Grok	grok,grokchatbot,grokimagine	软件	人工智能聊天机器人	Q123361035	2565720335	https://grok.com	6125
-GTK	gtk,thegimptoolkit	软件	用來製作圖形化使用者介面的跨平台部件工具箱	Q189464	2553068559	https://gtk.org/	5025
-Project Gutenberg	gutenberg,gutenbergorg,gutenbergproject,pg,projectgutenberg,projectgutenbergfineliteraturedigitallyrepublished	软件	古腾堡计划；美国作家迈克尔·哈特在1971年发起的一项志愿行动，致力于将公有领域的纸质作品数字化并存储在互联网上	Q22673	2550852684	https://gutenberg.org	8025
+GTK	gtk	软件	用來製作圖形化使用者介面的跨平台部件工具箱	Q189464	2553068559	https://gtk.org/	5025
+Gumpert	gumpert	公司	Apollo智慧出行（公司）	Q688366	2522026380		2020
 Haidilao	haidilao,haidilaogroup	公司	海底捞；中国餐饮公司	Q5638920	2565530027	https://haidilaoreview.org/	1720
 Hakusensha	hakusensha,hakusenshainc	公司	白泉社；日本出版社	Q1155260	2535766035		2320
 Half-Life	halflife,hl	软件	半衰期；第一人稱射擊電子遊戲	Q279744	2565368126	https://www.half-life.com/en/halflife	7225
 Half-Life 2	halflife,halflifeii,hl	软件	半衰期2；2004年第一人稱射擊電子遊戲	Q193581	2558407669	https://www.half-life.com/en/halflife2	6225
 HBO Max	hbomax	软件	串流視訊服務	Q65359104	2553962734	https://www.hbomax.com	4725
-Hebrew Wikipedia	hebrewwikipedia	软件	希伯来语维基百科；维基百科希伯来语版	Q199913	2562995788	https://he.wikipedia.org/	7425
-High Level Assembly	highlevelassembler,highlevelassembly,hla	编程语言	高阶组合语言（编程语言）	Q2630324	2286283237		1330
-High Level Shader Language	highlevelshaderlanguage,highlevelshadinglanguage,hlsl	编程语言	高级着色器语言（编程语言）	Q559519	2541763948		1730
-HPCC	highperformancecomputingcluster,hpcc	编程语言	高性能計算集群（编程语言）	Q5635573	1729778469		230
-Hindenburg Research	hindenburgreport,hindenburgreportllc,hindenburgresearch	公司	興登堡研究（公司）	Q105348488	2348485216	https://hindenburgresearch.com	1520
-Hindi Wikipedia	hindilanguagewikipedia,hindiwikipedia,wikipediahi,wikipediainhindi	软件	印地语维基百科；维基百科印地语版	Q722040	2565184756	https://hi.wikipedia.org/	6725
-Minnan Wikipedia	holopedia,minnanwikipedia,southernminwikipedia,zhminnanwiki,zhminnanwikipedia,zhminnanwp	软件	闽南语维基百科；维基百科的闽南语版	Q3239456	2564827816	https://zh-min-nan.wikipedia.org/	4825
+High Level Assembly	highlevelassembly,hla	编程语言	高阶组合语言（编程语言）	Q2630324	2286283237		1330
+High Level Shader Language	highlevelshaderlanguage,hlsl	编程语言	高级着色器语言（编程语言）	Q559519	2541763948		1730
+Hindenburg Research	hindenburgresearch	公司	興登堡研究（公司）	Q105348488	2348485216	https://hindenburgresearch.com	1520
 Hope	hope	编程语言	Hope (编程语言)（编程语言）	Q4040754	2499203174		530
-Outlook.com	hotmail,microsofthotmail,msnhotmail,outlook,outlookcom,windowslivehotmail	软件	微軟公司網頁電郵服務	Q219136	2550813337	https://outlook.live.com	4525
+Hormel	hormel,hormelfoods,hormelfoodscorporation,hormelfoodsinternational	公司	荷美爾（公司）	Q1454852	2534562614		3720
+HPCC	hpcc	编程语言	高性能計算集群（编程语言）	Q5635573	1729778469		230
 HP Time-Shared BASIC	hptimesharedbasic	编程语言	HP分时BASIC（编程语言）	Q5635739	2440357820		230
 Hugging Face	huggingface	公司	人工智能公司与模型开发社区	Q108943604	2556289210	https://huggingface.co/	3150
-Hungarian Wikipedia	hungarianwikipedia	软件	匈牙利语维基百科；维基百科匈牙利语版	Q53464	2562997983	https://hu.wikipedia.org/	7425
 Hyundai Motor Company	hyundaimotorcompany	公司	现代汽车公司；韓國汽車公司	Q55931	2566439631	https://hyundai-bd.com/	7620
-RPG	ibmrpg,reportprogramgenerator,rpg	编程语言	报表程序生成器（编程语言）	Q840543	2533806325		2530
-Icelandic Wikipedia	icelandiclanguagewikipedia,icelandicwikipedia,islenskawikipedia,wikipediainicelandic	软件	冰岛语维基百科；维基百科冰岛语版	Q718394	2562996746	https://is.wikipedia.org/	5125
+IBM BASIC	ibmbasic	编程语言	IBM个人计算机BASIC（编程语言）	Q174841	2514928566		1130
 Imperial Chemical Industries	ici,imperialchemicalindustries,imperialchemicalindustrieslimited,imperialchemicalindustriesltd	公司	帝国化学工业（公司）	Q899151	2562717676		2420
 Icon	icon	编程语言	Icon (编程语言)（编程语言）	Q1156474	2516458015		2030
-ICQ	icq,iseekyou	软件	即时聊天服务	Q58166	2560359819	https://icq.com/	5325
+ICQ	icq	软件	即时聊天服务	Q58166	2560359819	https://icq.com/	5325
 Interactive Data Language	idl,interactivedatalanguage	编程语言	互動式數據語言；程序语言	Q1665857	2265803364	https://www.harrisgeospatial.com/Software-Technology/IDL	1530
-Indonesian Wikipedia	idwiki,idwikipedia,idwikipediaorg,idwp,indonesianwikipedia,wid,wikipediaindonesia,wpid	软件	印度尼西亚语维基百科；维基百科印度尼西亚语版	Q155214	2562995668	https://id.wikipedia.org/	7925
-Illumina	illumina,illuminainc,ilmn	公司	因美纳；開發遺傳變異分析系統的美國公司	Q2068984	2534551243	https://www.illumina.com/	1920
-IMDb	imdb,imdbcom,internetmoviedatabase,theinternetmoviedatabase	软件	互联网电影数据库；收录影片及电影从业人员 (演员、导演、编剧等) 的网路数据库	Q37312	2551914587	https://www.imdb.com/	13325
-Kurzgesagt	inanutshell,kurzgesagt	公司	簡而言之 - 在果殼中（公司）	Q23893763	2564997523	https://kurzgesagt.org/	2920
-iNaturalist	inat,inaturalist	软件	分享物种观察记录的网站暨移动应用软件	Q16958215	2549094383	https://www.inaturalist.org/	4525
-Wikimedia Incubator	incubatorwiki,wikimediaincubator	软件	维基孵育场；测试新语言版本维基百科、维基词典、维基语录、维基教科书、维基新闻、维基导游的维基媒体基金会网站	Q846672	2565195640	https://incubator.wikimedia.org/	5425
+Illumina	illumina,illuminainc	公司	因美纳；開發遺傳變異分析系統的美國公司	Q2068984	2534551243	https://www.illumina.com/	1920
+IMDb	imdb,imdbcom	软件	互联网电影数据库；收录影片及电影从业人员 (演员、导演、编剧等) 的网路数据库	Q37312	2551914587	https://www.imdb.com/	13325
+iNaturalist	inaturalist	软件	分享物种观察记录的网站暨移动应用软件	Q16958215	2549094383	https://www.inaturalist.org/	4525
 Information Processing Language	informationprocessinglanguage,ipl	编程语言	資訊處理語言（编程语言）	Q776372	2497694792		930
 Instruction list	instructionlist	编程语言	指令表；维基媒体列表条目	Q613332	2550170128		930
 IntelliJ IDEA	intellij,intellijidea	开发工具	集成开发环境	Q1206660	2565170161	https://www.jetbrains.com/idea/	2950
 Internet Archive	internetarchive	软件	互联网档案馆；公益性质的数字图书馆	Q461	2558594816	https://archive.org/	8625
-Internet Explorer	internetexplorer,internetjumpstartkit,msie,windowsie	软件	网页浏览器	Q1575	2548708340	https://support.microsoft.com/products/internet-explorer	9925
+Internet Explorer	internetexplorer	软件	网页浏览器	Q1575	2548708340	https://support.microsoft.com/products/internet-explorer	9925
 Intuitive Machines	intuitivemachines,intuitivemachinesinc	公司	直觉机器公司（公司）	Q60760151	2541711658	https://www.intuitivemachines.com/	2220
-Iota and Jot	iotaandjot,iotajot	编程语言	Iota和Jot（编程语言）	Q3154138	2506292919		530
-Lisp	isoiec,jisx,lisp,lispprogramminglanguage,listprocessor	编程语言	Lisp语言；編程語言	Q132874	2552535639		8130
-Italian Wikipedia	italianwikipedia,itwp,wikipediainitaliano	软件	意大利语维基百科；维基百科意大利语版	Q11920	2564823162	https://it.wikipedia.org/	9025
+Iota and Jot	iotaandjot	编程语言	Iota和Jot（编程语言）	Q3154138	2506292919		530
 Jacuzzi	jacuzzi,jacuzzibrand,jacuzzigroup	公司	按摩浴池（公司）	Q1122179	2540076304	https://jacuzzi.fr	3420
-Java Agent Development Framework	jade,javaagentdevelopmentframework	编程语言	Java代理开发框架（编程语言）	Q1684174	2481460123	https://jade-project.gitlab.io/	1130
 JADE	jade	编程语言	Jade (程式語言)（编程语言）	Q6107617	2091607284	https://www.jadeworld.com/	430
-Jakarta Server Pages	jakartapages,jakartaserverpages,javaserverpage,javaserverpages,jsp	软件	基于JAVA的动态网页技术	Q183169	2505059582	https://projects.eclipse.org/projects/ee4j.jsp	4325
-Japanese Wikipedia	japaneselanguagewikipedia,japanesewikipedia,japanesewp,jawiki,jawikipedia,jawp,jpwikipediaorg,jpwp	软件	日语维基百科；维基百科日语版	Q177837	2564823167	https://ja.wikipedia.org/	9225
-JASRAC	japanesesocietyforrightsofauthorscomposersandpublishers,jasrac	公司	日本音樂著作權協會（公司）	Q774842	2534544620	https://www.jasrac.or.jp/	1520
-Javanese Wikipedia	javanesewikipedia	软件	爪哇语维基百科；维基百科的爪哇语版	Q3477935	2562996160	https://jv.wikipedia.org/	4925
+Jakarta Expression Language	jakartaexpressionlanguage	编程语言	统一表达式语言（编程语言）	Q1399846	2211002866	https://javadoc.io/doc/jakarta.el/jakarta.el-api/	930
+Jakarta Server Pages	jakartaserverpages,jsp	软件	基于JAVA的动态网页技术	Q183169	2505059582	https://projects.eclipse.org/projects/ee4j.jsp	4325
+JASRAC	jasrac	公司	日本音樂著作權協會（公司）	Q774842	2534544620	https://www.jasrac.or.jp/	1520
+Java Agent Development Framework	javaagentdevelopmentframework	编程语言	Java代理开发框架（编程语言）	Q1684174	2481460123	https://jade-project.gitlab.io/	1130
 JavaScript	javascript	编程语言	高级编程语言	Q2005	2566877768	https://www.ecma-international.org/publications-and-standards/standards/ecma-262/	16350
-Java virtual machine	javavirtualmachine,javavm,jvm	软件	Java虚拟机；一个可以运行Java字节码的虚拟机	Q193321	2559284819		5025
+Java virtual machine	javavirtualmachine,jvm	软件	Java虚拟机；一个可以运行Java字节码的虚拟机	Q193321	2559284819		5025
 Job Control Language	jcl,jobcontrollanguage	编程语言	作业控制语言（编程语言）	Q1505372	2516604967		2130
-Yahoo	jerryanddavidsguidetotheworldwideweb,yahoo,yahoocom	软件	雅虎；Web服務提供商，其Web門戶和搜索引擎	Q37093	2554573220	https://www.yahoo.com/	12525
 Jess	jess	编程语言	Jess程序设计语言（编程语言）	Q2259392	2462012872		830
 JetBrains	jetbrains	公司	捷克软件开发公司	Q1688472	2565186344	https://www.jetbrains.com/	2950
-J Language	jlanguage,jprogramminglanguage	编程语言	J语言（编程语言）	Q383994	2497202355		1730
-Tokyo MX	jomx,jomxdtv,jomxtv,mx,mxtv,tokyoch,tokyom,tokyometropolitantelevision,tokyomx,tokyomxtv	公司	东京都会电视台；以東京都為廣播範圍的日本電視台	Q115146	2532787334	https://s.mxtv.jp/	2920
+J Language	jlanguage	编程语言	J语言（编程语言）	Q383994	2497202355		1730
 Joomla	joomla	软件	内容管理系统	Q13167	2561148519	https://www.joomla.org	7725
 JOVIAL	jovial	编程语言	JOVIAL语言（编程语言）	Q1277803	2563189323		1630
 Joy	joy	编程语言	Joy (编程语言)（编程语言）	Q1265107	2403835329		730
 jq	jq	编程语言	Jq语言（编程语言）	Q115959735	2555767337		330
 jQuery	jquery	软件	JavaScript库	Q230036	2532581915	https://jquery.com	5825
 JSFuck	jsfuck	编程语言	JavaScript编程风格	Q25304718	2302940540		730
-Shimano	kabushikigaishashimano,shimano,shimanoinc,shimanoincsakai,shimanoindustrialcoltd,shimanoironworks,shimanoironworkscoltd,shimanokabushikikaisha	公司	禧玛诺；日本公司	Q949610	2550131186	https://www.shimano.com/en/	3220
-KiriKiri	kag,kirikiri,krkr	编程语言	吉里吉里（编程语言）	Q1065372	2407192576		730
-Kali Linux	kali,kalilinux,kalilinuxos,kernelauditinglinux	软件	Debain衍生的Linux發行版	Q8364850	2561080103	https://kali.org	5125
+Kali Linux	kalilinux,kalilinuxos	软件	Debain衍生的Linux發行版	Q8364850	2561080103	https://kali.org	5125
 Kasikornbank	kasikornbank,kasikornbankpubliccoltd,kasikornbankpubliccompanylimited	公司	开泰银行；泰國商業銀行	Q276557	2564662364	https://www.kasikornbank.com/	1720
-Kazakh Wikipedia	kazakhwikipedia	软件	哈萨克语维基百科；维基百科哈萨克语版	Q58172	2565179435	https://kk.wikipedia.org/	6925
 Kent Recursive Calculator	kentrecursivecalculator,krc	编程语言	Kent递归计算器（编程语言）	Q375533	2269384134		530
+KiriKiri	kirikiri	编程语言	吉里吉里（编程语言）	Q1065372	2407192576		730
 KiriKiri Z	kirikiriz	编程语言	吉里吉里Z（编程语言）	Q48757400	2509185139	https://krkrz.github.io/	230
-K Language	klanguage,kprogramminglanguage	编程语言	K (编程语言)（编程语言）	Q4042031	2461721881	https://kx.com	630
-Korean Wikipedia	koreanwikipedia	软件	韩语维基百科；维基百科韩语版	Q17985	2565178121	https://ko.wikipedia.org/	8225
+K Language	klanguage	编程语言	K (编程语言)（编程语言）	Q4042031	2461721881	https://kx.com	630
+KornShell	kornshell	编程语言	二十世纪八十年代早期在贝尔实验室开发的Unix shell	Q204222	2525015604		2230
 KRL	krl	编程语言	KRL 程式語言（编程语言）	Q6336852	1729779369		230
+Kuaishou	kuaishou,kuaishoucom	公司	快手；短视频社交软件	Q47015540	2551274258	https://www.kuaishou.com	1920
 Kubernetes	kubernetes	开发工具	管理服务器集群中容器的软件	Q22661306	2565844109	https://kubernetes.io/	4475
+Kurzgesagt	kurzgesagt	公司	簡而言之 - 在果殼中（公司）	Q23893763	2564997523	https://kurzgesagt.org/	2920
 KYE Systems Corp.	kyesystemscorp	公司	昆盈（公司）	Q715971	2552967684		1620
-Kyrgyz Wikipedia	kyrgyzlanguagewikipedia,kyrgyzwikipedia,kyrgyzwp,wikipediainkyrgyz	软件	吉尔吉斯语维基百科；维基百科吉尔吉斯语版	Q60799	2565180638	https://ky.wikipedia.org/	4725
 ladder logic	ladderlogic	编程语言	梯形逻辑（编程语言）	Q1411875	2549940108		2430
 LangChain	langchain	框架	大语言模型应用开发框架	Q117340550	2557334159	https://langchain.com/	1550
-LaTeX	latex,latexprojectorg,thelatexproject	软件	文档标记语言	Q5310	2529506717	https://www.latex-project.org/	9525
-Latin Wikipedia	latinwikipedia,vicipaedialatina	软件	拉丁语维基百科；维基百科协作计划的拉丁语版本	Q12237	2522820146	https://la.wikipedia.org/	7025
-Latvian Wikipedia	latvianwikipedia	软件	拉脱维亚语维基百科；维基百科的拉脱维亚语版	Q728945	2565184946	https://lv.wikipedia.org/	6225
-Luxembourgish Wikipedia	lbwiki,lbwikipedia,lbwikipediaorg,lbwp,luxembourgishwikipedia,luxwiki	软件	卢森堡语维基百科；维基百科的卢森堡语版	Q950058	2562997872	https://lb.wikipedia.org/	4425
+Laning and Zierler system	laningandzierlersystem	编程语言	Laning与Zierler系统（编程语言）	Q6487099	2322089570		230
+LaTeX	latex,latexprojectorg	软件	文档标记语言	Q5310	2529506717	https://www.latex-project.org/	9525
 Left 4 Dead 2	ld,leftdead	软件	求生之路2；生存射击恐怖游戏	Q472909	2523495358		4225
-League of Legends	league,leagueoflegends,lol	软件	英雄联盟；多人在线战斗竞技场电子游戏	Q223341	2558468496	https://lol.garena.tw/	6925
-Leapmotor	leapmotor,zhejiangleapmotortechnologycoltd	公司	零跑汽车；电动汽车制造商	Q99510294	2566440809	https://www.leapmotor.com/	2320
+League of Legends	leagueoflegends,lol	软件	英雄联盟；多人在线战斗竞技场电子游戏	Q223341	2558468496	https://lol.garena.tw/	6925
+Leapmotor	leapmotor	公司	零跑汽车；电动汽车制造商	Q99510294	2566440809	https://www.leapmotor.com/	2320
 Le Lisp	lelisp	编程语言	Lisp编程语言的一种方言	Q6507148	1520011966		330
-LFE	lfe,lispflavorederlang	编程语言	LFE语言（编程语言）	Q17097207	2274459316	https://lfe.io	230
+LFE	lfe	编程语言	LFE语言（编程语言）	Q17097207	2274459316	https://lfe.io	230
+Li Auto	liauto,liautoinc	公司	理想汽车；中國新能源汽車公司	Q98139925	2566440797	https://liautoofficial.ru/	2220
 LibreOffice	libreoffice	软件	一套可与其他主要办公室软件兼容的包	Q10135	2565170967	https://ca.libreoffice.org/	8825
-LXDE	lightweightxdesktopenvironment,lxde	软件	輕量的X11桌面環境	Q47123	2540105596	https://www.lxde.org/	5025
-Waray Wikipedia	lineytesamarnonwikipedia,waraywikipedia	软件	瓦瑞语维基百科；维基百科瓦瑞语版	Q1648786	2562995690	https://war.wikipedia.org/	6825
-Linux kernel	linux,linuxkernel,thelinuxkernel	软件	Linux内核；類Unix操作系統內核	Q14579	2567082569	https://kernel.org	7025
-Lithuanian Wikipedia	lithuanianwikipedia	软件	立陶宛语维基百科（软件）	Q202472	2565182273	https://lt.wikipedia.org/	6525
+Linux kernel	linuxkernel	软件	Linux内核；類Unix操作系統內核	Q14579	2567082569	https://kernel.org	7025
+Lisp	lisp,lispprogramminglanguage	编程语言	Lisp语言；編程語言	Q132874	2552535639		8130
 LlamaIndex	llamaindex	公司	提供大语言模型开发工具的公司	Q125446413	2547909708	https://www.llamaindex.ai/	150
 Logo	logo	编程语言	Logo语言（编程语言）	Q201436	2545341307		5130
 Loongson	loongson	公司	龙芯（公司）	Q615955	2485637566	https://www.loongson.cn/	1620
@@ -435,556 +344,112 @@ LPC	lpc	编程语言	编程语言	Q1798284	2468478239		1030
 Lsjbot	lsjbot	软件	維基百科機器人	Q17430942	2561490491	https://ceb.wikipedia.org/wiki/Gumagamit:Lsjbot	5325
 Lua	lua,lualanguage	编程语言	一种轻量级脚本语言	Q207316	2563181569	https://www.lua.org/	9530
 Lucid	lucid	编程语言	Lucid (编程语言)（编程语言）	Q3561750	2498981959		530
-Luminate	luminate,mrcdata,nielsensoundscan,soundscanjapan	公司	尼尔森SoundScan；音樂和音樂視頻銷售的跟踪系統	Q1067041	2551154659	https://luminatedata.com/	2320
-Portuguese Wikipedia	lusophonewikipedia,portugueselanguagewikipedia,portuguesewikipedia	软件	葡萄牙语维基百科；维基百科葡萄牙语版	Q11921	2525013318	https://pt.wikipedia.org/	8925
+Luminate	luminate	公司	尼尔森SoundScan；音樂和音樂視頻銷售的跟踪系統	Q1067041	2551154659	https://luminatedata.com/	2320
 Lustre	lustre	编程语言	Lustre (编程语言)（编程语言）	Q464622	2509707241		830
-Lux	lux,luxsoap,sunlightflakes	公司	力士；香皂品牌	Q665425	2550925436	https://www.lux.com	2520
-Macedonian Wikipedia	macedonianwikipedia	软件	马其顿语维基百科；维基百科马其顿语版	Q842341	2565185611	https://mk.wikipedia.org/	5725
-Mafia II	mafia,mafiaii	软件	黑手党II（软件）	Q59154	2565343494	https://mafiagame.com/mafia-2/	4625
-Malayalam Wikipedia	malayalamwikipedia,mlwiki,mlwikipedia,mlwikipediaorg,mlwp	软件	马拉亚姆语维基百科（软件）	Q874555	2562997703	https://ml.wikipedia.org/	5425
-Malay Wikipedia	malaywikipedia	软件	马来语维基百科；维基百科马来语版	Q845993	2562990450	https://ms.wikipedia.org/	6525
+Lux	lux,luxsoap	公司	力士；香皂品牌	Q665425	2550925436	https://www.lux.com	2520
+LXDE	lxde	软件	輕量的X11桌面環境	Q47123	2540105596	https://www.lxde.org/	5025
+Mafia II	mafiaii	软件	黑手党II（软件）	Q59154	2565343494	https://mafiagame.com/mafia-2/	4625
 Mama	mama	编程语言	Mama (软件)（编程语言）	Q10851621	1784360439	https://www.eytam.com/mama	230
-MAN Truck & Bus	man,manag,mannutzfahrzeuge,mannutzfahrzeugeag,mantruckbus,mantruckbusse	公司	曼恩商用车公司；德国商用车制造商，曼恩集團的子公司	Q708667	2565600327	https://www.mantruckandbus.com/	2720
-Managed Extensions for C++	managedc,managedextensionsforc	编程语言	C++托管扩展（编程语言）	Q2364913	2529754480	https://docs.microsoft.com/en-us/previous-versions/dotnet/netframework-1.1/a6431ht5(v=vs.71)	630
-Marathi Wikipedia	marathiwikipedia	软件	马拉地语维基百科；维基百科马拉地语版	Q3486726	2562996174	https://mr.wikipedia.org/	4925
-Windows Phone	maribe,windowsphone,wp	软件	微软公司推出的移动设备操作系统	Q4885200	2552488126		7525
-Super Mario 64	mario,sm,supermario,supermariobros,supermariobrothers	软件	超级马力欧64；1996年電子遊戲	Q216995	2565720479		5125
-Super Mario Bros. 3	mario,mariobros,smb,supermario,supermariobros,supermariobrothers	软件	超级马力欧兄弟3；1988年电子游戏	Q639619	2560688963		4625
+Managed Extensions for C++	managedextensionsforc	编程语言	C++托管扩展（编程语言）	Q2364913	2529754480	https://docs.microsoft.com/en-us/previous-versions/dotnet/netframework-1.1/a6431ht5(v=vs.71)	630
+MAN Truck & Bus	mantruckbus,mantruckbusse	公司	曼恩商用车公司；德国商用车制造商，曼恩集團的子公司	Q708667	2565600327	https://www.mantruckandbus.com/	2720
 Mario Kart 8	mariokart,mariokartu,mariokartwiiu,mk	软件	马力欧卡丁车8；2014年电子游戏	Q13427106	2558450165		4225
-Mario Kart Wii	mariokartwii,mkw,mkwii	软件	马力欧卡丁车Wii；2008年电子游戏	Q838707	2558463271	https://www.nintendo.co.jp/wii/rmcj/	4325
-Super Mario Odyssey	marioodyssey,supermarioodyssey	软件	超级马力欧 奥德赛；2017年电子游戏	Q28234671	2565721343	https://www.nintendo.co.jp/switch/aaaca/	4225
-MUMPS	massachusettsgeneralhospitalutilitymultiprogrammingsystem,multiusermultiprogrammingsystem,mumps	编程语言	M语言（编程语言）	Q1882071	2498468420		1530
-Mathematica	mathematica,mma,wolframmathematica	编程语言	科学计算软件	Q81294	2559737043	https://www.wolfram.com/mathematica/	4630
-MATLAB	matlab,matrixlaboratory	编程语言	数学软件	Q169478	2556588387	https://de.mathworks.com/products/matlab.html	8130
-Max (programming language)	maxmsp,maxprogramminglanguage	编程语言	Max (軟體)；用于音乐与多媒体的视觉编程语言	Q1707206	2566249135	https://cycling74.com/products/max	1430
+Mario Kart Wii	mariokartwii,mkw	软件	马力欧卡丁车Wii；2008年电子游戏	Q838707	2558463271	https://www.nintendo.co.jp/wii/rmcj/	4325
+Mathematica	mathematica	编程语言	科学计算软件	Q81294	2559737043	https://www.wolfram.com/mathematica/	4630
+MATLAB	matlab	编程语言	数学软件	Q169478	2556588387	https://de.mathworks.com/products/matlab.html	8130
 Max Payne	maxpayne	软件	英雄本色；2001年电子游戏	Q1175156	2565314614	https://www.rockstargames.com/games/maxpayne	5025
+Max (programming language)	maxprogramminglanguage	编程语言	Max (軟體)；用于音乐与多媒体的视觉编程语言	Q1707206	2566249135	https://cycling74.com/products/max	1430
 MCA Inc.	mca,mcainc	公司	美国音乐公司；美国媒体、娱乐集团	Q304509	2544736505		2020
-MD5	md,mdmessagedigestalgorithm,messagedigestalgorithm	软件	MD5消息摘要算法；消息摘要哈希算法	Q185235	2542394608		4925
-MDL	mdl,mitdesignlanguage	编程语言	MDL (程式語言)（编程语言）	Q6715155	2215798697		230
+MD5	md,mdmessagedigestalgorithm	软件	MD5消息摘要算法；消息摘要哈希算法	Q185235	2542394608		4925
+MDL	mdl	编程语言	MDL (程式語言)（编程语言）	Q6715155	2215798697		230
 Mercury	mercury,mercuryprogramminglanguage	编程语言	墨丘利语言（编程语言）	Q206040	2542395775		1730
 Mesa	mesa	编程语言	Mesa语言（编程语言）	Q1042397	2426893956		1130
+Messenger	messenger	软件	即時通訊服務和軟體應用程式	Q116947	2555584041	https://www.messenger.com/	6125
 Meta Platforms	meta,metaplatforms	公司	美国科技公司	Q380	2565169562	https://www.meta.com/	8750
-Meta-Wiki	meta,metawiki	软件	元维基；协调各维基媒体项目的维基媒体wiki网站	Q1063116	2566227923	https://meta.wikimedia.org/	4225
-Metal Gear Solid	metalgear,metalgearsolid,mgs	软件	潛龍諜影；1998年電子遊戲	Q6582527	2559936034	https://www.konami.com/mg/archive/mgs/	4925
+Metal Gear Solid	metalgearsolid,mgs	软件	潛龍諜影；1998年電子遊戲	Q6582527	2559936034	https://www.konami.com/mg/archive/mgs/	4925
+Meta-Wiki	metawiki	软件	元维基；协调各维基媒体项目的维基媒体wiki网站	Q1063116	2566227923	https://meta.wikimedia.org/	4225
 Metaxa	metaxa	公司	梅塔莎（公司）	Q753068	2560337183		2820
-MIUI	meyoui,miui	软件	小米科技开发的一款基于安卓定制的手机操作系统	Q1187721	2566545037	https://en.miui.com/	4125
 Microsoft	microsoft	公司	美国跨国科技公司	Q2283	2565523469	https://www.microsoft.com/	17850
+Microsoft Bing	microsoftbing	软件	微軟網絡搜尋引擎	Q182496	2525354800	https://www.bing.com	8025
+Microsoft Copilot	microsoftcopilot	软件	微软AI助手	Q116793893	2564134489	https://copilot.com/	5625
 Microsoft Java	microsoftjava	编程语言	基于.NET框架的、面向对象的高级编程语言	Q2370	2566420359	https://docs.microsoft.com/de-de/dotnet/csharp/	11530
-Notepad	microsoftnotepad,msnotepad,notepad,notepadexe,windowsnotepad	软件	记事本；微软文本编辑软件	Q274098	2548312648		4825
-Microsoft Outlook	microsoftofficeoutlook,microsoftoutlook,msoutlook,outlook	软件	微软Outlook；個人信息管理員	Q80911	2565348838	https://outlook.office.com	5425
-Microsoft OneDrive	microsoftonedrive,windowslivefolders	软件	微软推出的网络硬盘及云服务	Q864889	2565378257	https://onedrive.live.com/	4625
-Microsoft Paint	microsoftpaint,microsoftpaintbrush,mspaint,paint,paintbrush	软件	画图；绘图软件	Q334046	2564918657	https://microsoft.com/windows/paint	4825
-Microsoft Small Basic	microsoftsmallbasic,smallbasic	编程语言	微软程序设计语言	Q767018	2516457823		2130
-Microsoft SQL Server	microsoftsqlserver,mssql,mssqlserver,sqlserver,windowssql	软件	數據庫軟件系列	Q215819	2520088846	https://www.microsoft.com/de-de/sql-server/	4625
-Visual Basic Script	microsoftvisualbasicscriptingedition,vbs,vbscript,vbscriptprogramming,visualbasicscript	编程语言	脚本语言	Q13743	2566711140	https://docs.microsoft.com/en-us/previous-versions/t0aew7h6(v=vs.85)	4330
+Microsoft OneDrive	microsoftonedrive	软件	微软推出的网络硬盘及云服务	Q864889	2565378257	https://onedrive.live.com/	4625
+Microsoft Outlook	microsoftoutlook	软件	微软Outlook；個人信息管理員	Q80911	2565348838	https://outlook.office.com	5425
+Microsoft Paint	microsoftpaint,microsoftpaintbrush	软件	画图；绘图软件	Q334046	2564918657	https://microsoft.com/windows/paint	4825
+Microsoft Small Basic	microsoftsmallbasic	编程语言	微软程序设计语言	Q767018	2516457823		2130
+Microsoft SQL Server	microsoftsqlserver	软件	數據庫軟件系列	Q215819	2520088846	https://www.microsoft.com/de-de/sql-server/	4625
 Microsoft Visual Programming Language	microsoftvisualprogramminglanguage	编程语言	Microsoft可视编程语言（编程语言）	Q3347111	2528996415		530
-Visual Studio	microsoftvisualstudio,microsoftvisualstudionet,visualstudio,visualstudionet	软件	微軟公司的開發工具套件系列產品	Q134067	2565170142	https://visualstudio.microsoft.com/	6425
-Microsoft Windows	microsoftwindows,mswin,windows	软件	微软公司开发的图形用户界面操作系统	Q1406	2565232862	https://windows.com	17925
-Windows 95	microsoftwindows,windows	软件	操作系统	Q83370	2560306804		8125
-Windows 1.0	microsoftwindows,windows	软件	操作系统	Q58378	2525006170		6625
-Windows 2.0	microsoftwindows,windows	软件	基于16位Microsoft Windows GUI的操作环境	Q485021	2521230279		5925
-Windows Mobile	microsoftwindowsmobile,windowsmobile	软件	移动操作系统	Q21207	2566171900		5125
-Windows NT 4.0	microsoftwindowsnt,windowsnt	软件	微软第四代32位图形化操作系统。	Q488978	2560218860		4925
-Windows Server 2003	microsoftwindowsserver,win,windows,windowsserver	软件	基於視窗體驗的視窗服務器服務器操作系統版本	Q11246	2560579690		5525
+Microsoft Windows	microsoftwindows	软件	微软公司开发的图形用户界面操作系统	Q1406	2565232862	https://windows.com	17925
 Midjourney	midjourney	软件	一款由人工智能驱动的、支持文本生成图像的软件程序	Q113070628	2565170350	https://www.midjourney.com/	4425
-Viettel Group	militaryindustryandtelecomsgroup,viettel,viettelgroup,viettelgrouphanoi	公司	越南军用电子电信；公司	Q1109534	2477914174	https://viettel.vn/	1720
 Minecraft	minecraft	软件	我的世界；2011年电子游戏	Q49740	2565397412	https://minecraft.net	15625
-mIRC scripting language	mirc,mircscriptinglanguage	编程语言	MIRC脚本语言（编程语言）	Q300841	2536844686	https://www.mirc.com/	830
+mIRC scripting language	mircscriptinglanguage	编程语言	MIRC脚本语言（编程语言）	Q300841	2536844686	https://www.mirc.com/	830
 Mistral AI	mistral,mistralai	公司	法国人工智能公司	Q119718658	2553330703	https://mistral.ai/	3650
-MIT/GNU Scheme	mitgnuscheme,mitscheme	编程语言	MIT模式（编程语言）	Q768970	2542774164	https://www.gnu.org/software/mit-scheme/	730
+MIT/GNU Scheme	mitgnuscheme	编程语言	MIT模式（编程语言）	Q768970	2542774164	https://www.gnu.org/software/mit-scheme/	730
+MIUI	miui	软件	小米科技开发的一款基于安卓定制的手机操作系统	Q1187721	2566545037	https://en.miui.com/	4125
 ML	ml	编程语言	ML语言（编程语言）	Q860654	2559661500		3330
-Module:About	moduleabout	软件	模块:About（软件）	Q24257088	2551100872		7225
-Module:Adjacent stations	moduleadjacentstations	软件	模块:Adjacent stations；维基媒体模块	Q56040869	2553283729		6725
-Module:Adjacent stations/i18n	moduleadjacentstationsin	软件	维基媒体模块	Q63107395	2549695199		6725
-Module:Age	moduleage	软件	维基媒体模块	Q12085840	2554640150		11625
-Module:Airport destination list	moduleairportdestinationlist	软件	维基媒体模块	Q20892743	2553721708		4125
-Module:Aligned table	modulealignedtable	软件	模块:Aligned table；维基媒体模块	Q16712429	2549694733		13225
-Module:Anchor	moduleanchor	软件	模块:Anchor；维基媒体模块	Q15742341	2564063302		14025
-Module:Archive list	modulearchivelist	软件	模块:Archive list；维基媒体模块	Q15155102	2560740002		8225
-Module:Arguments	modulearguments	软件	模块:Arguments；维基媒体模块	Q15379728	2561574607		62225
-Module:array	modulearray	软件	维基媒体模块	Q60061839	2506675585		6425
-Module:Asbox	moduleasbox	软件	模块:Asbox；维基媒体模块	Q19827924	2560739656		8125
-Module:Asbox stubtree	moduleasboxstubtree	软件	模块:Asbox stubtree；维基媒体模块	Q15928417	2556086568		6325
-Module:Authority control	moduleauthoritycontrol	软件	模块:Authority control；维基媒体模块	Q11640331	2563841351		17925
-Module:Authority control/config	moduleauthoritycontrolconfig	软件	维基媒体模块	Q115726239	2556175383		4925
-Module:Automated taxobox	moduleautomatedtaxobox	软件	维基媒体模块	Q61472014	2551100886		6025
-Module:Autotaxobox	moduleautotaxobox	软件	模块:Autotaxobox（软件）	Q27977207	2560744172		8025
-Module:Babel	modulebabel	软件	模块:Babel；维基媒体模块	Q17347276	2545551507		6825
-Module:Bananas	modulebananas,modulehello	软件	模块:Test；维基媒体模块	Q7220612	2457953916		5725
-Module:BaseConvert	modulebaseconvert	软件	模块:BaseConvert；用于转换数字的Lua模块	Q7639403	2499714395		10525
-Module:Buffer	modulebuffer	软件	维基媒体模块	Q19967589	2503308564		8125
-Module:Catalog lookup link	modulecataloglookuplink	软件	维基媒体模块	Q56884219	2562093179		9425
-Module:Category handler	modulecategoryhandler	软件	模块:Category handler；维基媒体模块	Q15117218	2547810825		42225
-Module:Category handler/blacklist	modulecategoryhandlerblacklist	软件	维基媒体模块	Q17347230	2561101067		36525
-Module:Category handler/config	modulecategoryhandlerconfig	软件	维基媒体模块配置	Q17347205	2561100946		36925
-Module:Category handler/data	modulecategoryhandlerdata	软件	维基媒体模块	Q17347215	2561100850		37125
-Module:Category handler/shared	modulecategoryhandlershared	软件	维基媒体模块	Q17347224	2561100970		37025
-Module:Category see also	modulecategoryseealso	软件	维基媒体模块	Q47913908	2460334381		5925
-Module:Category series navigation	modulecategoryseriesnavigation	软件	模块:Category series navigation；维基媒体模块	Q63352421	2549699465		4825
-Module:character info	modulecharacterinfo	软件	模块:Character info；维基媒体模块	Q41694626	2437215185		4725
-Module:Chart	modulechart	软件	模块:Chart；Lua模块	Q11056138	2563824946		7625
-Module:Check for clobbered parameters	modulecheckforclobberedparameters	软件	维基媒体模块	Q75230691	2508373138		6625
-Module:Check for unknown parameters	modulecheckforunknownparameters	软件	维基媒体模块	Q16830095	2561284274		27025
-Module:check isxn	modulecheckisxn	软件	维基媒体模块	Q21856723	2558352114		18625
-Module:chemical formula	modulechemicalformula	软件	维基媒体模块	Q22992058	2561427773		5825
-Module:Chessboard	modulechessboard	软件	维基媒体模块	Q14947412	2503328762		7125
-Module:Citation	modulecitation	软件	模块:Citation；Lua模块	Q8311551	2499714540		8425
-Module:Citation/CS1	modulecitationcs	软件	模块:Citation/CS1；Lua 模块	Q15403807	2560738758		32725
-Module:Citation/CS1/COinS	modulecitationcscoins	软件	维基媒体模块	Q21973572	2560744032		17425
-Module:Citation/CS1/Configuration	modulecitationcsconfiguration	软件	模块:Citation/CS1/Configuration；维基媒体模块	Q15403810	2560738750		35525
-Module:Citation/CS1/Date validation	modulecitationcsdatevalidation	软件	模块:Citation/CS1/Date validation；维基媒体模块	Q16017063	2560739780		21125
-Module:Citation/CS1/Identifiers	modulecitationcsidentifiers	软件	模块:Citation/CS1/Identifiers；维基媒体模块	Q19841691	2560739863		18525
-Module:Citation/CS1/Suggestions	modulecitationcssuggestions	软件	维基媒体模块	Q11679510	2497010586		17425
-Module:Citation/CS1/Utilities	modulecitationcsutilities	软件	模块:Citation/CS1/Utilities；维基媒体模块	Q21993353	2560739744		17925
-Module:Citation/CS1/Whitelist	modulecitationcswhitelist	软件	模块:Citation/CS1/Whitelist；维基媒体模块	Q11679506	2560739814		22525
-Module:Cite iucn	moduleciteiucn	软件	模块:Iucn（软件）	Q60426390	2550496570		6425
-Module:Cite web	moduleciteweb	软件	维基媒体模块	Q107006560	2553268349		5325
-Module:Clade	moduleclade	软件	模块:Clade；维基媒体模块	Q28321364	2559945126		7025
-Module:Clickable button	moduleclickablebutton	软件	模块:Clickable button 2；维基媒体模块	Q17170916	2562947627		18425
-Module:Color contrast	modulecolorcontrast	软件	模块:Color contrast；维基媒体模块	Q18029366	2560739556		23025
-Module:Color contrast/colors	modulecolorcontrastcolors	软件	维基媒体模块	Q20966915	2560739585		23125
-Module:Commons link	modulecommonslink	软件	维基媒体模块	Q91248444	2560739003		6825
-Module:Convert	moduleconvert	软件	模块:Convert；维基媒体模块	Q14033926	2564807078		19425
-Module:Convert/data	moduleconvertdata	软件	模块:Convert/data；Lua 模块	Q14752638	2564807746		16425
-Module:Convert/extra	moduleconvertextra	软件	维基媒体模块	Q15285323	2564807927		6725
-Module:Convert/makeunits	moduleconvertmakeunits	软件	模块:Convert/makeunits；Lua 模块	Q14949815	2551100929		4725
-Module:ConvertNumeric	moduleconvertnumeric	软件	模块:ConvertNumeric；维基媒体模块	Q14949817	2564808018		11825
-Module:Convert/text	moduleconverttext	软件	模块:Convert/text；Lua 模块	Q14752820	2564807822		17025
-Module:Convert/wikidata	moduleconvertwikidata	软件	维基媒体模块	Q24284061	2564807877		8425
-Module:Coordinates	modulecoordinates	软件	模块:Coordinates；Lua 模块	Q7348344	2560739516		25025
-Module:Country alias	modulecountryalias	软件	模块:Country alias（软件）	Q28057851	2553469465		6225
-Module:Country alias/data	modulecountryaliasdata	软件	维基媒体模块	Q61804189	2553470922		4625
-Module:CountryData	modulecountrydata	软件	维基媒体模块	Q20986976	2553183498		9825
-Module:CountryData/summary	modulecountrydatasummary	软件	维基媒体模块	Q106809052	2553197786		6925
-Module:Country extract	modulecountryextract	软件	维基媒体模块	Q22115477	2504544894		4125
-Module:Cs1 documentation support	modulecsdocumentationsupport	软件	维基媒体模块	Q63283394	2557748461		9425
-Module:Data	moduledata	软件	维基媒体模块	Q16003786	2499715482		6825
-Module:Date	moduledate	软件	模块:Date；维基媒体模块	Q19963557	2535651010		17725
-Module:DateI18n	moduledatein	软件	模块:DateI18n；维基媒体模块	Q56528363	2564957409		16225
-Module:Date table sorting	moduledatetablesorting	软件	模块:Date table sorting；维基媒体模块	Q20668297	2555672330		7125
-Module:debug	moduledebug	软件	维基媒体模块	Q33083181	2559444100		5425
-Module:Delink	moduledelink	软件	维基媒体模块	Q13374587	2560738254		17725
-Module:Demo	moduledemo	软件	模块:Demo；维基媒体模块	Q21012262	2561489729		6925
-Module:DemoTemplate	moduledemotemplate	软件	模块:DemoTemplate；维基媒体模块	Q20651285	2561450400		8625
-Module:Detect singular	moduledetectsingular	软件	维基媒体模块	Q110627883	2560760553		6025
-Module:Distinguish	moduledistinguish	软件	模块:Distinguish；维基媒体模块	Q25972999	2551611821		8825
-Module:Documentation	moduledocumentation	软件	模块:Documentation；维基媒体模块	Q14357839	2557460073		34925
-Module:Documentation/config	moduledocumentationconfig	软件	模块:Documentation/config；维基媒体模块配置	Q15506579	2561050341		22925
-Module:EditAtWikidata	moduleeditatwikidata	软件	模块:EditAtWikidata；维基媒体模块	Q27061799	2551114208		14025
-Module:Effective protection expiry	moduleeffectiveprotectionexpiry	软件	维基媒体模块	Q21718868	2560738264		15325
-Module:Effective protection level	moduleeffectiveprotectionlevel	软件	维基媒体模块	Q16323183	2560738172		17825
-Module:Episode list	moduleepisodelist	软件	模块:Episode list；维基媒体模块	Q17338382	2535353902		5925
-Module:Error	moduleerror	软件	模块:Error；维基媒体模块	Q10728910	2563863949		22025
-Module:Escape	moduleescape	软件	模块:Escape；维基媒体模块	Q18912921	2549694741		7625
-Module:etymology	moduleetymology	软件	模块:etymology；维基媒体模块	Q39299307	2559443909		5825
-Module:etymology languages	moduleetymologylanguages	软件	模块:Etymology languages；维基媒体模块	Q33083195	2559447932		5425
-Module:etymology languages/data	moduleetymologylanguagesdata	软件	维基媒体模块	Q33083198	2559447942		6325
-Module:etymology/templates	moduleetymologytemplates	软件	维基媒体模块	Q41706654	2559443887		4925
-Module:Example	moduleexample,modulehello,modulehelloworld	软件	模块:Example（软件）	Q56289442	2555502851		4825
-Module:Excerpt	moduleexcerpt,moduleextract	软件	模块:Excerpt；维基媒体模块	Q52428273	2549695342		7925
-Module:Excerpt/portals	moduleexcerptportals	软件	维基媒体模块	Q100968198	2541519773		4325
-Module:Exponential search	moduleexponentialsearch	软件	维基媒体模块	Q80097078	2555576476		11425
-Module:Factorization	modulefactorization	软件	维基媒体模块	Q15110437	2520022715		5525
-Module:Fallback	modulefallback	软件	模块:Fallback；维基媒体模块	Q20819962	2499716549		4525
-Module:families	modulefamilies	软件	维基媒体模块	Q33083190	2523172868		6925
-Module:families/data	modulefamiliesdata	软件	模块:Families/data；维基媒体模块	Q33083192	2523267997		6525
-Module:File link	modulefilelink	软件	模块:File link；维基媒体模块	Q17121673	2560738140		19025
-Module:Find sources	modulefindsources	软件	模块:FindSources；维基媒体模块	Q18606076	2558842840		6625
-Module:Find sources/config	modulefindsourcesconfig	软件	模块:Find sources/config；维基媒体模块	Q19858945	2558842805		5525
-Module:Find sources/links	modulefindsourceslinks	软件	维基媒体模块	Q26209100	2558849833		4325
-Module:Find sources/templates/Find sources mainspace	modulefindsourcestemplatesfindsourcesmainspace	软件	模块:Find sources/templates/Find sources mainspace；维基媒体模块	Q26775142	2545431385		4325
-Module:First steps	modulefirststeps	软件	Module:第一步；维基媒体模块	Q21850921	2506228769		10325
-Module:Flag	moduleflag	软件	维基媒体模块	Q96278387	2551100997		6425
-Module:Flagg	moduleflagg	软件	维基媒体模块	Q26206164	2553480731		7525
-Module:Flaglist	moduleflaglist	软件	模块:Flaglist/size；维基媒体模块	Q18009945	2513946904		5825
-Module:Footnotes	modulefootnotes	软件	模块	Q10921177	2535931768		15925
-Module:Footnotes/whitelist	modulefootnoteswhitelist	软件	维基媒体模块	Q92786226	2541399444		7425
-Module:For	modulefor	软件	维基媒体模块	Q25362158	2560500497		7825
-Module:For loop	moduleforloop	软件	维基媒体模块	Q15213889	2549699446		10625
-Module:Format link	moduleformatlink	软件	维基媒体模块	Q110609918	2559657936		10225
-Module:Format TemplateData	moduleformattemplatedata,moduletemplatedata	软件	模块:TemplateData；维基媒体模块	Q46997995	2534744672		5125
-Module:fun	modulefun	软件	维基媒体模块	Q56242183	2541550780		5425
-Module:Gallery	modulegallery	软件	模块:Gallery；用于Gallery模板的Lua模块	Q7347943	2561089361		8325
-Module:Gapnum	modulegapnum	软件	维基媒体模块	Q18019794	2539766266		7525
-Module:gender and number	modulegenderandnumber	软件	维基媒体模块	Q30564497	2476374517		4625
-Module:Geor-translit	modulegeorgiantoipa,modulegeortranslit,modulelangka	软件	维基媒体模块	Q27139474	2551353568		5925
-Module:GetParameters	modulegetparameters	软件	维基媒体模块	Q85152141	2502911132		9425
-Module:Graph	modulegraph	软件	模块:Graph；维基媒体模块	Q20085304	2549694853		11925
-Module:Hatnote	modulehatnote	软件	模块:Hatnote；维基媒体模块	Q16753944	2549699427		20225
-Module:Hatnote-inline	modulehatnoteinline	软件	模块:Hatnote inline；维基媒体模块	Q19831726	2552683670		6725
-Module:Hatnote list	modulehatnotelist	软件	维基媒体模块	Q24050223	2551591936		15725
-Module:headword	moduleheadword	软件	维基媒体模块	Q30883881	2559444109		4925
-Module:headword/data	moduleheadworddata	软件	维基媒体模块	Q33083218	2559444085		4825
-Module:High-use	modulehighuse	软件	維基媒體模組	Q79192858	2561303680		9625
-Module:Historical populations	modulehistoricalpopulations	软件	模块:Historical populations；维基媒体模块	Q15627750	2553370462		6925
-Module:HtmlBuilder	modulehtmlbuilder	软件	模块ːHtmlBuilder；维基媒体模块	Q7213382	2536812114		16625
-Module:HTMLDecode	modulehtmldecode	软件	维基媒体模块	Q91565809	2506228904		6125
-Module:Icon	moduleicon	软件	维基媒体模块	Q18947930	2560908601		8425
-Module:Icon/data	moduleicondata	软件	维基媒体模块	Q18947942	2560909182		7625
-Module:If empty	moduleifempty	软件	维基媒体模块	Q18694018	2557384903		26725
-Module:If preview	moduleifpreview	软件	维基媒体模块	Q39221816	2560744253		12225
-Module:Image array	moduleimagearray	软件	模块:Image array；维基媒体模块	Q15609478	2549694639		6325
-Module:I18n	modulein	软件	维基媒体模块	Q41702392	2559346513		17325
-Module:I18n/complex date	moduleincomplexdate	软件	维基媒体模块	Q26905108	2564956244		17725
-Module:I18n/date	moduleindate	软件	维基媒体模块	Q56528384	2549695520		9325
-Module:Infobox3cols	moduleinfoboxcols	软件	模块:Infobox3cols；维基媒体模块	Q20643348	2549694864		8225
-Module:Infobox/dates	moduleinfoboxdates	软件	维基媒体模块	Q24170715	2563294333		5925
-Module:Infobox gene	moduleinfoboxgene	软件	维基媒体模块	Q21857851	2523475170		4725
-Module:InfoboxImage	moduleinfoboximage	软件	模块:InfoboxImage；维基媒体模块	Q8244473	2553284465		24225
-Module:Infobox mapframe	moduleinfoboxmapframe	软件	维基媒体模块	Q54943196	2560740025		11725
-Module:Infobox military conflict	moduleinfoboxmilitaryconflict	软件	维基媒体模块	Q18340696	2554698575		6325
-Module:Infobox road	moduleinfoboxroad	软件	模块:Infobox road；维基媒体模块	Q13791106	2545458177		4825
-Module:Infobox road/length	moduleinfoboxroadlength	软件	模块:Infobox road/length；维基媒体模块	Q14029867	2497011113		4125
-Module:Infobox road/locations	moduleinfoboxroadlocations	软件	模块:Infobox road/locations；维基媒体模块	Q17134915	2497039286		4125
-Module:I18n/ordinal	moduleinordinal	软件	模块:I18n/ordinal；维基媒体模块	Q26905239	2546147836		7825
-Module:Internet Archive	moduleinternetarchive	软件	维基媒体模块	Q18343123	2549694674		6325
-Module:InterwikiTable	moduleinterwikitable	软件	维基媒体模块	Q15727701	2562281397		4725
-Module:IPA	moduleipa	软件	模块:IPA；维基媒体模块	Q51252708	2560739849		10325
-Module:IPAc-en	moduleipacen	软件	维基媒体模块	Q20742053	2553646484		8025
-Module:IPAc-en/data	moduleipacendata	软件	维基媒体模块	Q21198582	2553646790		6625
-Module:IPAc-en/phonemes	moduleipacenphonemes	软件	维基媒体模块	Q21198581	2553647519		6425
-Module:IPAc-en/pronunciation	moduleipacenpronunciation	软件	维基媒体模块	Q20785014	2553647056		6525
-Module:IPA/data	moduleipadata	软件	模块:IPA/data（软件）	Q51252727	2560738962		8225
-Module:IPA/data/symbols	moduleipadatasymbols	软件	维基媒体模块	Q51252738	2559444838		4325
-Module:IPAddress	moduleipaddress	软件	维基媒体模块	Q27975561	2529471131		5625
-Module:IPA symbol	moduleipasymbol	软件	模块:IPA symbol；维基媒体模块	Q15091191	2538545861		9425
-Module:IPA symbol/data	moduleipasymboldata	软件	维基媒体模块	Q15091202	2544762240		8625
-Module:ISO 3166	moduleiso	软件	维基媒体模块	Q56697375	2549695529		8625
-Module:ISO 3166/data/National	moduleisodatanational	软件	维基媒体模块	Q56697381	2549695531		8125
-Module:ISOdate	moduleisodate	软件	维基媒体模块	Q20962109	2564957204		12925
-Module:ISO 639 name	moduleisoname	软件	维基媒体模块	Q16888969	2556464473		11625
-Module:Italic title	moduleitalictitle	软件	维基媒体模块	Q13566398	2564706281		12625
-Module:Item	moduleitem	软件	维基媒体模块	Q51838207	2490035574		4825
-Module:ja	moduleja	软件	维基媒体模块	Q33083163	2553475024		4825
-Module:Key	modulekey	软件	维基媒体模块	Q29582599	2532996858		4425
-Module:ko	moduleko	软件	维基媒体模块	Q43305006	2551354289		4225
-Module:Labelled list hatnote	modulelabelledlisthatnote	软件	维基媒体模块	Q26220069	2559657064		10825
-Module:labels	modulelabels	软件	维基媒体模块	Q30883003	2559444951		5025
-Module:Lang	modulelang	软件	模块:Lang；維基媒體模組	Q42895737	2560738338		20125
-Module:Lang/data	modulelangdata	软件	模块:Lang/data；维基媒体模块	Q21533287	2560738386		14225
-Module:Lang/data/iana languages	modulelangdataianalanguages	软件	维基媒体模块	Q16888983	2560739203		20325
-Module:Lang/documentor tool	modulelangdocumentortool	软件	模块:Lang/documentor tool；维基媒体模块	Q50034417	2564092596		8525
-Module:Lang/ISO 639 synonyms	modulelangisosynonyms	软件	模块:Lang/ISO 639 synonyms；维基媒体模块	Q45832768	2560738454		20725
-Module:Lang/tag from name	modulelangtagfromname	软件	维基媒体模块	Q80326916	2565413308		6325
-Module:Language	modulelanguage	软件	维基媒体模块	Q27941230	2554698463		7725
-Module:Language/data/ISO 639-2	modulelanguagedataiso	软件	维基媒体模块	Q59514148	2549699436		5725
-Module:Language/data/ISO 639-5	modulelanguagedataiso	软件	维基媒体模块	Q64031718	2549699466		4225
-Module:language-like	modulelanguagelike	软件	维基媒体模块	Q83137024	2523270765		6025
-Module:languages/alldata	modulelanguagesalldata,modulelanguagesdataall	软件	模块:Languages/alldata；维基媒体模块	Q47407690	2559448105		4925
-Module:languages/canonical names	modulelanguagescanonicalnames	软件	维基媒体模块	Q33083201	2559444300		5625
-Module:languages/code to canonical name	modulelanguagescodetocanonicalname	软件	维基媒体模块	Q33083254	2521005622		4725
-Module:languages/data/2	modulelanguagesdata	软件	模块:languages/data2（软件）	Q33083203	2523267962		9525
-Module:languages/data/3/m	modulelanguagesdatam	软件	模块:Languages/data3/m；维基媒体模块	Q41551138	2559444946		4725
-Module:languages/data3/u	modulelanguagesdatau	软件	模块:Languages/data3/u；维基媒体模块	Q42773949	2559448174		4525
-Module:Large category TOC	modulelargecategorytoc	软件	维基媒体模块	Q17679066	2523220247		5625
-Module:links	modulelinks	软件	维基媒体模块	Q30564329	2535935470		6525
-Module:links/data	modulelinksdata	软件	维基媒体模块	Q33083250	2535935400		5525
-Module:links/templates	modulelinkstemplates	软件	模块:Links/templates；维基媒体模块	Q30878624	2559444242		4825
-Module:List	modulelist	软件	维基媒体模块	Q15605797	2562822458		27825
-Module:Listen	modulelisten	软件	模块:Listen；维基媒体模块	Q17121666	2561300193		8325
-Module:Location map	modulelocationmap	软件	模块:Location map；維基媒體模組	Q15934920	2563803419		18025
-Module:Location map/data/Africa	modulelocationmapdataafrica	软件	维基媒体模块	Q16853528	2561134314		5125
-Module:Location map/data/Antarctica	modulelocationmapdataantarctica	软件	模块:Location map/data/Antarctica（软件）	Q16853390	2503421478		4225
-Module:Location map/data/Argentina	modulelocationmapdataargentina	软件	模块:Location map/data/Argentina（软件）	Q20855657	2483282826		4225
-Module:Location map/data/Asia	modulelocationmapdataasia	软件	维基媒体模块	Q20855664	2470119435		5425
-Module:Location map/data/Australia	modulelocationmapdataaustralia	软件	维基媒体模块	Q19911864	2567231762		5925
-Module:Location map/data/Austria	modulelocationmapdataaustria	软件	模块:Location map/data/Austria；维基媒体模块	Q22621042	2551358879		4725
-Module:Location map/data/Bangladesh	modulelocationmapdatabangladesh	软件	模块:Location map/data/Bangladesh（软件）	Q16937102	2562855081		5225
-Module:Location map/data/Brazil	modulelocationmapdatabrazil	软件	模块:Location map/data/Brazil（软件）	Q18808183	2567228557		4425
-Module:Location map/data/Canada	modulelocationmapdatacanada	软件	维基媒体模块	Q19953594	2523394964		5625
-Module:Location map/data/China	modulelocationmapdatachina	软件	模块:Location map/data/China；维基媒体模块	Q18808185	2555115021		6125
-Module:Location map/data/Czech Republic	modulelocationmapdataczechrepublic	软件	模块:Location map/data/Czech Republic（软件）	Q22695594	2551228252		4125
-Module:Location map/data/Earth	modulelocationmapdataearth	软件	模块:Location map/data/Earth（软件）	Q18342859	2539092379		8125
-Module:Location map/data/Europe	modulelocationmapdataeurope	软件	模块:Location map/data/Europe（软件）	Q20855801	2524019542		6525
-Module:Location map/data/France	modulelocationmapdatafrance	软件	维基媒体模块	Q16761615	2551138836		7025
-Module:Location map/data/Germany	modulelocationmapdatagermany	软件	模块:Location map/data/Germany（软件）	Q16783376	2483291721		6625
-Module:Location map/data/India	modulelocationmapdataindia	软件	模块:Location map/data/India（软件）	Q18808179	2567235042		6925
-Module:Location map/data/Japan	modulelocationmapdatajapan	软件	模块:Location map/data/Japan；维基媒体模块	Q22661868	2555121983		6225
-Module:Location map/data/Norway	modulelocationmapdatanorway	软件	Module:Location map/data/挪威（软件）	Q17496795	2556133359		4325
-Module:Location map/data/Pakistan	modulelocationmapdatapakistan	软件	维基媒体模块	Q22810443	2481036696		4925
-Module:Location map/data/Russia	modulelocationmapdatarussia	软件	模块:Location map/data/Russia（软件）	Q18808182	2553745808		6125
-Module:Location map/data/Russia Perm Krai	modulelocationmapdatarussiapermkrai	软件	维基媒体模板	Q7835861	2525067433		4925
-Module:Location map/data/Russia Sakhalin Oblast	modulelocationmapdatarussiasakhalinoblast	软件	维基媒体模板	Q8119735	2525071056		4725
-Module:Location map/data/Russia Udmurtia	modulelocationmapdatarussiaudmurtia	软件	维基媒体模板	Q8119534	2525071030		4425
-Module:Location map/data/Spain	modulelocationmapdataspain	软件	维基媒体模块	Q20859245	2524241564		5225
-Module:Location map/data/Switzerland	modulelocationmapdataswitzerland	软件	模块:Location map/data/Switzerland（软件）	Q22675905	2556131011		4725
-Module:Location map/data/Syria	modulelocationmapdatasyria	软件	模块:Location map/data/Syria（软件）	Q16783692	2372387410		5125
-Module:Location map/data/USA	modulelocationmapdatausa	软件	模块:Location map/data/USA（软件）	Q16853373	2551225153		7725
-Module:Location map/data/USA California	modulelocationmapdatausacalifornia	软件	模块:Location map/data/USA California（软件）	Q20855719	2483364926		4125
-Module:Location map/data/USA New York	modulelocationmapdatausanewyork	软件	维基媒体模块	Q16783405	2468541657		4625
-Module:Location map/info	modulelocationmapinfo	软件	模块:Location map/info；维基媒体模块	Q16003784	2563807652		7225
-Module:Location map/multi	modulelocationmapmulti	软件	模块:Location map/multi；维基媒体模块	Q18115619	2544761222		9825
-Module:Lua banner	moduleluabanner	软件	维基媒体模块	Q17121869	2523147023		33025
-Module:Main	modulemain	软件	模块:Main；Lua模块	Q16836022	2549699376		7825
-Module:Map	modulemap	软件	维基媒体模块	Q24575446	2553145275		8025
-Module:Mapframe	modulemapframe	软件	维基媒体模块	Q52554979	2563723226		15025
-Module:Math	modulemath	软件	模块:Math；Lua 模块	Q7328853	2560739538		25625
-Module:Medals table	modulemedalstable	软件	维基媒体模块	Q56682433	2553480552		5225
-Module:Medical cases chart	modulemedicalcaseschart	软件	维基媒体模块	Q88664008	2356520897		4825
-Module:Message box	modulemessagebox	软件	模块:Message box；维基媒体模块	Q15116966	2561574226		35125
-Module:Message box/configuration	modulemessageboxconfiguration	软件	维基媒体模块	Q15117391	2561574327		31625
-Module:Military navigation	modulemilitarynavigation	软件	模块:Military navigation；维基媒体模块	Q29730023	2506317715		4525
-Module:Module wikitext	modulemodulewikitext	软件	维基媒体模块	Q99339072	2513819637		5725
-Module:Multiple image	modulemultipleimage	软件	模块:Multiple image（软件）	Q17135178	2560367747		18925
-Module:MultiReplace	modulemultireplace	软件	维基媒体模块	Q27863072	2562265257		12525
-Module:Namespace detect	modulenamespacedetect	软件	模块:Namespace detect；维基媒体模块	Q13613273	2561101022		22325
-Module:Namespace detect/config	modulenamespacedetectconfig	软件	模块:Namespace detect/config；维基媒体模块	Q15977879	2561101037		26725
-Module:Namespace detect/data	modulenamespacedetectdata	软件	模块:Namespace detect/data；维基媒体模块	Q15977876	2561100998		26625
-Module:Namespace has subpages	modulenamespacehassubpages,modulenshassubpages	软件	维基媒体模块	Q18616014	2550546805		8825
-Module:Native name	modulenativename	软件	维基媒体模块	Q110634044	2555572368		9925
-Module:Navbar	modulenavbar	软件	模块:Navbar；维基媒体模块	Q8118082	2561574857		30225
-Module:Navbar/configuration	modulenavbarconfiguration	软件	维基媒体模块	Q104066604	2561574920		12825
-Module:Navbox	modulenavbox	软件	模块:Navbox；用于Navbox模板的Lua模块	Q8118252	2561574686		27025
-Module:Navbox/configuration	modulenavboxconfiguration	软件	模块:Navbox/configuration；维基媒体模块	Q107366112	2561574748		10025
-Module:Navboxes	modulenavboxes	软件	维基媒体模块	Q58272573	2551147914		4925
-Module:Navbox top and bottom	modulenavboxtopandbottom	软件	维基媒体模块	Q109559806	2553284779		4225
-Module:Navbox with collapsible groups	modulenavboxwithcollapsiblegroups	软件	维基媒体模块	Q58023412	2563449260		7225
-Module:Nihongo	modulenihongo	软件	维基媒体模块	Q99589699	2506257974		4425
-Module:No globals	modulenoglobals	软件	模块:No globals；废弃的维基媒体模块	Q16748603	2545340790		17425
-Module:No ping	modulenoping	软件	维基媒体模块	Q16746541	2549699421		5425
-Module:NUMBEROF	modulenumberof	软件	模块:NUMBEROF；维基媒体模块	Q93437308	2551101051		10025
-Module:NUMBEROF/data	modulenumberofdata	软件	模块:NUMBEROF/data；维基媒体模块	Q94132908	2544762602		4925
-Module:NumberSpell	modulenumberspell	软件	模块:NumberSpell；维基媒体模块	Q15727787	2431338404		6325
-Module:Official website	moduleofficialwebsite	软件	模块:Official website；维基媒体模块	Q21992851	2554851575		8625
-Module:Ordinal	moduleordinal	软件	模块:Ordinal（软件）	Q26905170	2560367740		7125
-Module:Other uses	moduleotheruses	软件	模块:Other uses；维基媒体模块	Q24050221	2554691134		5325
-Module:OutputBuffer	moduleoutputbuffer	软件	维基媒体模块	Q18106874	2560911272		8825
-Module:Overlay	moduleoverlay	软件	模块:Overlay；维基媒体模块	Q26902492	2524405873		4625
-Module:Page	modulepage	软件	维基媒体模块	Q13218436	2535788479		6125
-Module:PageLinks	modulepagelinks	软件	维基媒体模块	Q15727725	2560493739		4125
-Module:Pagelist	modulepagelist	软件	模块:PageList；维基媒体模块	Q15708547	2560738675		6525
-Module:Pagetype	modulepagetype	软件	维基媒体模块	Q15708832	2560744264		13325
-Module:Pagetype/config	modulepagetypeconfig	软件	维基媒体模块	Q16054168	2560760570		11425
-Module:palindromes	modulepalindromes	软件	维基媒体模块	Q33083269	2559444119		5625
-Module:ParameterCount	moduleparametercount	软件	模块:ParameterCount（软件）	Q21540304	2560760667		6025
-Module:Parameter names example	moduleparameternamesexample	软件	模块:Parameter names example；维基媒体模块	Q17525158	2513439869		10525
-Module:parameters	moduleparameters	软件	维基媒体模块	Q33083227	2549705903		7325
-Module:Params	moduleparams	软件	模块:Params；维基媒体模块	Q122696746	2556557125		6625
-Module:Percentage	modulepercentage	软件	维基媒体模块	Q80536107	2560040801		4825
-Module:Photo montage	modulephotomontage	软件	维基媒体模块	Q18758377	2548559126		9425
-Module:Reply to	moduleping,modulepinguser,modulereplyto	软件	模块:Ping；维基媒体模块	Q23543634	2538540847		13125
-Module:Plain sister	moduleplainsister,modulesisterprojectlinks	软件	模块:Interprogetto；维基媒体模块	Q17483622	2554433300		9425
-Module:Plain text	moduleplaintext	软件	模块:Plain text；维基媒体模块	Q52958095	2560367727		10925
-Module:Plotter/DefaultColors	moduleplotterdefaultcolors	软件	模块:Plotter/DefaultColors；维基媒体模块	Q13415820	2520788475		4625
-Module:Political party	modulepoliticalparty	软件	Module:政黨；维基媒体模块	Q110216465	2565358974		7825
-Module:Political party/A	modulepoliticalpartya	软件	Module:政黨/A；维基媒体模块	Q110323043	2563533233		4125
-Module:Political party/I	modulepoliticalpartyi	软件	Module:政黨/I（软件）	Q110323669	2514411156		4325
-Module:Political party/P	modulepoliticalpartyp	软件	Module:政黨/P（软件）	Q110323837	2563546954		4125
-Module:Pop density	modulepopdensity	软件	模块:Pop density（软件）	Q16321250	2563661765		5225
-Module:Portal	moduleportal	软件	模块:Portal；模块	Q10728907	2554434321		9325
-Module:Portal bar	moduleportalbar	软件	模块:Portal bar；维基媒体模块	Q15043951	2564367510		5825
-Module:Portal/images/aliases	moduleportalimagesaliases	软件	维基媒体模块	Q17128229	2516107249		4725
-Module:Portal/images/other	moduleportalimagesother	软件	维基媒体模块	Q17131058	2497038460		4425
-Module:PrevalenceData	moduleprevalencedata	软件	维基媒体模块	Q28937038	2499717490		5825
-Module:Protect	moduleprotect	软件	维基媒体模块	Q58040999	2544756265		8125
-Module:Protected edit request	moduleprotectededitrequest	软件	维基媒体模块	Q16323114	2499715502		4725
-Module:Protection banner	moduleprotectionbanner	软件	模块:Protection banner；维基媒体模块	Q18084584	2560738146		17325
-Module:Protection banner/config	moduleprotectionbannerconfig	软件	模块:Protection banner/config；维基媒体模块	Q18084435	2560368047		17025
-Module:Purge	modulepurge	软件	维基媒体模块	Q21707766	2566078229		7025
-Module:qualifier	modulequalifier	软件	维基媒体模块	Q33083257	2476374695		4425
-Module:Random	modulerandom	软件	维基媒体模块	Q15627757	2499715401		9125
-Module:Redirect	moduleredirect	软件	模块:Redirect；维基媒体模块	Q15296064	2566078452		15125
-Module:Redirect hatnote	moduleredirecthatnote	软件	模块:Redirect hatnote（软件）	Q17141650	2551591211		7725
-Module:Redirect template	moduleredirecttemplate	软件	维基媒体模块	Q18390189	2560150037		5925
-Module:Timeline of release years	modulereleasetimeline,moduletimelineofreleaseyears,modulevgtimeline	软件	模块:Release timeline；维基媒体模块	Q20671494	2564063018		4225
-Module:ResolveEntityId	moduleresolveentityid	软件	模块:ResolveEntityId；维基媒体模块	Q47988337	2560744165		10125
-Module:Respell	modulerespell	软件	模块:Respell；维基媒体模块	Q30003862	2556451414		5425
-Module:Road data/countrymask	moduleroaddatacountrymask	软件	模块:Road data/countrymask；维基媒体模块	Q17141658	2497039682		4725
-Module:Road data/parser	moduleroaddataparser	软件	模块:Road data/parser（软件）	Q17118725	2541555524		5525
-Module:Road data/util	moduleroaddatautil	软件	模块:Road data/util；维基媒体模块	Q24238127	2541555671		4625
-Module:Roman	moduleroman	软件	模块:Roman（软件）	Q14813761	2539767103		12225
-Module:RoundN	moduleroundn	软件	模块:RoundN；维基媒体模块	Q18912911	2511748974		7825
-Module:Routemap	moduleroutemap	软件	模块:Routemap；维基媒体模块	Q14612409	2553283052		7925
-Module:Sandbox	modulesandbox	软件	模块:沙盒；用于测试Lua模块的沙盒	Q5290765	2519486448		9225
-Module:ScribuntoUnit	modulescribuntounit	软件	维基媒体模块	Q15427778	2514287774		5225
-Module:ScribuntoUnit/config	modulescribuntounitconfig	软件	模块:ScribuntoUnit/config（软件）	Q64518292	2480810087		5025
-Module:scripts	modulescripts	软件	模块:Scripts（软件）	Q30582802	2437216654		10625
-Module:scripts/canonical names	modulescriptscanonicalnames	软件	维基媒体模块	Q33083176	2497077534		4525
-Module:scripts/charToScript	modulescriptschartoscript	软件	维基媒体模块	Q111079392	2523268074		6825
-Module:scripts/data	modulescriptsdata	软件	维基媒体模块	Q33083175	2497077503		10225
-Module:scripts/findBestScript	modulescriptsfindbestscript	软件	维基媒体模块	Q111086164	2474974149		5025
-Module:scripts/recognition data	modulescriptsrecognitiondata	软件	维基媒体模块	Q84701307	2535938692		6825
-Module:script utilities	modulescriptutilities	软件	维基媒体模块	Q32641891	2474982580		9225
-Module:script utilities/data	modulescriptutilitiesdata	软件	维基媒体模块	Q33083230	2523173952		8225
-Module:SDcat	modulesdcat	软件	维基媒体模块	Q98853059	2560744353		6525
-Module:Section link	modulesectionlink	软件	维基媒体模块	Q19967869	2551590607		9725
-Module:Series overview	moduleseriesoverview	软件	模块:Series overview；维基媒体模块	Q26086630	2553748845		5325
-Module:Settlement short description	modulesettlementshortdescription	软件	维基媒体模块	Q61858001	2560367725		6425
-Module:Shortcut	moduleshortcut	软件	模块:Shortcut；维基媒体模块	Q17135581	2566447331		13225
-Module:Shortcut/config	moduleshortcutconfig	软件	维基媒体模块	Q18640162	2560739936		11425
-Module:Sidebar	modulesidebar	软件	模块:Sidebar；维基媒体模块	Q8471024	2560738694		15325
-Module:Sidebar/configuration	modulesidebarconfiguration	软件	维基媒体模块	Q105981884	2562610225		7725
-Module:Side box	modulesidebox	软件	模块:Side box；维基媒体模块	Q17121668	2555548241		15025
-Module:Sortkey	modulesortkey	软件	模块:Sortkey（软件）	Q56071581	2560041583		8425
-Module:Sports results	modulesportsresults	软件	模块:Sports results；维基媒体模块	Q18588463	2532199644		7225
-Module:Sports table	modulesportstable	软件	模块:Sports table；维基媒体模块	Q18115874	2408925104		8625
-Module:Sports table/argcheck	modulesportstableargcheck	软件	模块:Sports table/argcheck；维基媒体模块	Q75008219	2550052269		4625
-Module:Sports table/WDL	modulesportstablefootball,modulesportstablewdl	软件	模块:Sports table/WDL；维基媒体模块	Q18588433	2530934878		7225
-Module:Sports table/sub	modulesportstablesub	软件	模块:Sports table/sub；维基媒体模块	Q18588450	2497077187		7225
-Module:Sports table/WL	modulesportstablewl	软件	模块:Sports table/WL；维基媒体模块	Q19759824	2565004329		4525
-Module:Sports table/WL OT	modulesportstablewlot	软件	模块:Sports table/WL OT（软件）	Q19753719	2484992850		4125
-Module:String	modulestring	软件	模块:String；支持字符串操作的模块	Q7253814	2551101091		50725
-Module:String2	modulestring	软件	模块:String2；维基媒体模块	Q16914835	2535783236		16125
-Module:StringReplace	modulestringreplace	软件	模块:StringReplace；维基媒体模块	Q13382852	2530805335		4425
-Module:String utilities	modulestringutilities	软件	模块:string utilities；维基媒体模块	Q47406864	2549705909		8525
-Module:Su	modulesu	软件	维基媒体模块	Q17281274	2499715878		6825
-Module:Subject bar	modulesubjectbar	软件	模块:Subject bar；维基媒体模块	Q16830102	2554431252		4125
-Module:Submit an edit request	modulesubmitaneditrequest	软件	维基媒体模块	Q17171931	2554695724		8525
-Module:Submit an edit request/config	modulesubmitaneditrequestconfig	软件	维基媒体模块	Q17171953	2503276866		8125
-Module:TableTools	moduletable,moduletabletools	软件	模块:TableTools；维基媒体模块	Q15408619	2544712693		51425
-Module:Table	moduletable	软件	模块:Table；维基媒体模块	Q15727765	2563071563		9125
-Module:Table empty cell	moduletableemptycell	软件	模块:Table empty cell；维基媒体模块	Q61463590	2541715327		4225
-Module:Taxonbar	moduletaxonbar	软件	维基媒体模块	Q30015104	2556444808		8025
-Module:Taxonbar/conf	moduletaxonbarconf	软件	维基媒体模块	Q47006812	2515288860		6525
-Module:TaxonItalics	moduletaxonitalics	软件	维基媒体模块	Q50300411	2560744177		8225
-Module:TaxonList	moduletaxonlist	软件	维基媒体模块	Q50300407	2535789829		4425
-Module:TeamBracket	moduleteambracket	软件	模块:TeamBracket；维基媒体模块	Q15633686	2506095216		5925
-Module:Template invocation	moduletemplateinvocation	软件	维基媒体模块	Q18573662	2544757020		10325
-Module:Template link general	moduletemplatelinkgeneral,moduletlg	软件	维基媒体模块	Q95359830	2549458854		10625
-Module:TemplatePar	moduletemplatepar	软件	模块:TemplatePar；Lua模块	Q15393417	2562966242		9425
-Module:Template parameter value	moduletemplateparametervalue	软件	模块:Template parameter value；维基媒体模块	Q59226478	2562356581		4325
-Module:TemplateStyles	moduletemplatestyles	软件	维基媒体模块	Q64222327	2563310008		7825
-Module:Template test case	moduletemplatetestcase	软件	维基媒体模块	Q18616002	2544757275		8025
-Module:template test case/config	moduletemplatetestcaseconfig	软件	维基媒体模块	Q18882858	2544757635		7525
-Module:template test case/data	moduletemplatetestcasedata	软件	维基媒体模块	Q18882850	2544757384		7525
-Module:Template wrapper	moduletemplatewrapper	软件	模块:Template wrapper；维基媒体模块	Q49221324	2560744268		11425
-Module:Text	moduletext	软件	模块:Text；维基媒体模块	Q29387871	2560908965		8525
-Module:th	moduleth	软件	维基媒体模块	Q33083233	2551124457		4225
-Module:Time	moduletime	软件	维基媒体模块	Q15197149	2550362967		10125
-Module:Time ago	moduletimeago	软件	维基媒体模块	Q15727784	2538541034		9425
-Module:TNT	moduletnt	软件	模块:TNT；维基媒体模块	Q28132212	2551580522	https://www.mediawiki.org/wiki/Multilingual_Templates_and_Modules	32725
-Module:Toolbar	moduletoolbar	软件	维基媒体模块	Q13450768	2563711690		11925
-Module:Track gauge	moduletrackgauge	软件	模块:Track gauge（软件）	Q15246029	2553313142		4325
-Module:Track gauge/data	moduletrackgaugedata	软件	模块:Track gauge/data（软件）	Q15246003	2553313152		4125
-Module:Track listing	moduletracklisting	软件	维基媒体模块	Q27860358	2558113582		5925
-Module:Transcluder	moduletranscluder	软件	维基媒体模块	Q96679044	2553597230		8525
-Module:Transclusion count	moduletransclusioncount	软件	维基媒体模块	Q80097759	2561303721		9725
-Module:translations	moduletranslations	软件	维基媒体模块	Q30564538	2511890527		4425
-Module:Tree chart	moduletreechart	软件	模块:TreeChart；维基媒体模块	Q18642335	2499716110		8625
-Module:Tree chart/data	moduletreechartdata	软件	模块:TreeChart/data；维基媒体模块	Q18642334	2544761956		7725
-Module:Trim quotes	moduletrimquotes	软件	模块:Trim quotes；维基媒体模块	Q48959067	2499718563		6125
-Module:Unicode data	moduleunicodedata	软件	模块:Unicode data；维基媒体模块	Q39301585	2560738329		18925
-Module:Unicode data/aliases	moduleunicodedataaliases	软件	模块:Unicode data/aliases；维基媒体模块	Q41707434	2497078800		9725
-Module:Unicode data/blocks	moduleunicodedatablocks	软件	模块:Unicode data/blocks；维基媒体模块	Q56367389	2549695484		9425
-Module:Unicode data/category	moduleunicodedatacategory	软件	维基媒体模块	Q56367434	2549695486		8425
-Module:Unicode data/combining	moduleunicodedatacombining	软件	模块:Unicode data/combining；维基媒体模块	Q50208655	2543428610		9025
-Module:Unicode data/control	moduleunicodedatacontrol	软件	模块:Unicode data/control；维基媒体模块	Q41707536	2497078866		9325
-Module:Unicode data/Hangul	moduleunicodedatahangul	软件	模块:Unicode data/Hangul；维基媒体模块	Q56367332	2549695517		5925
-Module:Unicode data/names/000	moduleunicodedatanames	软件	模块:Unicode data/names/000；维基媒体模块	Q52983589	2549695346		5525
-Module:Unicode data/names/002	moduleunicodedatanames	软件	模块:Unicode data/names/002；维基媒体模块	Q56397507	2547768230		4325
-Module:Unicode data/scripts	moduleunicodedatascripts	软件	维基媒体模块	Q41707491	2560738409		16425
-Module:UnitTests	moduleunittests	软件	维基媒体模块	Q7703783	2538547356		10925
-Module:Unstrip	moduleunstrip	软件	模块:Unstrip（软件）	Q21495982	2562966514		6625
-Module:Unsubst	moduleunsubst	软件	维基媒体模块	Q15243885	2557539503		21825
-Module:Unsubst-infobox	moduleunsubstinfobox	软件	维基媒体模块	Q30003611	2557540099		5825
-Module:URL	moduleurl	软件	模块:URL；维基媒体模块	Q7335367	2555047191		18725
-Module:Userbox	moduleuserbox	软件	模块:Userbox；维基媒体模块	Q15635874	2550603882		10925
-Module:UserLinks	moduleuserlinks	软件	模块:UserLinks；维基媒体模块	Q16054159	2562282218		7925
-Module:UserLinks/config	moduleuserlinksconfig	软件	维基媒体模块	Q16060488	2561457201		6725
-Module:UserLinks/shared	moduleuserlinksshared	软件	维基媒体模块	Q16782022	2560739996		6525
-Module:uses templatestyles	moduleusestemplatestyles	软件	维基媒体模块	Q55828239	2564965093		14025
-Module:Uses Wikidata	moduleuseswikidata	软件	模块:Uses Wikidata；维基媒体模块	Q20161175	2538549886		11125
-Module:Ustring	moduleustring	软件	维基媒体模块	Q64632741	2538541730		6025
-Module:utilities	moduleutilities	软件	维基媒体模块	Q30885366	2535936536		7125
-Module:utilities/data	moduleutilitiesdata	软件	维基媒体模块	Q33083226	2476374131		4325
-Module:Val	moduleval	软件	维基媒体模块	Q20826466	2539766089		7625
-Module:Val/units	modulevalunits	软件	模块:Val/units；维基媒体模块	Q20749376	2534837486		6425
-Module:Vertical header	moduleverticalheader	软件	模块:Vertical header；维基媒体模块	Q29418427	2555069673		6525
-Module:Wd	modulewd	软件	模块:Wd（软件）	Q24733825	2516951820		22525
-Module:Wd/aliasesP	modulewdaliasesp	软件	模块:Wd/aliasesP（软件）	Q44511273	2536820467		7125
-Module:Wd/i18n	modulewdin	软件	模块:Wd/i18n；维基媒体模块	Q29879601	2527779902		22625
-Module:Weather box	moduleweatherbox	软件	模块:Weather box；维基媒体模块	Q8474382	2555607449		7925
-Module:Weather box/colors	moduleweatherboxcolors	软件	模块:Weather box/colors；维基媒体模块	Q8474198	2555607394		6825
-Module:Webarchive	modulewebarchive	软件	维基媒体模块	Q27851488	2560367726		15425
-Module:Wide image	modulewideimage	软件	模块:Wide image（软件）	Q63224857	2550311827		6125
-Module:Wikibase	modulewikibase	软件	模块:Wikibase；维基媒体模块	Q8565357	2516946540		17925
-Module:Wikidata	modulewikidata	软件	模块:Wikidata；用于维基数据支持的Lua模块	Q12069631	2563749040		19525
-Module:Wikidata2	modulewikidata	软件	模块:Wikidata2（软件）	Q24575438	2521262857		13525
-Module:WikidataCheck	modulewikidatacheck	软件	模块:WikidataCheck；维基媒体模块	Q15089555	2485041611		10725
-Module:Wikidata/Globes	modulewikidataglobes	软件	维基媒体模块	Q22696097	2553270013		4725
-Module:WikidataIB	modulewikidataib	软件	模块:WikidataIB；维基媒体模块	Q25714577	2560367886		20925
-Module:WikidataIB/nolinks	modulewikidataibnolinks	软件	维基媒体模块	Q60618000	2520245518		7125
-Module:Wikidata/I18n	modulewikidatain	软件	维基媒体模块	Q20986983	2560739507		13225
-Module:Wikidata label	modulewikidatalabel	软件	维基媒体模块	Q22050722	2526673905		4225
-Module:wikimedia languages	modulewikimedialanguages	软件	维基媒体模块	Q33083187	2559444694		7025
-Module:wikimedia languages/data	modulewikimedialanguagesdata	软件	维基媒体模块	Q33083188	2559444696		7025
-Module:Wikitext	modulewikitext	软件	模块:Wikitext；维基媒体模块	Q13409201	2499714964		4125
-Module:Wikitext Parsing	modulewikitextparsing	软件	维基媒体模块	Q118959155	2562356362		4725
-Module:WLink	modulewlink	软件	模块:WLink；维基媒体模块	Q19363224	2544761513		6925
-Module:WPMILHIST Infobox style	modulewpmilhistinfoboxstyle	软件	模块:WPMILHIST Infobox style；维基媒体模块	Q18692471	2554639855		7925
-Module:Year in other calendars	moduleyearinothercalendars	软件	模块:Year in various calendars；维基媒体模块	Q14814969	2563783464		4425
-Module:Yesno	moduleyesno	软件	模块:Yesno；维基媒体模块	Q15098140	2551101167		62125
-Module:zh	modulezh	软件	维基媒体模块	Q16742768	2556360333		12225
 Mojo	mojo,mojolang,mojolanguage,mojoprogramminglanguage	编程语言	程式語言	Q118152673	2489653116	https://www.modular.com/mojo	1430
 Monero	monero	软件	门罗币；一种开源的加密货币	Q19893485	2564668145	https://getmonero.org	9225
 MongoDB	mongodb	软件	面向文档的数据库管理系统	Q1165204	2560239891	https://www.mongodb.com/products/platform	4225
-Mongolian Wikipedia	mongolianwikipedia	软件	蒙古语维基百科；维基百科蒙古语版	Q2998037	2562996025	https://mn.wikipedia.org/	4425
-Montblanc International GmbH	montblanc,montblancinternationalgmbh,simplofillerpenco	公司	万宝龙（公司）	Q142691	2564538111	https://www.montblanc.com/	2720
+Montblanc International GmbH	montblancinternationalgmbh	公司	万宝龙（公司）	Q142691	2564538111	https://www.montblanc.com/	2720
 Moonshot AI	moonshot,moonshotai	公司	中国人工智能公司	Q130270266	2551404295	https://www.moonshot.ai/	2070
-Need for Speed: Most Wanted	mostwanted,needforspeedmostwanted,nfsmw	软件	极品飞车：无间追踪；2005年电子游戏	Q220365	2546822574	https://www.ea.com/games/need-for-speed/need-for-speed-most-wanted-2005	4725
 Mozilla Firefox	mozillafirefox	软件	火狐浏览器；由Mozilla基金会开发的网页浏览器	Q698	2566586545	https://www.firefox.com	16225
-Windows Live Messenger	msnmessenger,themicrosoftnetworkmessenger,windowslivemessenger	软件	視窗即時通訊；即時通訊軟件	Q71493	2559727824		5425
+MUMPS	mumps	编程语言	M语言（编程语言）	Q1882071	2498468420		1530
 MUSIC-N	musicn	编程语言	音频编程语言家族	Q6719098	1729780240		230
 Myst	myst	软件	神秘岛；1994年電子遊戲	Q6497116	2558566811	https://cyan.com/games/myst/	4225
 Nasdaq Nordic	nasdaqnordic	公司	納斯達克北歐（公司）	Q104668131	2484318494		1620
-Wikipedia:Tools/Navigation popups	navigationpopups,wikipedianavigationpopups,wikipediatoolsnavigationpopups	软件	Wikipedia:維基百科工具/導航Popup（软件）	Q11305696	2555422644		4525
-Second Life	ndlife,secondlife,sl	软件	第二人生；線上虛擬世界	Q106827	2523609356	https://secondlife.com/	5425
-Netflix Animation Studios	netflixanimation,netflixanimationstudios	公司	Netflix動畫（公司）	Q104414180	2515835518	https://netflixanimation.com/	1820
-Netscape Navigator	netscape,netscapenavigator	软件	网景导航者（软件）	Q235419	2555340990		5125
-NIL	newimplementationoflisp,nil	编程语言	NIL (程式語言)（编程语言）	Q6954329	1729779575		230
-Newmont Mining Corporation	newmontcorporation,newmontminingcorporation	公司	纽蒙特矿业（公司）	Q1785405	2534549582		1820
-NTFS	newtechnologyfilesystem,ntfs	软件	基于NT内核发展的Windows标准文件系统	Q183205	2544523860		4725
+National State Television and Radio Company of the Republic of Belarus	nationalstatetelevisionandradiocompanyoftherepublicofbelarus	公司	白俄羅斯國家電視廣播公司；白俄罗斯的国营电视和广播公司	Q1778984	2465828432	https://www.news.by/	3120
+Need for Speed: Carbon	needforspeedcarbon,nfsc	软件	极品飞车：生死卡本谷（软件）	Q219795	2566696316		4425
+Need for Speed: Most Wanted	needforspeedmostwanted,nfsmw	软件	极品飞车：无间追踪；2005年电子游戏	Q220365	2546822574	https://www.ea.com/games/need-for-speed/need-for-speed-most-wanted-2005	4725
+Netflix Animation Studios	netflixanimationstudios	公司	Netflix動畫（公司）	Q104414180	2515835518	https://netflixanimation.com/	1820
+Netscape Navigator	netscapenavigator	软件	网景导航者（软件）	Q235419	2555340990		5125
+Newmont Mining Corporation	newmontminingcorporation	公司	纽蒙特矿业（公司）	Q1785405	2534549582		1820
 nginx	nginx	软件	開放原始碼的網路伺服器與反向代理伺服器	Q306144	2565860105	https://nginx.org/	4425
-Nikola Corporation	nikolacorporation,nikolamotorcompany	公司	尼古拉公司；美国汽车公司	Q24887050	2534550883	https://nikolamotor.com/	1920
+Nikola Corporation	nikolacorporation	公司	尼古拉公司；美国汽车公司	Q24887050	2534550883	https://nikolamotor.com/	1920
+NIL	nil	编程语言	NIL (程式語言)（编程语言）	Q6954329	1729779575		230
 Nilesat	nilesat	公司	尼罗河卫星公司（公司）	Q1992164	2505335706	https://nilesat.org/	1920
 Nim	nim,nimprogramminglanguage,nimrod	编程语言	编程语言	Q20080327	2561678687	https://nim-lang.org/	2030
 Node.js	node,nodejs	开发工具	JavaScript 运行环境	Q756100	2565170182	https://nodejs.org/	5875
+Notepad	notepad,notepadexe	软件	记事本；微软文本编辑软件	Q274098	2548312648		4825
 NPL	npl	编程语言	NPL (编程语言)（编程语言）	Q6955040	1891550701		230
 npm	npm	开发工具	Node.js 的软件包管理器	Q7067518	2564966661	https://www.npmjs.com/	2950
+NTFS	ntfs	软件	基于NT内核发展的Windows标准文件系统	Q183205	2544523860		4725
 Nu	nu	编程语言	Nu语言（编程语言）	Q7067717	2426867348	https://programming.nu	330
 NVIDIA	nvidia	公司	美国半导体与科技公司	Q182477	2567252757	https://www.nvidia.com/	8250
 Nyquist	nyquist	编程语言	Nyquist语言（编程语言）	Q1788197	2565907011	https://www.cs.cmu.edu/~music/cmp/nyquist/index.html	1030
-Yahoo Inc.	oath,verizondigitalnetwork,verizonmedia,verizonmediagroup,yahoo,yahooinc	公司	雅虎公司；總部位於美國紐約的跨國網絡媒體公司	Q29231846	2565146866	https://www.yahooinc.com/	1620
 OCaml	ocaml	编程语言	Caml程式語言的擴充	Q212587	2549063975	https://ocaml.org/	4230
-The Legend of Zelda: Ocarina of Time	ocarinaoftime,oot,thelegendofzeldaocarinaoftime,tlozoot,zelda,zeldaocarinaoftime,zeldaoot	软件	萨尔达传说 时之笛；1998年日本電子遊戲	Q213911	2565723580	https://www.nintendo.co.jp/n01/n64/software/zelda/index.html	4225
-Occitan Wikipedia	occitanwikipedia	软件	奥克语维基百科；维基百科的奥克语版	Q595628	2562996641	https://oc.wikipedia.org/	4425
 Ollama	ollama	开发工具	在本地计算机或云端运行大语言模型的软件	Q124636097	2565440729	https://ollama.com/	1350
 On AG	onag	公司	瑞士運動用品品牌	Q43452713	2555591316	https://www.on.com/	1720
-software as a service	ondemandsoftware,saas,softwareasaservice	软件	软件即服务（软件）	Q1254596	2567149999		4325
 OpenAI	openai	公司	人工智能研究与产品公司，ChatGPT 的开发方	Q21708200	2561929276	https://openai.com/about/	9950
-OpenCL	opencl,opencomputinglanguage	编程语言	對於異質計算系統（如GPU或GPU）程式設計開放標準	Q681360	2550168169	https://www.khronos.org/opencl	2930
-OpenOffice.org	openoffice,openofficeorg	软件	免費軟件辦公套件	Q511977	2565170991	https://www.openoffice.org/	8925
+OpenCL	opencl	编程语言	對於異質計算系統（如GPU或GPU）程式設計開放標準	Q681360	2550168169	https://www.khronos.org/opencl	2930
+OpenOffice.org	openofficeorg	软件	免費軟件辦公套件	Q511977	2565170991	https://www.openoffice.org/	8925
 Open Shading Language	openshadinglanguage	编程语言	开放着色器编程语言（编程语言）	Q18357621	2562506043		530
-OpenStreetMap	openstreetmap,openstreetmapproject,osmproject	软件	开放街图；用户可以一同自由编辑的世界地图	Q936	2565005854	https://www.openstreetmap.org/	9825
-Oracle Database	oracle,oracledatabase,oracledbms,oraclerdbms	软件	Oracle数据库；专有数据库管理系统	Q185524	2530296663	https://www.oracle.com/database/	5725
-Solaris	oraclesolaris,solaris,solarisoperatingsystem,solarisos,sunsolaris	软件	最初由昇陽電腦開發的尤納克斯操作系統	Q14646	2518837848	https://www.oracle.com/solaris	6425
-Paramount Global	paramount,paramountglobal,viacomcbs	公司	派拉蒙全球；跨国公司	Q76846862	2562879499	https://web.archive.org/web/20220216190012/https://www.paramount.com/	4420
+OpenStreetMap	openstreetmap,openstreetmapproject	软件	开放街图；用户可以一同自由编辑的世界地图	Q936	2565005854	https://www.openstreetmap.org/	9825
+Oracle Database	oracledatabase	软件	Oracle数据库；专有数据库管理系统	Q185524	2530296663	https://www.oracle.com/database/	5725
+Outlook.com	outlookcom	软件	微軟公司網頁電郵服務	Q219136	2550813337	https://outlook.live.com	4525
+Paradox	paradox,paradoxdatabase	编程语言	Paradox (資料庫)（编程语言）	Q1779923	2516301259		1730
+Paramount Global	paramountglobal	公司	派拉蒙全球；跨国公司	Q76846862	2562879499	https://web.archive.org/web/20220216190012/https://www.paramount.com/	4420
 Paramount Skydance	paramountskydance,paramountskydancecorporation	公司	派拉蒙天空之舞（公司）	Q135485147	2567194317	https://web.archive.org/web/20250808090419/https://www.paramount.com/	2820
 Parser	parser	编程语言	Parser编程语言（编程语言）	Q3501043	2302714947	https://www.parser.ru/	330
 Pascal	pascal,pascalprogramminglanguage	编程语言	Pascal编程语言；編程語言	Q81571	2565217899		10030
 Perl Data Language	pdl,perldatalanguage	编程语言	Perl数据语言（编程语言）	Q4046690	2533294207	https://pdl.perl.org/	230
-Perl	pearl,perl,perlcgi,practicalextractionandreportinglanguage	编程语言	Perl编程语言；解释型程序语言	Q42478	2566419095	https://perl.org	10530
 Penguin Random House	penguinrandomhouse,penguinrandomhouselimited,penguinrandomhousellc	公司	企鹅兰登书屋；出版者	Q2908540	2558364435	https://global.penguinrandomhouse.com/	3220
-Raku	perl,raku	编程语言	Perl程式語言家族的成員	Q2052676	2542393941	https://raku.org/	1930
+PerkinElmer	perkinelmer	公司	珀金埃尔默（公司）	Q2066858	2534546203	https://www.perkinelmer.com/	1620
+Perl	perl,perlcgi	编程语言	Perl编程语言；解释型程序语言	Q42478	2566419095	https://perl.org	10530
 Perplexity AI	perplexity,perplexityai	公司	开发人工智能对话式搜索服务的公司	Q124333951	2565170324	https://www.perplexity.ai/	4750
-Pretty Good Privacy	pgp,pgpdesktop,pgpuniversalserver,prettygoodprivacy,symantecencryption,symantecencryptiondesktop,symantecencryptionmanagementserver,symantecencryptionserver,symantecendpointencryption	软件	优良保密协议；优秀、广泛使用的非对称加密	Q1227452	2402907338	https://www.broadcom.com/products/advanced-threat-protection/encryption	4725
+Project Gutenberg	pg,projectgutenberg,projectgutenbergfineliteraturedigitallyrepublished	软件	古腾堡计划；美国作家迈克尔·哈特在1971年发起的一项志愿行动，致力于将公有领域的纸质作品数字化并存储在互联网上	Q22673	2550852684	https://gutenberg.org	8025
+Pretty Good Privacy	pgp,prettygoodprivacy	软件	优良保密协议；优秀、广泛使用的非对称加密	Q1227452	2402907338	https://www.broadcom.com/products/advanced-threat-protection/encryption	4725
 Pharo	pharo	编程语言	开源Smalltalk环境	Q369096	2561379351	https://pharo.org/	1130
-phpBB	phpbb,phpbulletinboard	软件	用超文本预处理器編寫的開源互聯網論壇包	Q14270	2549247241	https://www.phpbb.com/	4625
-phpMyAdmin	phpmyadmin,pma,thephpmyadminproject	软件	數據庫管理工具	Q188104	2504633855	https://www.phpmyadmin.net/	4325
+phpBB	phpbb	软件	用超文本预处理器編寫的開源互聯網論壇包	Q14270	2549247241	https://www.phpbb.com/	4625
+phpMyAdmin	phpmyadmin	软件	數據庫管理工具	Q188104	2504633855	https://www.phpmyadmin.net/	4325
+Pidgin	pidgin	软件	圖形化多協定即時通訊客戶端	Q71380	2529212112	https://pidgin.im	5025
 Pizza	pizza,pizzaprogramminglanguage	编程语言	Pizza (编程语言)（编程语言）	Q10350148	1729783089		530
-Spotify	platformspotify,spotify	软件	瑞典音乐串流服务平台	Q689141	2565170656	https://open.spotify.com/	10425
-PlayStation Productions	playstationoriginals,playstationproductions,playstationproductionsllc	公司	PlayStation製片公司（公司）	Q67171879	2553639548	https://www.playstation.com/playstation-productions/	1720
-PL/SQL	plsql,procedurallanguagestructuredquerylanguage	编程语言	编程语言	Q41574	2521744897		3530
+PlayStation Productions	playstationproductions,playstationproductionsllc	公司	PlayStation製片公司（公司）	Q67171879	2553639548	https://www.playstation.com/playstation-productions/	1720
+PL/SQL	plsql	编程语言	编程语言	Q41574	2521744897		3530
 Pokemon Go	pokemongo	软件	宝可梦 Go；擴增實境手機遊戲	Q20966579	2550803388	https://pokemongolive.com	7525
-Polish Wikipedia	polishwikipedia	软件	波兰语维基百科；维基百科的波兰语版	Q1551807	2562995662	https://pl.wikipedia.org/	8225
+Pong	pong	软件	乓；街机游戏	Q216293	2564823267		6025
 Portal	portal,portalgame,portalvideogame	软件	传送门；Valve於2007年推出的解謎遊戲	Q274897	2559860167		6025
 PostgreSQL	postgres,postgresql	数据库	自由开源的关系数据库管理系统	Q192490	2557308451	https://www.postgresql.org/	5850
-PRISM	prism,usxn	软件	棱镜计划；美国中央情报局（CIA）监听计划	Q13420597	2564223024		4725
-Processing	proceing,processing	编程语言	為電子藝術和視覺交互設計而創建的一種開源編程語言	Q1053535	2549247908	https://processing.org/	3330
-Valorant	projecta,valorant	软件	第一人称射击游戏	Q86919275	2566212769	https://playvalorant.com	5025
-Project:File Upload Wizard	projectfileuploadwizard,wikipediafileuploadwizard	软件	项目:上传（软件）	Q8989284	2555422392		8025
-Wikipedia:Sandbox	projectsandbox,testarea,wikipediasandbox,wikisandbox,wpsand,wpsandbox,wpsb,wptest,wptesting	软件	项目:沙盒；此页面只是各语言之沙盒位置，请勿在维基数据内的此项直接测试编辑。请使用[[Q4115189]]以测试项的编辑。	Q3938	2563340320		46725
-Twinkle	projecttwinkle,twinkle,wikipediatwinkle,wptw	软件	项目:Twinkle；一个JavaScript程序集（注意不是台湾主题公告栏）。	Q8845927	2562960749		6325
+PRISM	prism	软件	棱镜计划；美国中央情报局（CIA）监听计划	Q13420597	2564223024		4725
+Processing	processing	编程语言	為電子藝術和視覺交互設計而創建的一種開源編程語言	Q1053535	2549247908	https://processing.org/	3330
 Ptolemy Project	ptolemyproject	编程语言	Ptolemy计划（编程语言）	Q7257107	1646648008		230
 Puppy Linux	puppylinux	软件	輕量級的GNU/Linux散佈版	Q240116	2561553561	https://puppylinux.com/	4225
 PureScript	purescript	编程语言	一个強型別、純函數式、最終編譯為JavaScript的程式語言	Q65082796	2479233912	https://www.purescript.org/	730
@@ -997,178 +462,195 @@ Quake	quake,quakei	软件	雷神之锤（软件）	Q217423	2549455405		4425
 QuakeC	quakec	编程语言	雷神之锤C（编程语言）	Q2122062	2459830652		730
 Quora	quora	公司	問答網站	Q51711	2561608535	https://www.quora.com	5520
 Qwen	qwen	产品	阿里云开发的人工智能聊天助手	Q130234299	2537001715	https://chat.qwen.ai/	3450
-Ruby on Rails	rails,ror,rubyonrails	软件	开源Web应用框架	Q190478	2562234325	https://rubyonrails.org	5525
+Raku	raku	编程语言	Perl程式語言家族的成員	Q2052676	2542393941	https://raku.org/	1930
 Ramada	ramada,ramadabywyndham	公司	华美达；酒店品牌	Q1502859	2566433036		1820
 rank	rank	编程语言	秩 (J编程语言)（编程语言）	Q7293199	1729780696		230
 Ray-Ban	rayban	公司	雷朋；美国眼镜及太阳镜品牌，现由依视路陆逊梯卡集团持有	Q653941	2565548842	https://www.ray-ban.com/	4220
-Red Dead Redemption 2	rdr,rdrii,reddeadredemption,reddeadredemptionii	软件	碧血狂殺2；2018年以西部主題的動作冒險電子遊戲	Q27438121	2559861731	https://www.rockstargames.com/reddeadredemption2/	6025
+Red Dead Redemption 2	rdr,reddeadredemption,reddeadredemptionii	软件	碧血狂殺2；2018年以西部主題的動作冒險電子遊戲	Q27438121	2559861731	https://www.rockstargames.com/reddeadredemption2/	6025
 Red Dead Redemption	rdr,reddeadredemption	软件	荒野大鏢客：救贖；2010年電子遊戲	Q548203	2558569075		5025
+Resident Evil 2	re,residentevil	软件	生化危机2；卡普空推出的電子遊戲	Q733992	2561391395		4225
 React	react,reactjs	软件	用于构建响应式用户界面的JavaScript库	Q19399674	2558039107	https://ar.reactjs.org/	5225
-Theranos	realtimecures,theranos,theranosinc	公司	美國生物科技公司	Q16956307	2563725344		2520
 Reason	reason,reasonml	编程语言	Reason (编程语言)（编程语言）	Q63565848	2509855996	https://reasonml.github.io/	530
-record company	recordcompany,recordingcompany	公司	唱片公司；以制作唱片为主要业务的公司	Q2442401	2562813420		1520
-Warcraft III: Reign of Chaos	reignofchaos,thereignofchaos,war,warcraftiii,warcraftiiireignofchaos,warcraftiiithereignofchaos	软件	魔兽争霸III：混乱之治；2002年的電子遊戲	Q207948	2549474561		5125
-Ren'Py	renpy,rpy	编程语言	視覺小說引擎	Q1196014	2529538429	https://www.renpy.org/	2230
+record company	recordcompany	公司	唱片公司；以制作唱片为主要业务的公司	Q2442401	2562813420		1520
+Ren'Py	renpy	编程语言	視覺小說引擎	Q1196014	2529538429	https://www.renpy.org/	2230
 Replit	replit	开发工具	在线集成开发环境	Q60768699	2565170113	https://replit.com/	1350
-Rpal	rightreferencepedagogicalgorithmiclanguage,rpal	编程语言	PAL (编程语言)（编程语言）	Q7375538	1891551805		230
+Resident Evil 4	residentevil	软件	生化危机4；在2005年发行的一款流行电子游戏	Q275950	2559011847		5025
+Resident Evil	residentevil	软件	生化危机；卡普空于1996年推出的電子遊戲	Q1248594	2559008371		4425
 Roblox	roblox	软件	罗布乐思；线上创作及游戏平台	Q692989	2564827861	https://www.roblox.com/	8725
-Romanian Wikipedia	romanianwikipedia	软件	罗马尼亚语维基百科；维基百科罗马尼亚语版	Q199864	2562995782	https://ro.wikipedia.org/	7225
-Stuxnet	rootkittmphider,stuxnet,wstuxnet,wtemphid	软件	震网（软件）	Q53479	2562616322		4325
+Ruby on Rails	ror,rubyonrails	软件	开源Web应用框架	Q190478	2562234325	https://rubyonrails.org	5525
 Rotten Tomatoes	rottentomatoes	软件	烂番茄；影视评论网站	Q105584	2542053240	https://www.rottentomatoes.com/	7625
+Rpal	rpal	编程语言	PAL (编程语言)（编程语言）	Q7375538	1891551805		230
+RPG	rpg	编程语言	报表程序生成器（编程语言）	Q840543	2533806325		2530
 RPython	rpython	编程语言	以Python為基礎開發的程式語言	Q20870804	1785869711		430
-Russian Wikipedia	russianwikipedia	软件	俄语维基百科；维基百科协作项目计划的俄语版	Q206855	2564827809	https://ru.m.wikipedia.org/	9625
 Rust	rust	编程语言	注重内存安全且无需垃圾回收的编程语言	Q575650	2562751034	https://rust-lang.org/	6650
-SABIC	sabic,saudibasicindustriescorporation	公司	沙特基础工业公司；沙特阿拉伯公司	Q903219	2534556248		2420
+software as a service	saas,softwareasaservice	软件	软件即服务（软件）	Q1254596	2567149999		4325
+SABIC	sabic	公司	沙特基础工业公司；沙特阿拉伯公司	Q903219	2534556248		2420
 SAC programming language	sacprogramminglanguage	编程语言	SAC编程语言（编程语言）	Q7388480	2273559306		230
-SAE International	sae,saeinternational,saeorg,societyofautomotiveengineers	公司	国际汽车工程师学会（公司）	Q1427072	2534557026	https://www.sae.org/	2620
+SAE International	saeinternational	公司	国际汽车工程师学会（公司）	Q1427072	2534557026	https://www.sae.org/	2620
 Safari	safari,safaribrowser,safariwebbrowser	软件	蘋果公司開發的網頁瀏覽器	Q35773	2558748013	https://www.apple.com/safari/	8025
 Stanford Artificial Intelligence Language	sail,stanfordartificialintelligencelanguage	编程语言	SAIL编程语言（编程语言）	Q2204794	2257116659		330
 SARL	sarl,sarllanguage	编程语言	SARL语言（编程语言）	Q25052046	2352439892		230
-SAS Language	sas,saslanguage	编程语言	SAS语言（编程语言）	Q7388824	2527153438		930
-SASL	sasl,standrewsstandardlanguage,standrewsstaticlanguage	编程语言	SASL (编程语言)（编程语言）	Q4048691	2510626364		430
+SASL	sasl	编程语言	SASL (编程语言)（编程语言）	Q4048691	2510626364		430
+SAS Language	saslanguage	编程语言	SAS语言（编程语言）	Q7388824	2527153438		930
 Sbarro	sbarro	公司	斯巴羅（公司）	Q2589409	2564651425	https://sbarro.com/	1920
-Scots Wikipedia	scotswikipedia	软件	低地苏格兰语维基百科；维基百科低地苏格兰语版	Q1444686	2562995654	https://sco.wikipedia.org/	4825
+SCM	scm	编程语言	SCM (Scheme实现)（编程语言）	Q7389181	2548207573	https://www.gnu.org/software/scm/	230
 Scratch	scratch,scratchmitedu	编程语言	编程语言学习环境	Q275131	2563355839	https://scratch.mit.edu	6530
-SCUMM	scriptcreationutilityformaniacmansion,scumm	编程语言	美國遊戲商盧卡斯藝術使用的遊戲開發引擎	Q836102	2522671545		2330
-Stardew Valley	sdv,sproutvalley,stardew,stardewvalley	软件	星露谷物语；2016年角色扮演电子游戏	Q23013817	2565319876	https://www.stardewvalley.net/	4625
+SCUMM	scumm	编程语言	美國遊戲商盧卡斯藝術使用的遊戲開發引擎	Q836102	2522671545		2330
+Second Life	secondlife,sl	软件	第二人生；線上虛擬世界	Q106827	2523609356	https://secondlife.com/	5425
 Self	self	编程语言	基于原型的编程语言	Q1864529	2528379092	https://selflanguage.org/	1730
-Semantic Web	semanticweb,semanticwebtechnologies,semweb	软件	语义网；给万维网上的文档添加能被计算机所理解的语义	Q54837	2564498320	https://www.w3.org/standards/semanticweb/	4725
-Serbian Wikipedia	serbianlanguagewikipedia,serbianwikipedia,sr,srwikipedia,srwp,vikipedijanasrpskomjeziku,wikipediainserbian,wikipediasr	软件	塞尔维亚语维基百科；维基百科塞尔维亚语版	Q200386	2566228781	https://sr.wikipedia.org/	7425
-Serbo-Croatian Wikipedia	serbocroatianwikipedia	软件	塞尔维亚-克罗地亚语维基百科；维基百科塞尔维亚-克罗地亚语版	Q58679	2566229329	https://sh.wikipedia.org/	6125
-Server Side Includes	serverparsedhtml,serversideincludes,shtml,ssi	编程语言	服务器端包含（编程语言）	Q1411939	1972075499		1930
-Shein	shein,sheincom,sheinkk,zzkko	软件	希音；中国快时尚跨境电商公司	Q107377209	2561778675	https://shein.com/	4125
-Sicilian Wikipedia	sicilianwikipedia,siculuwikipedia	软件	西西里语维基百科（软件）	Q1058430	2562994911	https://scn.wikipedia.org/	4525
+Semantic Web	semanticweb,semanticwebtechnologies	软件	语义网；给万维网上的文档添加能被计算机所理解的语义	Q54837	2564498320	https://www.w3.org/standards/semanticweb/	4725
+Server Side Includes	serversideincludes,ssi	编程语言	服务器端包含（编程语言）	Q1411939	1972075499		1930
+Shein	shein,sheincom,sheinkk	软件	希音；中国快时尚跨境电商公司	Q107377209	2561778675	https://shein.com/	4125
+Shimano	shimano,shimanoinc,shimanoincsakai,shimanoindustrialcoltd,shimanoironworks,shimanoironworkscoltd,shimanokabushikikaisha	公司	禧玛诺；日本公司	Q949610	2550131186	https://www.shimano.com/en/	3220
 Silent Hill 2	silenthill	软件	寂静岭 II（软件）	Q752835	2546821564		4325
-Simple English Wikipedia	simpleenglishwikipedia	软件	简单英语维基百科；维基百科简单英语版	Q200183	2562980204	https://simple.wikipedia.org/	7125
-SPARQL	simpleprotocolrdfquerylanguage,sparql,sparqlprotocolandrdfquerylanguage,sparqlquerylanguage	编程语言	语义网查询专有语言	Q54871	2558870463	https://www.w3.org/TR/sparql11-query/	3930
-The Sims 3	sims,thesims	软件	模拟人生3；2009年電子遊戲	Q185482	2547484056	https://www.thesims3.com	5525
-The Sims 4	sims,thesims,ts	软件	模拟人生4；2014年電子遊戲	Q12579896	2549660775	https://www.ea.com/games/the-sims/the-sims-4	5225
-SketchUp	sketchup,trimblesketchup	软件	草图大师；三維建模程序	Q79604	2565170950	https://how-to-sketchup.com/	4525
-Slovak Wikipedia	skwiki,skwikipedia,skwikipediaorg,skwp,slovakwikipedia	软件	斯洛伐克语维基百科；维基百科的斯洛伐克语版	Q192582	2565181439	https://sk.wikipedia.org/	7025
-Slovene Wikipedia	slovenewikipedia,slovenianwikipedia,slwiki,slwikipedia	软件	斯洛文尼亚语维基百科；维基百科斯洛文尼亚语版	Q14380	2562997929	https://sl.wikipedia.org/	6825
-Super Mario Bros.	smb,supermariobros,supermariobrothers	软件	超级马力欧兄弟；1985年電子遊戲	Q11168	2565150748		7925
+SketchUp	sketchup	软件	草图大师；三維建模程序	Q79604	2565170950	https://how-to-sketchup.com/	4525
+Super Mario 64	sm,supermario,supermariobros,supermariobrothers	软件	超级马力欧64；1996年電子遊戲	Q216995	2565720479		5125
+Super Mario Bros.	smb,supermariobros	软件	超级马力欧兄弟；1985年電子遊戲	Q11168	2565150748		7925
+Super Mario Bros. 3	smb,supermariobros	软件	超级马力欧兄弟3；1988年电子游戏	Q639619	2560688963		4625
 Synchronized Multimedia Integration Language	smil,synchronizedmultimediaintegrationlanguage	编程语言	同步多媒体集成语言（编程语言）	Q1072180	2498006886		2230
-Standard ML of New Jersey	smlnj,standardmlofnewjersey	编程语言	新泽西Standard ML（编程语言）	Q239406	2532583479	https://www.smlnj.org/	430
+Snap!	snap	编程语言	以JavaScript編寫的圖形化程式語言	Q1002996	2565859119	https://snap.berkeley.edu	1930
+Solaris	solaris,solarisoperatingsystem,solarisos	软件	最初由昇陽電腦開發的尤納克斯操作系統	Q14646	2518837848	https://www.oracle.com/solaris	6425
 Space Adventures	spaceadventures,spaceadventuresltd	公司	太空探險公司（公司）	Q81133	2517064025		1720
 Space Invaders	spaceinvaders	软件	太空侵略者；日本太东公司的游戏	Q220665	2563896076		5225
 Spacewar!	spacewar	软件	太空大战！；1962年发行的太空战争模拟游戏	Q782919	2560924531		4225
-Wikispecies	specieswiki,specieswikimediaorg,sw,wikispecies,ws	软件	维基物种；美国维基媒体基金会旗下的在线物种名录，面向公众开放编辑	Q13679	2565169275	https://species.wikimedia.org/	10425
-SQL	sql,structuralquerylanguage	编程语言	结构化查询语句；计算机中用于检索和管理关系数据库管理系统中的数据以及数据库模式和访问控制管理的语言	Q47607	2565910273	https://www.iso.org/standard/76583.html	11130
+SPARQL	sparql,sparqlprotocolandrdfquerylanguage,sparqlquerylanguage	编程语言	语义网查询专有语言	Q54871	2558870463	https://www.w3.org/TR/sparql11-query/	3930
+Spotify	spotify	软件	瑞典音乐串流服务平台	Q689141	2565170656	https://open.spotify.com/	10425
+SQL	sql	编程语言	结构化查询语句；计算机中用于检索和管理关系数据库管理系统中的数据以及数据库模式和访问控制管理的语言	Q47607	2565910273	https://www.iso.org/standard/76583.html	11130
 SQL*Plus	sqlplus,sqlplussqlplus	编程语言	结构化查询语言加（编程语言）	Q2575010	2532584728		1230
-structured text	st,structuredtext,stx	编程语言	結構式文件編程語言（编程语言）	Q1753738	2377099118		1130
+structured text	st,structuredtext	编程语言	結構式文件編程語言（编程语言）	Q1753738	2377099118		1130
 Stack Overflow	stackoverflow	平台	面向程序员的技术问答网站	Q549037	2564761222	https://stackoverflow.com/	3850
-S.T.A.L.K.E.R.: Shadow of Chernobyl	stalker,stalkershadowofchernobyl	软件	潜行者：切尔诺贝利的阴影（软件）	Q215861	2553345851	https://soc.stalker-game.ru	4525
-Subway Surfers	subwaysurf,subwaysurfers	软件	地铁跑酷；一款由丹麦游戏公司SYBO与kiloo开发的跑酷类游戏	Q9176944	2529339720		4825
+S.T.A.L.K.E.R.: Shadow of Chernobyl	stalkershadowofchernobyl	软件	潜行者：切尔诺贝利的阴影（软件）	Q215861	2553345851	https://soc.stalker-game.ru	4525
+Standard ML of New Jersey	standardmlofnewjersey	编程语言	新泽西Standard ML（编程语言）	Q239406	2532583479	https://www.smlnj.org/	430
+Stardew Valley	stardewvalley	软件	星露谷物语；2016年角色扮演电子游戏	Q23013817	2565319876	https://www.stardewvalley.net/	4625
+Stuxnet	stuxnet	软件	震网（软件）	Q53479	2562616322		4325
+Subway Surfers	subwaysurfers	软件	地铁跑酷；一款由丹麦游戏公司SYBO与kiloo开发的跑酷类游戏	Q9176944	2529339720		4825
 Supabase	supabase	平台	基于 PostgreSQL 的开源开发平台	Q136776342	2550007574	https://supabase.com/	150
 SuperCollider	supercollider	编程语言	音频编程语言	Q2299598	2458008351	https://supercollider.github.io/	1830
-Swahili Wikipedia	swahiliwikipedia	软件	斯瓦希里语维基百科（软件）	Q722243	2565184881	https://sw.wikipedia.org/	5525
-Swedish Wikipedia	swedishwikipedia	软件	瑞典语维基百科；维基百科瑞典语版	Q169514	2562995695	https://sv.wikipedia.org/	9325
+Super Mario Odyssey	supermarioodyssey	软件	超级马力欧 奥德赛；2017年电子游戏	Q28234671	2565721343	https://www.nintendo.co.jp/switch/aaaca/	4225
+Swift	swift,swiftappleprogramminglanguage,swiftlang,swiftlanguage,swiftorg,swiftprogramminglanguage	编程语言	Swift語言；蘋果公司開發的編程語言	Q17118377	2563335624	https://www.swift.org/	5830
 Symbian	symbian,symbianos	软件	塞班；移动操作系统	Q483318	2552205263		7025
 SystemVerilog	systemverilog	编程语言	硬體描述・硬體驗證統一語言	Q1387402	2498154345		1230
-Tajik Wikipedia	tajikwikipedia	软件	塔吉克语维基百科；维基百科塔吉克语版	Q2742472	2562995971	https://tg.wikipedia.org/	4225
-Target Corporation	tajjay,target,targetcorporation,targetstore,tarzhay	公司	塔吉特（公司）	Q1046951	2566456968	https://www.target.com	4020
-Tamagotchi	tamagacchi,tamagatchi,tamagotchi	软件	拓麻歌子；一種電子寵物	Q207786	2561651225	https://tamagotchi-official.com	4625
-Tamil Wikipedia	tamilwikipedia,tawikipedia,tawp	软件	泰米尔语维基百科；维基百科泰米尔语版	Q844491	2565185849	https://ta.wikipedia.org/	5825
-TECO	tapeeditorandcorrector,teco,texteditorandcorrector	编程语言	文本编辑和校正器（编程语言）	Q1547448	2516301873		1730
-Tatar Wikipedia	tatarwikipedia	软件	鞑靼语维基百科；维基百科鞑靼语版	Q60819	2565180899	https://tt.wikipedia.org/	6425
-Tcl	tcl,toolcommandlanguage	编程语言	脚本语言	Q5288	2566980346	https://www.tcl-lang.org	4830
+Tamagotchi	tamagotchi	软件	拓麻歌子；一種電子寵物	Q207786	2561651225	https://tamagotchi-official.com	4625
+Target Corporation	target,targetcorporation	公司	塔吉特（公司）	Q1046951	2566456968	https://www.target.com	4020
+Tcl	tcl	编程语言	脚本语言	Q5288	2566980346	https://www.tcl-lang.org	4830
 Team Fortress 2	teamfortress	软件	军团要塞2（软件）	Q382108	2518419541	https://teamfortress.com	7225
-Temu	teamup,temonameng,temu,temucom,temushop	软件	一般被认为是拼多多国际版	Q114258161	2564012792	https://www.temu.com/	4925
-Telugu Wikipedia	teluguwikipedia	软件	泰卢固语维基百科；维基百科泰卢固语版	Q848046	2565186931	https://te.wikipedia.org/	5625
-Template:Db-meta	templatedbmeta	软件	维基媒体模块	Q6535522	2559233956		8925
+TECO	teco	编程语言	文本编辑和校正器（编程语言）	Q1547448	2516301873		1730
+Telefonica	telefonica,telefonicasa	公司	西班牙电信；西班牙馬德里的一家電信公司	Q160229	2564550832	https://www.telefonica.com/	4620
+Temu	temu,temucom,temushop	软件	一般被认为是拼多多国际版	Q114258161	2564012792	https://www.temu.com/	4925
 TensorFlow	tensorflow	框架	机器学习软件框架	Q21447895	2550169852	https://tensorflow.org/	4050
 Terraria	terraria	软件	泰拉瑞亚；沙盒游戏	Q332697	2562195164	https://terraria.org/	5025
-TPG	texaspacificgroup,texaspacificgroupcapital,tpg,tpggrowth,tpginc	公司	德州太平洋集团（公司）	Q2164606	2534543792	https://www.tpg.com/	1520
-Thai Wikipedia	thaiwikipedia	软件	泰语维基百科；维基百科泰语版	Q565074	2562996588	https://th.wikipedia.org/	6325
-Wikipedia	thefreeencyclopedia,wikipedia,wikipediathefreeencyclopedia,wikipediathefreeencyclopediathatanyonecanedit	软件	维基百科；人人可编辑的自由百科全书	Q52	2566934927	https://wikipedia.org/	38025
-Tor	theonionrouter,tor	软件	基於洋蔥路由及相關軟件的匿名通信網絡	Q202044	2564925507	https://www.torproject.org	6725
-The Pirate Bay	thepiratebay,torrentdb,torrentdbga,tpb	软件	海盗湾；專門存儲、分類及搜索Bittorrent種子文件及磁力連結的網站	Q22663	2549303560	https://piratebayo3klnzokct3wt5yyxb2vpebbuyjl7m623iaxmqhsd52coid.onion	6425
+The Elder Scrolls IV: Oblivion	theelderscrollsivoblivion	软件	上古卷轴IV：湮没；2006年電子遊戲	Q49607	2558537792	https://elderscrolls.bethesda.net/oblivion/	4525
+The Legend of Zelda: Breath of the Wild	thelegendofzeldabreathofthewild	软件	塞尔达传说 旷野之息；2017年日本電子遊戲	Q17185964	2565048048	https://www.nintendo.co.jp/zelda/botw/	5225
+The Legend of Zelda: Ocarina of Time	thelegendofzeldaocarinaoftime,tlozoot	软件	萨尔达传说 时之笛；1998年日本電子遊戲	Q213911	2565723580	https://www.nintendo.co.jp/n01/n64/software/zelda/index.html	4225
+The Pirate Bay	thepiratebay,tpb	软件	海盗湾；專門存儲、分類及搜索Bittorrent種子文件及磁力連結的網站	Q22663	2549303560	https://piratebayo3klnzokct3wt5yyxb2vpebbuyjl7m623iaxmqhsd52coid.onion	6425
+Theranos	theranos,theranosinc	公司	美國生物科技公司	Q16956307	2563725344		2520
 The Sims	thesims	软件	模拟人生；2000年電子遊戲	Q184816	2566450048		5925
+The Sims 3	thesims	软件	模拟人生3；2009年電子遊戲	Q185482	2547484056	https://www.thesims3.com	5525
 The Sims 2	thesims	软件	模拟人生2；2004年電子遊戲	Q182771	2549446921		5325
-The Unicode Standard	theunicodestandard,unicode,unicodestandard	软件	计算机科学领域里的一项业界标准	Q8819	2562941040	https://unicode.org	13125
+The Sims 4	thesims,ts	软件	模拟人生4；2014年電子遊戲	Q12579896	2549660775	https://www.ea.com/games/the-sims/the-sims-4	5225
+The Unicode Standard	theunicodestandard	软件	计算机科学领域里的一项业界标准	Q8819	2562941040	https://unicode.org	13125
 The Vanguard Group	thevanguardgroup	公司	先锋基金；基金管理公司	Q849363	2557792265	https://investor.vanguard.com/	3820
-World Wide Web	theweb,theworldwideweb,worldwideweb	软件	万维网；由许多互相链接的超文本组成的系统，通过互联网访问	Q466	2560042901		15825
-The Witcher 3: Wild Hunt	thewitcher,thewitcheriii,thewitcheriiiwildhunt,thewitcherwildhunt,tw,wildhunt,witcher	软件	巫师3：狂猎；2015年電子遊戲	Q4267401	2566937319		5425
 The Witcher	thewitcher	软件	巫师；角色扮演游戏	Q287637	2543977106	https://www.thewitcher.com/en/witcher1	4325
-TNT	tht,tnt,tvoyonovoyetelevideniye	公司	TNT（俄羅斯電視頻道）（公司）	Q1975145	2524310278	https://tnt-online.ru/	1920
+The Witcher 3: Wild Hunt	thewitcherwildhunt	软件	巫师3：狂猎；2015年電子遊戲	Q4267401	2566937319		5425
 TikTok	tiktok	软件	短视频社交应用程式	Q48938223	2563724864	https://tiktok.com	13825
 Tinder	tinder	软件	一款美国的约会应用	Q15078152	2550169654	https://tinder.com	4825
-Togg	togg,turkeysautomobilejointventuregroupinc	公司	托格（公司）	Q6039733	2534566301	https://www.togg.com.tr	7220
+TNT	tnt	公司	TNT（俄羅斯電視頻道）（公司）	Q1975145	2524310278	https://tnt-online.ru/	1920
+Togg	togg	公司	托格（公司）	Q6039733	2534566301	https://www.togg.com.tr	7220
+Tokyo MX	tokyomx,tokyomxtv	公司	东京都会电视台；以東京都為廣播範圍的日本電視台	Q115146	2532787334	https://s.mxtv.jp/	2920
 Tomb Raider	tombraider,tombraidergold	软件	古墓丽影；1996年电子游戏	Q317620	2565344239		4325
 Tomb Raider	tombraider	软件	古墓丽影（软件）	Q1757876	2523505850		4125
-Transact-SQL	transactsql,tsql	编程语言	微軟和系統基地對結構化查詢語言的專有擴展，用於與關係數據庫進行交互	Q1411245	2516808338	https://www.tsql.info/	2230
+Tor	tor	软件	基於洋蔥路由及相關軟件的匿名通信網絡	Q202044	2564925507	https://www.torproject.org	6725
+TPG	tpg,tpggrowth,tpginc	公司	德州太平洋集团（公司）	Q2164606	2534543792	https://www.tpg.com/	1520
+Transact-SQL	transactsql	编程语言	微軟和系統基地對結構化查詢語言的專有擴展，用於與關係數據庫進行交互	Q1411245	2516808338	https://www.tsql.info/	2230
 Transdev Group	transdevgroup	公司	法国交通发展集团（公司）	Q104185516	2534549223	https://www.transdev.com/	1820
+translatewiki.net	translatewikinet	软件	翻译自由软件的网站	Q9376349	2532720454	https://translatewiki.net/	5125
 Travian	travian	软件	瀏覽器遊戲	Q170331	2544283813	https://www.travian.com/	5325
-True Corporation	true,truecorporation,truecorporationpubliccoltd,truecorporationpubliccompanylimited,trueg	公司	TRUE (通信业)（公司）	Q3268422	2534547520	https://www.true.th/	1720
+True Corporation	true,truecorporation,truecorporationpubliccoltd,truecorporationpubliccompanylimited	公司	TRUE (通信业)（公司）	Q3268422	2534547520	https://www.true.th/	1720
 Truth Social	truthsocial	软件	真实社交；网络社交平台	Q109001687	2559496662	https://www.truthsocial.com	5025
-Turkish Wikipedia	turkishwikipedia	软件	土耳其语维基百科；维基百科的土耳其语版	Q58255	2565179802	https://tr.wikipedia.org/	8125
 TypeScript	typescript	编程语言	可编译为 JavaScript 的类型化编程语言	Q978185	2563162385	https://www.typescriptlang.org/	4680
-United Artists	ua,uac,unitedartist,unitedartists	公司	聯美；成立於1919年的美國影視公司	Q219400	2538466834		6020
+United Artists	ua,unitedartists	公司	聯美；成立於1919年的美國影視公司	Q219400	2538466834		6020
 Uber	uber,ubercab,ubertechnologiesincsanfranciscoca,ubertechnology	软件	优步；總部位於美國加利福尼亞州舊金山的食品配送和運輸網絡公司	Q780442	2557644036	https://www.uber.com/	7325
-United Kennel Club	ukc,unitedkennelclub,upenekc	公司	聯合犬業俱乐部（公司）	Q39496	2514757037	https://www.ukcdogs.com/	1920
-Ukrainian Wikipedia	ukrainianwikipedia	软件	乌克兰语维基百科；乌克兰语的维基百科部分	Q199698	2562995777	https://uk.wikipedia.org/	8425
+United Kennel Club	ukc,unitedkennelclub	公司	聯合犬業俱乐部（公司）	Q39496	2514757037	https://www.ukcdogs.com/	1920
 Uncyclopedia	uncyclopedia	软件	伪基百科；一个模仿维基百科界面的恶搞网站	Q17460	2561756445	https://beidipedia.miraheze.org/wiki	7425
-Undertale	undertale,ut	软件	传说之下；2015年角色扮演电子游戏	Q21039924	2566947860	https://undertale.com/	5725
+Undertale	undertale	软件	传说之下；2015年角色扮演电子游戏	Q21039924	2566947860	https://undertale.com/	5725
 Unicon	unicon	编程语言	Unicon (编程语言)（编程语言）	Q3279945	2399847186		730
-United Nations Mission of Support to East Timor	unitednationsmissionofsupporttoeasttimor,unmiset	公司	聯合國東帝汶支助團（公司）	Q2141705	2550151347		1520
+Unified Expression Language	unifiedexpressionlanguage	编程语言	表达式语言；脚本语言	Q850712	1851424936		230
+United Nations Mission of Support to East Timor	unitednationsmissionofsupporttoeasttimor	公司	聯合國東帝汶支助團（公司）	Q2141705	2550151347		1520
 UNITY	unity	编程语言	UNITY (程式語言)（编程语言）	Q7475904	1785337929		230
 UNIX m4	unixm	编程语言	傳統的UNIX巨集處理程式	Q292068	2547486168		1730
-Ur/Web	ur,urweb	编程语言	Ur (编程语言)（编程语言）	Q18711761	2258498740		430
-Urdu Wikipedia	urduwikipedia	软件	乌尔都语维基百科；维基百科乌尔都语版	Q1067878	2562994940	https://ur.wikipedia.org/	6625
-Uzbek Wikipedia	uzbekwikipedia	软件	烏茲別克語維基百科（软件）	Q2081526	2562995869	https://uz.wikipedia.org/	5925
+Ur/Web	urweb	编程语言	Ur (编程语言)（编程语言）	Q18711761	2258498740		430
 Variable Assembly Language	val,variableassemblylanguage	编程语言	可变汇编语言（编程语言）	Q7915693	2258430826		330
 Vala	vala	编程语言	程式語言	Q1138939	2553410011	https://vala.dev	2830
+Valorant	valorant	软件	第一人称射击游戏	Q86919275	2566212769	https://playvalorant.com	5025
+Visual Basic Script	vbs,visualbasicscript	编程语言	脚本语言	Q13743	2566711140	https://docs.microsoft.com/en-us/previous-versions/t0aew7h6(v=vs.85)	4330
 Vercel	vercel	平台	用于静态站点和无服务器应用的托管平台	Q139257301	2565170149	https://vercel.com/about	50
 Veuve Clicquot	veuveclicquot,veuveclicquotponsardin	公司	凯歌香槟（公司）	Q610350	2560271313	https://www.veuve-clicquot.com/	2020
-Windows 7	vienna,windows,windowsseven,windowssp	软件	操作系统	Q11215	2565005630		10325
-Vietnamese Wikipedia	vietnamesewikipedia	软件	越南语维基百科；维基百科越南语版	Q200180	2565181849	https://vi.wikipedia.org/	7625
+Viettel Group	viettel,viettelgroup,viettelgrouphanoi	公司	越南军用电子电信；公司	Q1109534	2477914174	https://viettel.vn/	1720
 VinFast	vinfast	公司	越南汽车品牌	Q56660561	2528220810	https://vinfastauto.com/	2720
 Virtual International Authority File	virtualinternationalauthorityfile	软件	虚拟国际规范文档；國際權威檔案	Q54919	2563442750	https://viaf.org/	7825
+Visual Studio	visualstudio,visualstudionet	软件	微軟公司的開發工具套件系列產品	Q134067	2565170142	https://visualstudio.microsoft.com/	6425
 Visual Studio Code	visualstudiocode,vscode	开发工具	微软开发的源代码编辑器	Q19841877	2565454188	https://code.visualstudio.com/	4575
 Vitaphone	vitaphone	公司	维塔电话公司（公司）	Q1809118	2554562446		1820
 Vivaldi	vivaldi,vivaldibrowser,vivaldiwebbrowser	软件	Vivaldi瀏覽器；網路瀏覽器	Q18913176	2567228170	https://vivaldi.com	4125
-Viz Media, LLC	viz,vizcomics,vizcommunications,vizmedia,vizmediallc	公司	碧日（公司）	Q660288	2534559809	https://www.viz.com/	3020
-Volapuk Wikipedia	volapukwikipedia	软件	沃拉普克语维基百科；维基百科沃拉普克语版	Q714826	2565184685	https://vo.wikipedia.org/	5225
+Viz Media, LLC	vizmedia,vizmediallc	公司	碧日（公司）	Q660288	2534559809	https://www.viz.com/	3020
 Volgograd Tractor Factory	volgogradtractorfactory	公司	伏尔加格勒拖拉机厂（公司）	Q2562433	2527351278		1820
-Vue.js	vue,vuejs	软件	JavaScript 框架	Q24589705	2550169940	https://github.com/vuejs/core/tree/main/packages/vue#readme	4225
-Warner Bros. Pictures Animation	wag,warneranimationgroup,warnerbrospicturesanimation	公司	华纳动画集团（公司）	Q47517081	2561200922	https://www.warnerbrospicturesanimation.com/	2620
-Warner Bros. Pictures	warnerbrospictures,warnerbrospicturesinc,warnerbrosproductions,warnerbrotherspictures	公司	华纳兄弟影业；美国电影制片厂	Q8016302	2554058618	https://www.warnerbros.com/company/divisions/motion-pictures#warner-bros-pictures	3420
-War Thunder	warthunder,worldofplanes,wt	软件	戰爭雷霆；大型多人载具对战游戏	Q4052939	2565220185	https://warthunder.ru/	4625
-WebAssembly	wasm,webasm,webassembly	编程语言	用來為網路編譯機器碼的可移植高效率位元碼格式	Q20155677	2559679841	https://webassembly.org/	3230
+Vue.js	vuejs	软件	JavaScript 框架	Q24589705	2550169940	https://github.com/vuejs/core/tree/main/packages/vue#readme	4225
+Warcraft III: Reign of Chaos	warcraftiiireignofchaos	软件	魔兽争霸III：混乱之治；2002年的電子遊戲	Q207948	2549474561		5125
+Warner Bros. Pictures	warnerbrospictures,warnerbrospicturesinc	公司	华纳兄弟影业；美国电影制片厂	Q8016302	2554058618	https://www.warnerbros.com/company/divisions/motion-pictures#warner-bros-pictures	3420
+Warner Bros. Pictures Animation	warnerbrospicturesanimation	公司	华纳动画集团（公司）	Q47517081	2561200922	https://www.warnerbrospicturesanimation.com/	2620
+War Thunder	warthunder,wt	软件	戰爭雷霆；大型多人载具对战游戏	Q4052939	2565220185	https://warthunder.ru/	4625
 Wayback Machine	waybackmachine	软件	网站时光机；网际网络档案储存网站	Q648266	2564797086	https://archive.org/web/	12025
-Wildberries	wb,wildberries	公司	野莓；俄羅斯網絡零售商	Q24933714	2565605187	https://www.wildberries.by/	3020
 WEB	web	编程语言	編程語言	Q1141484	2516303670		1630
-WeChat	wechat,weixin	软件	微信；全球通讯软件	Q283233	2548037184	https://weixin.qq.com	6525
+WebAssembly	webassembly	编程语言	用來為網路編譯機器碼的可移植高效率位元碼格式	Q20155677	2559679841	https://webassembly.org/	3230
+WeChat	wechat	软件	微信；全球通讯软件	Q283233	2548037184	https://weixin.qq.com	6525
 wenyan	wenyan	编程语言	文言；中文编程语言	Q108770579	2503527814	https://wy-lang.org/	330
 White Rose	whiterose	公司	白玫瑰；历史组织	Q153364	2517433573		5920
 Wii Sports	wiisports	软件	2006年电子游戏	Q71936	2565732016		4525
 Wikibooks	wikibooks	软件	维基教科书；自由的图书贡献	Q367	2561759139	https://wikibooks.org/	13525
+Wikidata	wikidata	软件	维基数据；人人可编辑的自由知识库	Q2013	2565241311	https://wikidata.org/	15225
 Wikifunctions	wikifunctions	软件	用於維護可重用程式碼的開放函式庫的維基媒體專案	Q104587954	2540173084	https://www.wikifunctions.org/	4925
 Wikimania	wikimania	软件	维基媒体国际会议；由维基媒体基金会主办的wiki项目用户年度学术会议	Q483279	2561607729	https://w.wiki/TH	10525
 WikiMapia	wikimapia,wikimapiaorg	软件	维基卫星地图（软件）	Q187491	2507067845	https://wikimapia.org/	5125
-Wikipedia:TemplateData	wikipediatemplatedata	软件	Wikipedia:模板数据（软件）	Q13583584	2555423467		5425
+Wikimedia Commons	wikimediacommons	软件	维基共享资源；存放自由开放的图片、声音及其他多媒体档案的地方	Q565	2565246469	https://commons.wikimedia.org/	18025
+Wikimedia Incubator	wikimediaincubator	软件	维基孵育场；测试新语言版本维基百科、维基词典、维基语录、维基教科书、维基新闻、维基导游的维基媒体基金会网站	Q846672	2565195640	https://incubator.wikimedia.org/	5425
+Wikipedia	wikipedia,wikipediathefreeencyclopedia,wikipediathefreeencyclopediathatanyonecanedit	软件	维基百科；人人可编辑的自由百科全书	Q52	2566934927	https://wikipedia.org/	38025
 Wikiquote	wikiquote	软件	维基语录；维基媒体旗下由志愿者编辑的语录收集网站	Q369	2564505355	https://wikiquote.org/	13425
 Wikisource	wikisource	软件	维基文库；自由的原始文献存储库	Q263	2564799068	https://wikisource.org/	15125
+Wikispecies	wikispecies	软件	维基物种；美国维基媒体基金会旗下的在线物种名录，面向公众开放编辑	Q13679	2565169275	https://species.wikimedia.org/	10425
 Wikitravel	wikitravel,wikitravelorg	软件	维客旅行；使用wiki的全球旅游指南	Q2017	2567143337	https://wikitravel.org/	5725
 Wikiversity	wikiversity,wikiversityorg	软件	维基学院；自由的学术研究社群	Q370	2561607783	https://www.wikiversity.org/	10625
 Wikivoyage	wikivoyage,wikivoyageorg	软件	维基导游；自由的多语言旅行手册	Q373	2566529208	https://wikivoyage.org/	8825
 Wiktionary	wiktionary,wiktionarythefreedictionary	软件	维基词典；由志愿者编纂的多语言词典计划	Q151	2565477974	https://wiktionary.org/	15825
+Wildberries	wildberries	公司	野莓；俄羅斯網絡零售商	Q24933714	2565605187	https://www.wildberries.by/	3020
+Windows 7	windows,windowsseven,windowssp	软件	操作系统	Q11215	2565005630		10325
+Windows 95	windows	软件	操作系统	Q83370	2560306804		8125
+Windows 1.0	windows	软件	操作系统	Q58378	2525006170		6625
+Windows 2.0	windows	软件	基于16位Microsoft Windows GUI的操作环境	Q485021	2521230279		5925
 Windows 3.0	windows	软件	微软Windows的第三个主要版本	Q491546	2521230293		4625
-WQL	windowsmanagementinstrumentationquerylanguage,wql	编程语言	Windows管理规范查询语言（编程语言）	Q3564783	2345582027		630
+Windows Live Messenger	windowslivemessenger	软件	視窗即時通訊；即時通訊軟件	Q71493	2559727824		5425
+Windows Mobile	windowsmobile	软件	移动操作系统	Q21207	2566171900		5125
+Windows NT 4.0	windowsnt	软件	微软第四代32位图形化操作系统。	Q488978	2560218860		4925
+Windows Phone	windowsphone,wp	软件	微软公司推出的移动设备操作系统	Q4885200	2552488126		7525
 Windows Phone 9	windowsphone	软件	微軟公司推出的移動操作系統	Q18845397	2563427098	https://microsoft.com/mobile/windows10	4325
+Windows Server 2003	windowsserver	软件	基於視窗體驗的視窗服務器服務器操作系統版本	Q11246	2560579690		5525
 Wine	wine	软件	在类UNIX操作系统运行Windows程序的软件	Q188558	2563074342	https://www.winehq.org/	4925
 WinRAR	winrar	软件	软件	Q242747	2565170704	https://www.rarlab.com/	4525
 Wolfram Alpha	wolframalpha,wolframalphacom	软件	在线自动问答系统	Q207006	2559612324	https://www.wolframalpha.com	4225
 World of Tanks	worldoftanks	软件	坦克世界；战游网所开发的互连网游戏	Q590342	2566183127	https://wargaming.net/worldoftanks/	4625
+World Wide Web	worldwideweb	软件	万维网；由许多互相链接的超文本组成的系统，通过互联网访问	Q466	2560042901		15825
+WQL	wql	编程语言	Windows管理规范查询语言（编程语言）	Q3564783	2345582027		630
 Wuling Motors	wulingmotors,wulingmotorsholdingslimited	公司	五菱汽车（公司）	Q3817853	2557925589	https://www.wuling.com/	1920
+x86 assembly language	xassemblylanguage,xassemblylanguageinlongmode,xassemblylanguageinprotectedmode,xassemblylanguageinrealmode	编程语言	X86 汇编；x86架構中使用的組合語言	Q297868	2534456736		2330
 XC	xc	编程语言	XC (编程语言)（编程语言）	Q7665653	2495059396		230
 XL	xl	编程语言	XL (程式語言)（编程语言）	Q1859276	2437785643		930
+XML	xml	编程语言	可扩展标记语言；一种标记语言	Q2115	2552242108		10130
 Xubuntu	xubuntu	软件	以Ubuntu為基礎開發，使用Xfce桌面環境的Linux散佈版	Q72688	2564863254	https://xubuntu.org/	4725
 XVideos	xvideos,xvideoscom	软件	色情影片分享网站	Q3700050	2538338356		5625
-X Window System	xwindow,xwindows,xwindowsystem	软件	X窗口系统；類UNIX系統的圖形控制器和網絡協議	Q178481	2525338414	https://x.org	5725
-Yandex	yandex,yandexcom,yandexllc,yaru	软件	俄羅斯互聯網企業	Q5281	2557293819	https://yandex.com	7425
-Yiddish Wikipedia	yiddishwikipedia	软件	伊第绪语维基百科；维基百科伊第绪语版	Q1968379	2562995758	https://yi.wikipedia.org/	4925
-ZSSK	zeleznicnaspolocnostslovensko,zssk	公司	斯洛伐克鐵路公司（公司）	Q393557	2566711419	https://www.zssk.sk/	2220
+X Window System	xwindowsystem	软件	X窗口系统；類UNIX系統的圖形控制器和網絡協議	Q178481	2525338414	https://x.org	5725
+Yahoo	yahoo,yahoocom	软件	雅虎；Web服務提供商，其Web門戶和搜索引擎	Q37093	2554573220	https://www.yahoo.com/	12525
+Yahoo Inc.	yahoo,yahooinc	公司	雅虎公司；總部位於美國紐約的跨國網絡媒體公司	Q29231846	2565146866	https://www.yahooinc.com/	1620
+Yandex	yandex,yandexcom,yandexllc	软件	俄羅斯互聯網企業	Q5281	2557293819	https://yandex.com	7425
 Zhipu AI	zhipu,zhipuai	公司	中国人工智能与大语言模型公司	Q129572031	2563658868	https://z.ai/	1950
 Zig	zig,ziglang,ziglanguage,zigprogramminglanguage	编程语言	编程语言	Q51885456	2561787759	https://ziglang.org/	2930
-Zoom Communications	zoomapp,zoomcommunications,zoommeetings,zoomus,zoomvideo,zoomvideocommunications	软件	美国科技公司	Q17460900	2540561324	https://www.zoom.com/	4525
+Zoom Communications	zoomcommunications	软件	美国科技公司	Q17460900	2540561324	https://www.zoom.com/	4525
+ZSSK	zssk	公司	斯洛伐克鐵路公司（公司）	Q393557	2566711419	https://www.zssk.sk/	2220

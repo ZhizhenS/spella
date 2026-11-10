@@ -127,12 +127,34 @@ class CatalogGuard(unittest.TestCase):
         self.assertIn('oldid=123', entry['revision_url'])
 
     def test_aliases_are_source_derived_bounded_and_canonical_kept(self):
-        self.snapshot['entities']['Q102']['aliases']['en'] = [{'value': 'Alias ' + chr(65 + i // 26) + chr(65 + i % 26)} for i in range(60)]
+        self.snapshot['entities']['Q102']['aliases']['en'] = [{'value': 'Example Tool ' + chr(65 + i // 26) + chr(65 + i % 26)} for i in range(60)]
         self.save_source()
         self.save_catalog()
         e = next(e for e in M.checked()['entries'] if e['wikidata_id'] == 'Q102')
         self.assertEqual(len(e['aliases']), 32)
         self.assertIn('exampletool', e['aliases'])
+
+    def test_unrelated_former_and_owner_names_are_not_lookup_keys(self):
+        self.snapshot['entities']['Q102']['aliases']['en'] = [{'value': v} for v in ['Where Technologies', 'Example', 'ET', 'Example Tool Pro', 'XY']]
+        self.save_source()
+        self.save_catalog()
+        e = next(e for e in M.checked()['entries'] if e['wikidata_id'] == 'Q102')
+        self.assertEqual(e['aliases'], ['et', 'exampletool', 'exampletoolpro'])
+        self.assertEqual(M.lookup_aliases('Yahoo Inc.', ['Yahoo Inc.', 'Yahoo', 'Oath', 'Verizon Media']), ['yahoo', 'yahooinc'])
+
+    def test_wikimedia_internal_items_are_rejected(self):
+        for label, kind in [('Module:Age', 'Q7397'), ('Dutch Wikipedia', 'Q7397'), ('HotCat', 'Q61866692')]:
+            with self.subTest(label=label):
+                self.snapshot['entities']['Q102']['labels']['en']['value'] = label
+                self.snapshot['entities']['Q102']['claims']['P31'][0]['mainsnak']['datavalue']['value']['id'] = kind
+                self.save_source()
+                self.save_catalog()
+                self.assertEqual(M.checked()['rejected'], {'wikimedia-internal': 1})
+        self.snapshot['entities']['Q102']['labels']['en']['value'] = 'Need for Speed: Most Wanted'
+        self.snapshot['entities']['Q102']['claims']['P31'][0]['mainsnak']['datavalue']['value']['id'] = 'Q7397'
+        self.save_source()
+        self.save_catalog()
+        self.assertEqual(M.checked()['rejected'], {})
 
     def test_projection_is_stable_when_source_entity_order_changes(self):
         before = M.image(M.projected_entries(self.snapshot, self.seed)[0])

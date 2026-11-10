@@ -129,6 +129,24 @@ class ModernCompilerTests(unittest.TestCase):
         self.assertEqual(out[-1][5], "too long; didn’t read")
         self.assertTrue(all(len(row) == 9 for row in out))
 
+    def test_register_policy_excludes_offensive_and_archaic_and_limits_vulgar(self):
+        cases = [
+            ("noob", {"tags": ["Internet", "derogatory"]}, "菜鸟", ""),
+            ("karen", {"tags": ["offensive", "slang"]}, "普通释义", "offensive"),
+            ("hout", {"tags": ["slang"], "raw_tags": ["種族歧視"]}, "普通释义", "offensive"),
+            ("tran", {"tags": ["informal"]}, "跨性别人士", "offensive"),
+            ("thee", {"tags": ["archaic"]}, "你", "obsolete"),
+            ("twat", {"tags": ["slang", "vulgar"]}, "笨蛋", "vulgar"),
+            ("naai", {"tags": ["slang"]}, "(南非) 性交", "vulgar"),
+            ("type shit", {"tags": ["slang"]}, "确实", "vulgar"),
+            ("vibe", {"tags": ["slang"]}, "氛围", ""),
+            ("os", {"tags": ["form-of"]}, "操作系統", ""),
+        ]
+        for word, sense, definition, expected in cases:
+            with self.subTest(word=word):
+                self.assertEqual(M.register(word, sense, definition), expected)
+        self.assertEqual(M.usage({"tags": ["slang"], "raw_tags": ["過時俚語"]}), "旧义")
+
     def test_reviewed_unlabelled_seed_does_not_invent_upstream_usage(self):
         source = {"word": "sus", "lang_code": "en", "pos": "adj", "senses": [{"glosses": ["Suspicious."]}]}
         projected = M.project(source, 3)

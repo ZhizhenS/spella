@@ -7,6 +7,7 @@ mod entities;
 mod image;
 pub mod lexicon;
 mod modern;
+mod ranking;
 pub use image::{compile, current, Vocabulary, MAGIC, MAX_BYTES};
 pub use lexicon::set_manual_words;
 /// Resource-worker entry point. A missing sidecar supports older installations.
@@ -22,6 +23,7 @@ pub fn install(path: &std::path::Path) -> Result<(), String> {
     // never on the first production keystroke.
     modern::initialize()?;
     entities::initialize()?;
+    ranking::initialize()?;
     image::install(path)?;
     lexicon::publish(annotations);
     Ok(())
@@ -60,12 +62,56 @@ fn casing(word: &str, input: &str) -> String {
         word.into()
     }
 }
+/// Casing for a word with a reviewed display spelling (names, I'm, iPhone).
+fn display_casing(word: &str, display: &str, input: &str) -> String {
+    if display.is_empty() {
+        return casing(word, input);
+    }
+    let letters: Vec<_> = input.bytes().filter(u8::is_ascii_alphabetic).collect();
+    if letters.len() >= 2 && letters.iter().all(u8::is_ascii_uppercase) {
+        return word.to_ascii_uppercase();
+    }
+    display.to_owned()
+}
+fn overlay_display(word: &str) -> &'static str {
+    ranking::current()
+        .and_then(|overlay| overlay.get(word))
+        .map_or("", |row| row.display)
+}
+/// Relative frequency at which the leading ordinary completion is taken as what
+/// the user is typing ("fo" -> for, "wor" -> world, "shou" -> should).
+const STRONG_ORDINARY: f64 = 2e-5;
+/// An entity named like a common ordinary word (go, rust, swift, self) needs
+/// this producer priority (about 100 Wikipedia sitelinks) for a first-page slot.
+const PROMINENT_ENTITY: u32 = 10_000;
+/// Words at least this frequent are already correct spellings.
+const COMMON_WORD: f64 = 1e-6;
+/// Modern senses at or above this priority were editorially reviewed.
+const REVIEWED_SENSE: u32 = 1200;
 
 fn is_entity(candidate: &Candidate) -> bool {
     candidate
         .annotation
         .as_ref()
         .is_some_and(|annotation| !annotation.entity_kind.is_empty())
+}
+/// Append prefix-only modern-stream matches after every ordinary candidate.
+/// A long list (several pages) keeps its last two slots for them so they stay
+/// reachable; a short request never shows them ahead of ordinary words.
+/// Returns how many leading candidates came from `front`.
+fn append_tail(front: &mut Vec<Candidate>, tail: Vec<Candidate>, limit: usize) -> usize {
+    let reserve = if limit >= 10 { tail.len().min(2) } else { 0 };
+    front.truncate(limit.saturating_sub(reserve));
+    let kept = front.len();
+    front.extend(tail);
+    front.truncate(limit);
+    kept
+}
+fn is_pinyin(candidate: &Candidate) -> bool {
+    candidate
+        .annotation
+        .as_ref()
+        .is_some_and(|note| note.pinyin_match)
 }
 fn is_lexical(candidate: &Candidate) -> bool {
     candidate
@@ -113,6 +159,52 @@ impl Vocabulary {
         let i = self.lower_bound(input);
         (i < self.count() && self.word(i) == input).then_some(i)
     }
+    /// Overlay-adjusted count used for ranking (0 for unknown words). The
+    /// pinned image keeps its source counts; see `ranking`.
+    fn prior(&self, word: &str) -> u64 {
+        if let Some(row) = ranking::current().and_then(|overlay| overlay.get(word)) {
+            return row.frequency;
+        }
+        self.find(word).map_or(0, |id| self.frequency(id))
+    }
+    fn relative(&self, word: &str) -> f64 {
+        self.prior(&word.to_ascii_lowercase()) as f64 / self.total_frequency().max(1) as f64
+    }
+    /// One of the leading ordinary single-word completions is frequent enough
+    /// that the input is most likely a prefix of it. The typed word itself
+    /// may lead with no count ("ge" before get), so look past the first.
+    fn strong_ordinary(&self, ordinary: &[Candidate]) -> bool {
+        ordinary
+            .iter()
+            .filter(|candidate| {
+                candidate.source != CandidateSource::User
+                    && !is_entity(candidate)
+                    && !is_lexical(candidate)
+                    && !is_pinyin(candidate)
+                    && !candidate.text.contains(' ')
+            })
+            .take(3)
+            .any(|candidate| self.relative(&candidate.text) >= STRONG_ORDINARY)
+    }
+    fn overlay_candidate(
+        &self,
+        row: ranking::Row<'_>,
+        input: &str,
+        lexicon: &lexicon::Lexicon,
+    ) -> Candidate {
+        let mut c = Candidate::new(
+            display_casing(row.word, row.display, input),
+            CandidateSource::Local,
+        );
+        c.language = CandidateLanguage::English;
+        c.consumed = input.len();
+        c.score = (row.frequency as f64).ln() as f32;
+        if let Some(entry) = lexicon.lookup(row.word) {
+            c.comment = entry.comment();
+            c.annotation = Some(entry.annotation(false));
+        }
+        c
+    }
     /// Dictionary evidence for mixed-language priority, separate from personal spellings.
     pub fn contains_word(&self, input: &str) -> bool {
         self.find(&input.to_ascii_lowercase()).is_some()
@@ -124,10 +216,14 @@ impl Vocabulary {
         continuous::segment_exact(self, input, &lexicon::current(), &lexicon::manual())
     }
     fn candidate(&self, id: usize, input: &str, lexicon: &lexicon::Lexicon) -> Candidate {
-        let mut c = Candidate::new(casing(self.word(id), input), CandidateSource::Local);
+        let word = self.word(id);
+        let mut c = Candidate::new(
+            display_casing(word, overlay_display(word), input),
+            CandidateSource::Local,
+        );
         c.language = CandidateLanguage::English;
         c.consumed = input.len();
-        c.score = (self.frequency(id) as f64).ln() as f32;
+        c.score = (self.prior(word).max(1) as f64).ln() as f32;
         if let Some(entry) = lexicon.lookup(self.word(id)) {
             c.comment = entry.comment();
             c.annotation = Some(entry.annotation(false));
@@ -195,7 +291,8 @@ impl Vocabulary {
         manual: &lexicon::ManualWords,
     ) -> Vec<Candidate> {
         let (pinyin, segmentation, phrases) = options;
-        let plain = self.complete_from(input, learner, limit, pinyin, metadata, manual);
+        let (plain, front) =
+            self.complete_from_parts(input, learner, limit, pinyin, metadata, manual);
         if !segmentation
             || limit == 0
             || plain.iter().any(|candidate| {
@@ -228,8 +325,16 @@ impl Vocabulary {
         let explicit_abbreviation =
             input.len() >= 2 && input.bytes().all(|byte| byte.is_ascii_uppercase());
         let ordinary_common = self.ordinary_common(input, &plain);
-        for mut candidate in plain {
+        let contraction =
+            ranking::current().and_then(|overlay| overlay.contraction(&input.to_ascii_lowercase()));
+        let mut tail = Vec::new();
+        for (index, mut candidate) in plain.into_iter().enumerate() {
             if is_entity(&candidate) || is_lexical(&candidate) {
+                // Prefix-only modern streams were placed after ordinary words.
+                if index >= front {
+                    tail.push(candidate);
+                    continue;
+                }
                 if (is_entity(&candidate) && explicit_case
                     || is_lexical(&candidate) && explicit_abbreviation)
                     || (conversational_modern(&candidate)
@@ -246,6 +351,7 @@ impl Vocabulary {
             }
             if candidate.source == CandidateSource::User
                 || candidate.text.eq_ignore_ascii_case(input)
+                || contraction.is_some_and(|row| candidate.text.eq_ignore_ascii_case(row.word))
                 || (primary_pinyin
                     && candidate
                         .annotation
@@ -281,7 +387,8 @@ impl Vocabulary {
         }
         let mut seen = HashSet::new();
         pinned.retain(|candidate| seen.insert(candidate_identity(candidate)));
-        pinned.truncate(limit);
+        tail.retain(|candidate| seen.insert(candidate_identity(candidate)));
+        append_tail(&mut pinned, tail, limit);
         pinned
     }
     fn complete_from(
@@ -293,8 +400,22 @@ impl Vocabulary {
         lexicon: &lexicon::Lexicon,
         manual: &lexicon::ManualWords,
     ) -> Vec<Candidate> {
+        self.complete_from_parts(input, learner, limit, enabled, lexicon, manual)
+            .0
+    }
+    /// Candidates plus the length of the first-page-eligible region; items at
+    /// or after it are prefix-only modern-stream matches kept for later pages.
+    fn complete_from_parts(
+        &self,
+        input: &str,
+        learner: &dyn LearningStore,
+        limit: usize,
+        enabled: bool,
+        lexicon: &lexicon::Lexicon,
+        manual: &lexicon::ManualWords,
+    ) -> (Vec<Candidate>, usize) {
         if limit == 0 || !valid_word(input) {
-            return Vec::new();
+            return (Vec::new(), 0);
         }
         let key = input.to_ascii_lowercase();
         let lo = self.lower_bound(&key);
@@ -319,8 +440,11 @@ impl Vocabulary {
             l /= 2;
             r /= 2;
         }
+        // Over-fetch from the source-count tree: the overlay demotes some
+        // words (archaic, names) below others that the tree ranks after them.
+        let fetch = limit.saturating_mul(2).saturating_add(8);
         let mut hits = Vec::new();
-        while hits.len() < limit {
+        while hits.len() < fetch {
             let Some((_, _, node)) = heap.pop() else {
                 break;
             };
@@ -329,6 +453,21 @@ impl Vocabulary {
             } else {
                 push(&mut heap, node * 2);
                 push(&mut heap, node * 2 + 1);
+            }
+        }
+        // Words whose reviewed count exceeds the source count (contractions,
+        // everyday/modern words) and the apostrophe-free contraction key.
+        let overlay = ranking::current();
+        let contraction = overlay.and_then(|overlay| overlay.contraction(&key));
+        if let Some(overlay) = overlay {
+            for row in overlay.prefix(&key).iter().chain(contraction.iter()) {
+                if row.reason.boosts()
+                    && !hits
+                        .iter()
+                        .any(|candidate: &Candidate| candidate.text.eq_ignore_ascii_case(row.word))
+                {
+                    hits.push(self.overlay_candidate(*row, input, lexicon));
+                }
             }
         }
         // Empirical personal counts form a smoothed distribution, rather than a
@@ -348,7 +487,7 @@ impl Vocabulary {
                 .map_or(0., |id| self.frequency(id) as f64);
             let score = (prior / total + uses as f64).ln() as f32;
             let text = casing(&text, input);
-            if let Some(existing) = hits.iter_mut().find(|c| c.text == text) {
+            if let Some(existing) = hits.iter_mut().find(|c| c.text.eq_ignore_ascii_case(&text)) {
                 existing.score = score;
                 existing.source = CandidateSource::User;
             } else {
@@ -382,6 +521,55 @@ impl Vocabulary {
         if self.find(&key).is_none() && lexicon.lookup(&key).is_some() {
             hits.sort_by_key(|candidate| !candidate.text.eq_ignore_ascii_case(input));
         }
+        // Archaic and malformed words are never offered as completions; they
+        // are still annotated when typed exactly (thy, hath).
+        if let Some(overlay) = overlay {
+            hits.retain(|candidate| {
+                let word = candidate.text.to_ascii_lowercase();
+                word == key || !overlay.get(&word).is_some_and(|row| row.reason.demoted())
+            });
+        }
+        // The typed word itself stays on the first page unless it is archaic
+        // or malformed; Space already commits it, the row shows its meaning.
+        let typed_row = overlay.and_then(|overlay| overlay.get(&key));
+        if !typed_row.is_some_and(|row| row.reason.demoted())
+            && !hits
+                .iter()
+                .take(3)
+                .any(|candidate| candidate.text.eq_ignore_ascii_case(input))
+        {
+            let exact = match hits
+                .iter()
+                .position(|candidate| candidate.text.eq_ignore_ascii_case(input))
+            {
+                Some(index) => Some(hits.remove(index)),
+                None => self
+                    .find(&key)
+                    .map(|id| self.candidate(id, input, lexicon))
+                    .or_else(|| typed_row.map(|row| self.overlay_candidate(row, input, lexicon))),
+            };
+            if let Some(exact) = exact {
+                hits.insert(hits.len().min(2), exact);
+            }
+        }
+        // "dont"/"im" mean the contraction; it leads unless the plain spelling
+        // is the more frequent word (were/we're, its/it's, well/we'll).
+        if let Some(row) = contraction {
+            if let Some(index) = hits
+                .iter()
+                .position(|candidate| candidate.text.eq_ignore_ascii_case(row.word))
+            {
+                let candidate = hits.remove(index);
+                let typed = hits
+                    .iter()
+                    .position(|candidate| candidate.text.eq_ignore_ascii_case(input));
+                let at = match typed {
+                    Some(typed) if self.prior(&key) > row.frequency => typed + 1,
+                    _ => 0,
+                };
+                hits.insert(at.min(hits.len()), candidate);
+            }
+        }
         let mut personal = manual.complete(input, limit);
         let personal_keys: HashSet<_> = personal
             .iter()
@@ -390,32 +578,69 @@ impl Vocabulary {
         hits.retain(|candidate| !personal_keys.contains(&candidate.text.to_ascii_lowercase()));
         personal.extend(hits);
         let ordinary = self.assist(input, personal, limit, enabled, lexicon);
-        self.with_entities(input, ordinary, limit)
-    }
-
-    fn with_entities(&self, input: &str, ordinary: Vec<Candidate>, limit: usize) -> Vec<Candidate> {
         let names = entities::complete(input, limit);
         let lexical = modern::complete(input, limit);
-        self.with_modern_streams(input, ordinary, lexical, names, limit)
+        self.merge_modern_streams(input, ordinary, lexical, names, limit)
     }
 
+    #[cfg(test)]
     fn with_modern_streams(
         &self,
         input: &str,
         ordinary: Vec<Candidate>,
-        mut lexical: Vec<modern::Match>,
-        names: Vec<Candidate>,
+        lexical: Vec<modern::Match>,
+        names: Vec<modern::Match>,
         limit: usize,
     ) -> Vec<Candidate> {
+        self.merge_modern_streams(input, ordinary, lexical, names, limit)
+            .0
+    }
+
+    /// Merge ordinary words with the entity and modern-sense streams. Exact
+    /// matches may take first-page slots; prefix-only matches, duplicate senses
+    /// and minor same-name entities follow every ordinary word. Returns the
+    /// candidates and the length of the first-page-eligible region.
+    fn merge_modern_streams(
+        &self,
+        input: &str,
+        ordinary: Vec<Candidate>,
+        mut lexical: Vec<modern::Match>,
+        names: Vec<modern::Match>,
+        limit: usize,
+    ) -> (Vec<Candidate>, usize) {
+        // Vulgar and dated senses are shown only for their exact spelling.
+        lexical.retain(|hit| {
+            hit.exact
+                || !hit
+                    .candidate
+                    .annotation
+                    .as_ref()
+                    .is_some_and(|note| modern::exact_only(&note.lexical_usage))
+        });
         if names.is_empty() && lexical.is_empty() {
-            return ordinary;
+            let front = ordinary.len();
+            return (ordinary, front);
         }
-        let exact_name = names
-            .iter()
-            .any(|candidate| candidate.text.eq_ignore_ascii_case(input));
         let ordinary_common = self.ordinary_common(input, &ordinary);
+        let strong_ordinary = self.strong_ordinary(&ordinary);
+        let ordinary_empty = ordinary.is_empty();
+        let explicit_case = input
+            .bytes()
+            .next()
+            .is_some_and(|letter| letter.is_ascii_uppercase());
         let explicit_abbreviation =
             input.len() >= 2 && input.bytes().all(|byte| byte.is_ascii_uppercase());
+        let (names, names_tail): (Vec<_>, Vec<_>) = names.into_iter().partition(|hit| {
+            if hit.exact {
+                explicit_case || !ordinary_common || hit.priority >= PROMINENT_ENTITY
+            } else {
+                // A capitalized prefix may name something ("Anthr"), unless an
+                // ordinary word is the likely target ("The", "Wor").
+                ordinary_empty || explicit_case && input.len() >= 3 && !strong_ordinary
+            }
+        });
+        let exact_name = names.iter().any(|hit| hit.exact);
+        let names: Vec<_> = names.into_iter().map(|hit| hit.candidate).collect();
         let promote_lexical = lexical.iter().any(|hit| {
             if !hit.exact {
                 return false;
@@ -430,13 +655,12 @@ impl Vocabulary {
             // abbreviations. Overriding a common word also requires review.
             !ordinary_common && (reviewed || explicit) || explicit && reviewed
         });
+        // An exact alias leads only when no frequent ordinary word is the
+        // likelier target ("ai" -> air before Adobe Illustrator).
         let promote = !names.is_empty()
-            && (input
-                .bytes()
-                .next()
-                .is_some_and(|letter| letter.is_ascii_uppercase())
-                || ordinary.is_empty()
-                || (exact_name && !ordinary_common));
+            && (explicit_case
+                || ordinary_empty
+                || (exact_name && !ordinary_common && !strong_ordinary));
         let (mut personal, ordinary): (Vec<_>, Vec<_>) = ordinary
             .into_iter()
             .partition(|candidate| candidate.source == CandidateSource::User);
@@ -447,6 +671,12 @@ impl Vocabulary {
             .map(|candidate| candidate.text.to_ascii_lowercase())
             .collect();
         lexical.retain(|hit| !personal_keys.contains(&hit.candidate.text.to_ascii_lowercase()));
+        // One sense per spelling on the first page; further senses of the same
+        // text (five LOL meanings) and prefix-only senses come later.
+        let mut shown = HashSet::new();
+        let (lexical, lexical_tail): (Vec<_>, Vec<_>) = lexical
+            .into_iter()
+            .partition(|hit| hit.exact && shown.insert(hit.candidate.text.to_ascii_lowercase()));
         let lexical: Vec<_> = lexical.into_iter().map(|hit| hit.candidate).collect();
         let ordinary_leads = !promote_lexical && !promote;
         let mut lanes = if promote_lexical {
@@ -479,29 +709,47 @@ impl Vocabulary {
         }
         let mut seen = HashSet::new();
         personal.retain(|candidate| seen.insert(candidate_identity(candidate)));
-        personal.truncate(limit);
-        personal
+        let front = personal.len().min(limit);
+        // A complete common word ("united", "action", "based") is what the
+        // user typed: longer names starting with it and further slang senses
+        // of it are noise unless prominent. Prefix-only slang phrases stay
+        // only when editorially reviewed or nothing ordinary matches.
+        let mut tail: Vec<_> = names_tail
+            .into_iter()
+            .filter(|hit| !ordinary_common || hit.priority >= PROMINENT_ENTITY)
+            .chain(lexical_tail.into_iter().filter(|hit| {
+                if hit.exact {
+                    !ordinary_common
+                } else {
+                    !ordinary_common && (ordinary_empty || hit.priority >= REVIEWED_SENSE)
+                }
+            }))
+            .map(|hit| hit.candidate)
+            .collect();
+        tail.retain(|candidate| seen.insert(candidate_identity(candidate)));
+        tail.sort_by(|a, b| b.score.total_cmp(&a.score));
+        let front = append_tail(&mut personal, tail, limit).min(front);
+        (personal, front)
     }
 
     fn ordinary_common(&self, input: &str, ordinary: &[Candidate]) -> bool {
-        self.find(&input.to_ascii_lowercase()).is_some_and(|id| {
-            self.frequency(id) as f64 / self.total_frequency().max(1) as f64 >= 0.000_001
-        }) && !ordinary
-            .iter()
-            .filter(|candidate| {
-                candidate.text.eq_ignore_ascii_case(input)
-                    && !is_entity(candidate)
-                    && !is_lexical(candidate)
-            })
-            .any(|candidate| {
-                candidate.annotation.as_ref().is_some_and(|note| {
-                    let pos = note.part_of_speech.to_ascii_lowercase();
-                    (pos.contains("abbr") || pos.contains("缩写"))
-                        && !["n.", "v.", "adj.", "adv."]
-                            .iter()
-                            .any(|ordinary| pos.contains(ordinary))
+        self.relative(input) >= COMMON_WORD
+            && !ordinary
+                .iter()
+                .filter(|candidate| {
+                    candidate.text.eq_ignore_ascii_case(input)
+                        && !is_entity(candidate)
+                        && !is_lexical(candidate)
                 })
-            })
+                .any(|candidate| {
+                    candidate.annotation.as_ref().is_some_and(|note| {
+                        let pos = note.part_of_speech.to_ascii_lowercase();
+                        (pos.contains("abbr") || pos.contains("缩写"))
+                            && !["n.", "v.", "adj.", "adv."]
+                                .iter()
+                                .any(|ordinary| pos.contains(ordinary))
+                    })
+                })
     }
 
     fn assist(
@@ -529,7 +777,19 @@ impl Vocabulary {
             return hits;
         }
         let (exact, pinyin) = lexicon.pinyin(input, limit);
-        if pinyin.is_empty() {
+        // Preserve actual English words (he/an/you) when they are also pinyin.
+        // Complete pinyin such as nihao/pingguo must reach its English meanings.
+        let known_english = self.contains_word(input)
+            || lexicon.lookup(input).is_some()
+            || hits.iter().any(|candidate| {
+                candidate.source == CandidateSource::User
+                    && candidate.text.eq_ignore_ascii_case(input)
+            });
+        // "fo"/"wo"/"shou" are first of all prefixes of for/would/should.
+        let english_strong = self.strong_ordinary(&hits);
+        // Prefix-expanded pinyin (much -> mu-chang -> pasture) is noise for a
+        // real English word or a confident English prefix.
+        if pinyin.is_empty() || !exact && (known_english || english_strong) {
             hits.truncate(limit);
             return hits;
         }
@@ -549,15 +809,7 @@ impl Vocabulary {
             })
             .collect();
         let mut combined = Vec::new();
-        // Preserve actual English words (he/an/you) when they are also pinyin.
-        // Complete pinyin such as nihao/pingguo must reach its English meanings.
-        let known_english = self.contains_word(input)
-            || lexicon.lookup(input).is_some()
-            || hits.iter().any(|candidate| {
-                candidate.source == CandidateSource::User
-                    && candidate.text.eq_ignore_ascii_case(input)
-            });
-        if exact && !known_english {
+        if exact && !known_english && !english_strong {
             combined.extend(pinyin);
             combined.extend(hits);
         } else {
@@ -604,6 +856,10 @@ impl Vocabulary {
         }
         let lexicon = lexicon::current();
         let key = input.to_ascii_lowercase();
+        // A frequent real word is already spelled correctly (only/oily, very/vary).
+        if self.relative(&key) >= COMMON_WORD {
+            return Vec::new();
+        }
         let mut ids = HashSet::new();
         let mut add = |s: &str| {
             if s != key {
@@ -630,10 +886,18 @@ impl Vocabulary {
                 add(&format!("{}{}{}", &key[..i], c as char, &key[i..]));
             }
         }
-        let mut ids: Vec<_> = ids.into_iter().collect();
+        let overlay = ranking::current();
+        let mut ids: Vec<_> = ids
+            .into_iter()
+            .filter(|&id| {
+                !overlay
+                    .and_then(|overlay| overlay.get(self.word(id)))
+                    .is_some_and(|row| row.reason.demoted())
+            })
+            .collect();
         ids.sort_by(|a, b| {
-            self.frequency(*b)
-                .cmp(&self.frequency(*a))
+            self.prior(self.word(*b))
+                .cmp(&self.prior(self.word(*a)))
                 .then_with(|| a.cmp(b))
         });
         ids.into_iter()
@@ -685,6 +949,13 @@ mod tests {
         let mut bytes = Vec::new();
         compile(source, &mut bytes).unwrap();
         Vocabulary::from_bytes(bytes).unwrap()
+    }
+    fn entity_hit(candidate: Candidate, priority: u32) -> modern::Match {
+        modern::Match {
+            candidate,
+            exact: true,
+            priority,
+        }
     }
     fn lexical_hit(text: &str, sense: &str, usage: &str, priority: u32) -> modern::Match {
         let mut candidate = Candidate::new(text, CandidateSource::Local);
@@ -758,7 +1029,8 @@ mod tests {
         let mut two = one.clone();
         two.annotation.as_mut().unwrap().entity_source = "Wikidata Q2@1".into();
         assert_ne!(candidate_identity(&one), candidate_identity(&two));
-        let hits = vocab.with_modern_streams("imo", vec![old], meanings(), vec![one, two], 24);
+        let names = vec![entity_hit(one, 900), entity_hit(two, 800)];
+        let hits = vocab.with_modern_streams("imo", vec![old], meanings(), names, 24);
         assert_eq!(hits.len(), 6);
     }
 
@@ -854,7 +1126,7 @@ mod tests {
             ..Default::default()
         });
         for usage in ["俚语", "非正式", "网络", "缩写"] {
-            for names in [Vec::new(), vec![company.clone()]] {
+            for names in [Vec::new(), vec![entity_hit(company.clone(), 18_000)]] {
                 let mut cold = lexical_hit("APPLE", "radio", usage, 500);
                 cold.candidate
                     .annotation
@@ -1009,15 +1281,40 @@ mod tests {
                 assert_eq!(hits[0].comment, "我的显式词条");
                 assert!(!is_entity(&hits[0]) && !is_lexical(&hits[0]));
                 assert!(hits.len() <= limit);
-                if limit > 1 {
-                    assert!(
-                        hits.iter()
-                            .skip(1)
-                            .any(|candidate| candidate.text == "Apple" && is_entity(candidate)),
-                        "entity meaning remains independently available for {input}"
-                    );
-                }
             }
+            // A prefix-only entity match follows ordinary words but stays reachable.
+            let hits = vocab.complete_input_from(
+                input,
+                &Empty,
+                24,
+                (true, true, true),
+                &lexicon::fixture(),
+                &manual,
+            );
+            let entity = hits
+                .iter()
+                .position(|candidate| candidate.text == "Apple" && is_entity(candidate))
+                .expect("entity meaning remains independently available");
+            assert!(hits[..entity].iter().any(
+                |candidate| !is_entity(candidate) && candidate.source != CandidateSource::User
+            ));
+        }
+        // The exact spelling keeps the entity on the first page next to the personal word.
+        for input in ["apple", "Apple"] {
+            let hits = vocab.complete_input_from(
+                input,
+                &Empty,
+                2,
+                (true, true, true),
+                &lexicon::fixture(),
+                &manual,
+            );
+            assert_eq!(hits[0].source, CandidateSource::User);
+            assert!(
+                hits.iter()
+                    .any(|candidate| candidate.text == "Apple" && is_entity(candidate)),
+                "{input}: {hits:?}"
+            );
         }
     }
     #[test]
@@ -1183,29 +1480,162 @@ mod tests {
     #[test]
     fn vocabulary_and_range_top_k() {
         assert!(count() > 80_000);
-        for prefix in ["a", "hel", "transl", "don't", "z"] {
+        let vocabulary = current();
+        let overlay = ranking::current().expect("embedded overlay");
+        for prefix in ["a", "hel", "transl", "don't", "z", "tho", "an"] {
             let actual = complete(prefix, &Empty, 12);
-            let mut expected: Vec<_> = (0..count())
-                .filter(|i| word(*i).starts_with(prefix))
+            // Ranking order is the overlay-adjusted count over the source words
+            // plus reviewed overlay-only words; the typed word itself has its
+            // own first-page guarantee and is compared separately.
+            let mut expected: Vec<String> = (0..count())
+                .map(word)
+                .filter(|word| word.starts_with(prefix))
+                .chain(
+                    overlay
+                        .prefix(prefix)
+                        .iter()
+                        .filter(|row| row.reason.boosts())
+                        .map(|row| row.word.to_owned()),
+                )
+                .filter(|word| word != prefix)
+                .collect::<HashSet<_>>()
+                .into_iter()
                 .collect();
-            expected.sort_by(|a, b| frequency(*b).cmp(&frequency(*a)).then_with(|| a.cmp(b)));
+            expected.sort_by(|a, b| {
+                vocabulary
+                    .prior(b)
+                    .cmp(&vocabulary.prior(a))
+                    .then_with(|| a.cmp(b))
+            });
             let ordinary: Vec<_> = actual
                 .iter()
                 .filter(|candidate| !is_entity(candidate) && !is_lexical(candidate))
+                .map(|candidate| candidate.text.to_lowercase())
+                .filter(|text| text != prefix)
                 .collect();
             assert!(actual.len() <= 12);
-            assert_eq!(
-                ordinary
+            assert_eq!(ordinary, expected[..ordinary.len()], "prefix {prefix}");
+            if find(prefix).is_some() {
+                assert!(actual
                     .iter()
-                    .map(|c| c.text.to_lowercase())
-                    .collect::<Vec<_>>(),
-                expected
-                    .into_iter()
-                    .take(ordinary.len())
-                    .map(|id| word(id).to_owned())
-                    .collect::<Vec<_>>()
-            );
+                    .take(3)
+                    .any(|candidate| candidate.text.eq_ignore_ascii_case(prefix)));
+            }
         }
+        let _ = frequency(0);
+    }
+    /// First-page quality over realistic typing: 2-4 letter prefixes and full
+    /// spellings of the most common English words. Prefix-only entities, vulgar
+    /// or dated senses and archaic words must not take a first-page slot.
+    #[test]
+    fn first_page_quality_for_common_word_prefixes() {
+        let vocab = current();
+        let overlay = ranking::current().expect("embedded overlay");
+        let source = std::fs::read_to_string(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../data/dict/raw/english/frequency.txt"
+        ))
+        .unwrap();
+        let mut inputs = Vec::new();
+        for word in source
+            .trim_start_matches('\u{feff}')
+            .lines()
+            .filter_map(|line| line.split(' ').next())
+            .filter(|word| word.len() >= 3 && word.bytes().all(|b| b.is_ascii_lowercase()))
+            .take(600)
+        {
+            for end in 2..=word.len().min(4) {
+                inputs.push(word[..end].to_owned());
+            }
+            inputs.push(word.to_owned());
+        }
+        inputs.sort();
+        inputs.dedup();
+        let mut failures = Vec::new();
+        for input in &inputs {
+            let hits = vocab.complete_input(input, &Empty, 24, true, true, true);
+            let names = entities::complete(input, 24);
+            let common = vocab.relative(input) >= COMMON_WORD;
+            for (position, candidate) in hits.iter().take(5).enumerate() {
+                let note = candidate.annotation.as_ref();
+                let exact = candidate
+                    .text
+                    .to_ascii_lowercase()
+                    .replace([' ', '.', '-'], "")
+                    == *input;
+                let problem = if is_entity(candidate) && !exact {
+                    // An exact alias (vscode, nodejs) may differ from its text.
+                    let hit = names
+                        .iter()
+                        .find(|hit| hit.candidate.text == candidate.text);
+                    let prefix_only = !hit.is_some_and(|hit| hit.exact);
+                    let ordinary_after = hits[position..]
+                        .iter()
+                        .any(|later| !is_entity(later) && !is_lexical(later));
+                    (prefix_only
+                        && (ordinary_after
+                            || common && !hit.is_some_and(|hit| hit.priority >= PROMINENT_ENTITY)))
+                    .then_some("prefix-only entity")
+                } else if is_lexical(candidate)
+                    && note.is_some_and(|n| modern::exact_only(&n.lexical_usage))
+                    && !exact
+                {
+                    Some("vulgar/dated sense")
+                } else if !is_entity(candidate)
+                    && !is_lexical(candidate)
+                    && !exact
+                    && overlay
+                        .get(&candidate.text.to_ascii_lowercase())
+                        .is_some_and(|row| row.reason.demoted())
+                {
+                    Some("archaic word")
+                } else {
+                    None
+                };
+                if let Some(problem) = problem {
+                    failures.push(format!("{input} -> {} ({problem})", candidate.text));
+                }
+            }
+        }
+        assert!(inputs.len() > 1_000, "{}", inputs.len());
+        assert!(
+            failures.is_empty(),
+            "{} first-page problems: {failures:?}",
+            failures.len()
+        );
+    }
+    #[test]
+    fn overlay_fixes_contractions_archaic_words_and_names() {
+        let vocab = current();
+        let top = |input: &str, n: usize| {
+            vocab
+                .complete_input(input, &Empty, 24, true, true, true)
+                .into_iter()
+                .take(n)
+                .map(|candidate| candidate.text)
+                .collect::<Vec<_>>()
+        };
+        for (input, expected) in [
+            ("dont", "don't"),
+            ("im", "I'm"),
+            ("cant", "can't"),
+            ("youre", "you're"),
+            ("didnt", "didn't"),
+            ("Dont", "Don't"),
+        ] {
+            assert_eq!(top(input, 1), [expected], "{input}");
+        }
+        // The plain word leads when it is the more frequent spelling.
+        assert_eq!(top("were", 2), ["were", "we're"]);
+        for (input, archaic) in [("thy", "thyself"), ("unt", "unto"), ("tho", "thou")] {
+            assert!(!top(input, 5).iter().any(|text| text == archaic), "{input}");
+        }
+        assert!(top("and", 5).iter().all(|text| text != "andrew"));
+        assert!(top("andr", 5).iter().any(|text| text == "Andrew"));
+        assert!(top("hi", 3).iter().any(|text| text == "hi"));
+        assert!(top("app", 3).iter().any(|text| text == "app"));
+        assert!(top("ipho", 1).iter().any(|text| text == "iPhone"));
+        assert!(correct("only", 8).is_empty());
     }
     #[test]
     fn spelling_and_case() {

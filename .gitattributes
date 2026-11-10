@@ -40,3 +40,8 @@ platforms/macos/*.command text eol=lf
 /tools/english-assist/build-modern-lexicon.py text eol=lf
 /tools/english-assist/test-build-modern-lexicon.py text eol=lf
 /tools/english-assist/collect-wikidata-entities.py text eol=lf
+
+# Reviewed ranking overlay: embedded runtime bytes and its offline compiler.
+/data/dict/english-ranking.tsv -text
+/tools/english-assist/build-english-ranking.py text eol=lf
+/tools/english-assist/test-build-english-ranking.py text eol=lf

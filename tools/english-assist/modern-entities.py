@@ -22,7 +22,11 @@ SEED = RAW / 'reviewed-seed-v1.json'
 HEADER = '# EAMODEN2\ttext\taliases\tkind\tdefinition_zh\twikidata_id\trevision\tofficial_url\tpriority\n'
 MAX_ROWS, MAX_ALIASES, MAX_BYTES = 20000, 200000, 16 * 1024 * 1024
 CATEGORY = {'programming-languages': ('编程语言', 30), 'software': ('软件', 25), 'companies': ('公司', 20), 'organizations': ('组织', 15), 'products': ('产品', 10), 'websites': ('网站', 5)}
-POLICY = {'id': 'wikidata-bounded-zh-v1', 'languages': ['en', 'zh-hans', 'zh-cn', 'zh'], 'admission': 'Bounded typed WDQS discoveries with English and Chinese labels; no humans; ASCII English canonical spelling; Chinese description or Chinese label plus source category. Reviewed seed overrides retained.', 'priority': 'min(frozen_sitelink_count,65535)*100 + category_bonus (programming-language30/software25/company20/organization15/product10/website5) + reviewed_seed50; source visibility proxy within entities, not corpus word frequency', 'bounds': {'rows': MAX_ROWS, 'aliases': MAX_ALIASES, 'bytes': MAX_BYTES}}
+# Wikimedia-internal item types: Lua modules, Wikipedia language editions,
+# gadgets/user scripts and project pages. They are not names people type.
+WIKIMEDIA_INTERNAL = frozenset({'Q15184295', 'Q10876391', 'Q116152754', 'Q18711811', 'Q107344376', 'Q63090714', 'Q59259626', 'Q123407493', 'Q138685553', 'Q61866692', 'Q14204246'})
+NAMESPACE_LABEL = re.compile(r'[A-Za-z][A-Za-z ]*:\S')
+POLICY = {'id': 'wikidata-bounded-zh-v2', 'languages': ['en', 'zh-hans', 'zh-cn', 'zh'], 'admission': 'Bounded typed WDQS discoveries with English and Chinese labels; no humans; no Wikimedia-internal items (namespace labels, language editions, modules, gadgets, project pages); ASCII English canonical spelling; Chinese description or Chinese label plus source category. Reviewed seed overrides retained.', 'aliases': 'Unreviewed rows keep only the canonical spelling, source aliases that extend it, and a source-attested multi-word initialism; former names, legal names and owners are not lookup keys', 'priority': 'min(frozen_sitelink_count,65535)*100 + category_bonus (programming-language30/software25/company20/organization15/product10/website5) + reviewed_seed50; source visibility proxy within entities, not corpus word frequency', 'bounds': {'rows': MAX_ROWS, 'aliases': MAX_ALIASES, 'bytes': MAX_BYTES}}
 
 
 def digest(raw):
@@ -64,6 +68,19 @@ def claim_values(entity, prop):
     return result
 
 
+def lookup_aliases(text, names):
+    """Typing keys for an unreviewed row. Prefixes of the canonical spelling are
+    already reachable by prefix lookup; unrelated source aliases (old names,
+    owners, legal names) would surface the entity for unrelated input."""
+    canonical = normalized(text)
+    words = re.findall(r'[A-Za-z]+', text)
+    initials = ''.join(word[0] for word in words).lower() if len(words) >= 2 else ''
+    brand = re.sub(r'(?:inc|corp|corporation|ltd|llc|company|plc|group|gmbh)$', '', canonical)
+    keys = {normalized(name) for name in names}
+    kept = sorted(key for key in keys if key != canonical and (key.startswith(canonical) or (len(initials) >= 2 and key == initials) or (len(brand) >= 3 and key == brand)))
+    return sorted([canonical] + kept[:31])
+
+
 def source_entry(entity, discovery, seed=None):
     qid, revision = entity.get('id'), entity.get('lastrevid')
     if not isinstance(qid, str) or not re.fullmatch(r'Q[1-9][0-9]*', qid) or type(revision) is not int or revision <= 0 or not entity.get('modified'):
@@ -71,6 +88,10 @@ def source_entry(entity, discovery, seed=None):
     types = sorted({v['id'] for v in claim_values(entity, 'P31') if isinstance(v, dict) and re.fullmatch(r'Q[1-9][0-9]*', v.get('id', ''))})
     if 'Q5' in types and not seed:
         return None, 'human-outside-scope'
+    if not seed:
+        label = language_value(entity, 'labels', ['en'])
+        if WIKIMEDIA_INTERNAL.intersection(types) or NAMESPACE_LABEL.match(label) or re.fullmatch(r'.+ Wikipedia', label):
+            return None, 'wikimedia-internal'
     categories = sorted(set(discovery.get('categories', [])))
     if any(c not in CATEGORY for c in categories) or (not categories and not seed):
         return None, 'missing-type-discovery'
@@ -91,10 +112,7 @@ def source_entry(entity, discovery, seed=None):
         if not candidates:
             return None, 'no-ascii-english-spelling'
         text = candidates[0]
-        aliases = sorted({normalized(x) for x in candidates})[:32]
-        canonical = normalized(text)
-        if canonical not in aliases:
-            aliases = sorted(set(aliases[:-1] + [canonical]))
+        aliases = lookup_aliases(text, candidates)
         if chinese(zh_description) and safe_text(zh_description, 160):
             definition = zh_description if not chinese(zh_label) or zh_label in zh_description else zh_label + '；' + zh_description
             origin = 'wikidata-zh-description'
@@ -132,6 +150,20 @@ def projected_entries(snapshot, seed):
         raise ValueError('A reviewed seed identity was lost during projection')
     entries.sort(key=lambda e: (e['aliases'][0], -e['priority'], e['wikidata_id']))
     return entries, dict(sorted(rejected.items()))
+
+
+def write_catalog():
+    """Re-project the approved catalog from the unchanged frozen snapshot and
+    reviewed seed under the current POLICY. Offline; no source is refetched."""
+    data = json.loads(CATALOG.read_text(encoding='utf-8'))
+    raw = SNAPSHOT.read_bytes()
+    content = gzip.decompress(raw)
+    seed_raw = SEED.read_bytes()
+    seed = json.loads(seed_raw)
+    snapshot = json.loads(content)
+    entries, rejected = projected_entries(snapshot, seed)
+    data.update({'policy': POLICY, 'snapshot': {'file': 'raw/modern-entities/wikidata-expanded-snapshot.json.gz', 'sha256': digest(raw), 'content_sha256': digest(content)}, 'reviewed_seed': {'file': 'raw/modern-entities/reviewed-seed-v1.json', 'sha256': digest(seed_raw), 'count': len(seed['entries'])}, 'discovered_count': len(snapshot['entities']), 'rejected': rejected, 'entries': entries})
+    CATALOG.write_bytes(json_bytes(data))
 
 
 def checked(check_runtime=True):
@@ -254,11 +286,12 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--check', action='store_true', help='Offline validation (default)')
     parser.add_argument('--write-runtime', action='store_true', help='Explicit offline TSV regeneration after source review')
+    parser.add_argument('--write-catalog', action='store_true', help='Explicit offline re-projection of the approved catalog after a policy change (implies --write-runtime)')
     parser.add_argument('--propose-refresh', type=Path, help='Network refresh to a separate new review JSON')
     parser.add_argument('--import-research', type=Path, help='Saved discovery/batch directory; no network')
     parser.add_argument('--output-proposal', type=Path, help='New directory for source/catalog/runtime review proposal')
     args = parser.parse_args()
-    if args.check and (args.write_runtime or args.propose_refresh or args.import_research or args.output_proposal):
+    if args.check and (args.write_runtime or args.write_catalog or args.propose_refresh or args.import_research or args.output_proposal):
         parser.error('--check is strictly offline/read-only and cannot be combined with authoring modes')
     if args.output_proposal and not args.import_research:
         parser.error('--output-proposal requires --import-research')
@@ -267,7 +300,9 @@ def main():
             parser.error('--import-research requires only --output-proposal')
         import_research(args.import_research, args.output_proposal)
         return
-    if args.write_runtime:
+    if args.write_catalog:
+        write_catalog()
+    if args.write_runtime or args.write_catalog:
         data = checked(check_runtime=False)
         RUNTIME.write_bytes(image(data['entries']).encode('utf-8'))
     data = checked()

@@ -223,7 +223,8 @@ fn model() -> Option<&'static Model<'static>> {
     MODEL.get_or_init(|| Model::open(DATA)).as_ref()
 }
 fn unigram(vocab: &Vocabulary, word: &str) -> f64 {
-    let count = vocab.find(word).map_or(1, |id| vocab.frequency(id));
+    // Overlay-adjusted counts: spoken contractions, demoted archaic words.
+    let count = vocab.prior(word).max(1);
     (count as f64 / vocab.total_frequency().max(1) as f64).clamp(f64::MIN_POSITIVE, 1.)
 }
 /// A common log-probability scale for both unsplit prefix words and segmented

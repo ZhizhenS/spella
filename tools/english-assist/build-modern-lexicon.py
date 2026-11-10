@@ -27,7 +27,20 @@ SOURCE_PAGE = "https://kaikki.org/dictionary/rawdata.html"
 ZH_SOURCE_URL = "https://kaikki.org/dictionary/downloads/zh/zh-extract.jsonl.gz"
 HEADER = "# EAMODLX1\tkey\ttext\tpos\tdefinition_zh\tusage\tfull_form\tsource_url\tsense_id\tpriority\n"
 POS = {"noun": "名词", "verb": "动词", "adj": "形容词", "adv": "副词", "phrase": "短语", "prep_phrase": "介词短语", "intj": "感叹词", "pron": "代词", "conj": "连词", "prep": "介词", "name": "专名", "num": "数词", "det": "限定词", "contraction": "缩约词", "particle": "小品词", "symbol": "符号"}
-USAGE = {"词汇", "网络", "缩写", "俚语", "非正式", "专业", "旧义"}
+USAGE = {"词汇", "网络", "缩写", "俚语", "非正式", "专业", "旧义", "粗俗"}
+# Register policy for a general-purpose input method. Offensive and archaic
+# senses never enter the runtime catalog; vulgar or sexually explicit senses
+# stay available only when their exact spelling is typed (runtime "粗俗").
+# "derogatory" alone marks mild pejoratives (noob, cringe, stan) and is kept.
+OFFENSIVE_TAGS = {"offensive", "slur", "ethnic"}
+OBSOLETE_TAGS = {"archaic", "obsolete"}
+OFFENSIVE_RAW = re.compile(r"冒犯|歧[視视]|slur|offens", re.I)
+OBSOLETE_RAW = re.compile(r"古舊|古旧")
+DATED_RAW = re.compile(r"過時|过时|罕用")
+VULGAR_DEFINITION = re.compile(r"性交|性行[為为]|做[愛爱]|[陰阴][莖茎道戶户]|射精|性高潮|妓|婊|屌|屄|肏|淫|肛|手淫|自慰|口交|奶子|[睪睾]丸|生殖器|乳房(?!炎)|榨精|[內内]射|中出|[陽阳]具")
+VULGAR_WORD = re.compile(r"fuck|shit|cunt|dick|cock|pussy|bitch|whore|slut|wank|twat|bollock|bastard", re.I)
+# Reviewed: untagged slurs in the frozen source.
+EXCLUDED_WORDS = {"tran"}
 MODERN_TAGS = {"slang", "Internet", "abbreviation", "initialism", "acronym", "informal", "neologism"}
 MODERN_CATEGORIES = {"English slang", "English internet slang", "English text messaging slang", "English abbreviations", "English initialisms", "English acronyms", "English informal terms", "English neologisms"}
 ZH_MODERN_CATEGORIES = {"英語俚語", "英語網路用語", "英語網絡用語", "英語簡訊俚語", "英語縮寫", "英語首字母縮略詞", "英語首字母缩略词", "英語首字母縮拼詞", "英語首字母縮略字", "英語非正式用語", "英語新詞", "英語縮略形式"}
@@ -236,9 +249,22 @@ def clean_field(text, maximum, ascii_only=False):
     return text
 
 
+def register(word, sense, definition):
+    """Return "offensive", "obsolete", "vulgar" or "" for one admitted sense."""
+    tags, raw = set(sense.get("tags", [])), " ".join(sense.get("raw_tags", []))
+    if word.lower() in EXCLUDED_WORDS or tags & OFFENSIVE_TAGS or OFFENSIVE_RAW.search(raw):
+        return "offensive"
+    if tags & OBSOLETE_TAGS or OBSOLETE_RAW.search(raw):
+        return "obsolete"
+    vulgar_raw = "粗" in raw.replace("不粗", "")
+    if "vulgar" in tags or vulgar_raw or VULGAR_DEFINITION.search(definition) or VULGAR_WORD.search(word):
+        return "vulgar"
+    return ""
+
+
 def usage(sense):
     tags, categories = set(sense.get("tags", [])), set(sense.get("categories", []))
-    if tags & {"archaic", "dated", "obsolete", "historical"}:
+    if tags & {"archaic", "dated", "obsolete", "historical"} or DATED_RAW.search(" ".join(sense.get("raw_tags", []))):
         return "旧义"
     if tags & {"abbreviation", "initialism", "acronym"} or categories & ABBR_CATEGORIES:
         return "缩写"
@@ -297,7 +323,7 @@ def compile_records(records, editorial):
             raise ValueError("Duplicate editorial sense override")
         overrides[sid] = item
     seen, rows, audit = set(), [], []
-    counts = {"upstream_chinese_senses": 0, "editorial_chinese_senses": 0, "missing_chinese_senses": 0, "unsupported_pos_senses": 0, "duplicate_senses": 0, "relation_only_chinese_senses": 0, "invalid_lexical_chinese_senses": 0}
+    counts = {"upstream_chinese_senses": 0, "editorial_chinese_senses": 0, "missing_chinese_senses": 0, "unsupported_pos_senses": 0, "duplicate_senses": 0, "relation_only_chinese_senses": 0, "invalid_lexical_chinese_senses": 0, "excluded_offensive_senses": 0, "excluded_obsolete_senses": 0, "vulgar_exact_only_senses": 0}
     for record in records:
         text, source_pos = record["word"], record["pos"]
         key = input_key(text)
@@ -349,6 +375,10 @@ def compile_records(records, editorial):
             if not has_hanzi(definition):
                 raise ValueError("Every admitted sense must have a real Chinese definition")
             tags = set(sense.get("tags", []))
+            policy = register(text, sense, definition)
+            if policy in ("offensive", "obsolete"):
+                counts[f"excluded_{policy}_senses"] += 1
+                continue
             priority = 500
             priority -= 300 if tags & {"archaic", "dated", "obsolete", "historical"} else 0
             priority -= 150 if tags & {"rare", "uncommon", "nonstandard"} else 0
@@ -359,6 +389,9 @@ def compile_records(records, editorial):
                 raise ValueError("Invalid priority")
             url = ("https://zh.wiktionary.org/wiki/" if record.get("edition") == "zh" else "https://en.wiktionary.org/wiki/") + urllib.parse.quote(text, safe="") + ("#英語" if record.get("edition") == "zh" else "#English")
             label = override.get("usage", usage(sense)) if override else usage(sense)
+            if policy == "vulgar":
+                label = "粗俗"
+                counts["vulgar_exact_only_senses"] += 1
             if label not in USAGE:
                 raise ValueError("Unknown usage label")
             display_form = full_form(sense)

@@ -1,6 +1,6 @@
 //! Small reviewed modern-name stream, separate from ordinary English meanings.
 //! The frozen catalog is intentionally limited; lookup never performs IO/network.
-use crate::modern::RankedKeys;
+use crate::modern::{Match, RankedKeys};
 use retype_types::{Candidate, CandidateLanguage, CandidateSource, EnglishAnnotation};
 use std::{cmp::Reverse, collections::HashSet, sync::OnceLock};
 
@@ -115,7 +115,7 @@ pub(super) fn initialize() -> Result<(), String> {
 
 /// Return canonical brand spelling; callers merge this independently ranked
 /// stream without discarding an ordinary dictionary meaning of the same text.
-pub(super) fn complete(input: &str, limit: usize) -> Vec<Candidate> {
+pub(super) fn complete(input: &str, limit: usize) -> Vec<Match> {
     if limit == 0
         || input.len() < 2
         || input.len() > 64
@@ -132,11 +132,11 @@ pub(super) fn complete(input: &str, limit: usize) -> Vec<Candidate> {
     catalog.complete(&key, input.len(), limit)
 }
 impl Catalog<'_> {
-    fn complete(&self, key: &str, consumed: usize, limit: usize) -> Vec<Candidate> {
+    fn complete(&self, key: &str, consumed: usize, limit: usize) -> Vec<Match> {
         self.index
             .lookup(key, limit.min(MAX_RESULTS))
             .into_iter()
-            .map(|(ordinal, _)| {
+            .map(|(ordinal, exact)| {
                 let entity = self.entries[ordinal];
                 let mut candidate = Candidate::new(entity.text, CandidateSource::Local);
                 candidate.language = CandidateLanguage::English;
@@ -162,7 +162,11 @@ impl Catalog<'_> {
                 });
                 // Producer commonness is local to this stream, not a language-model probability.
                 candidate.score = entity.priority as f32;
-                candidate
+                Match {
+                    candidate,
+                    exact,
+                    priority: entity.priority,
+                }
             })
             .collect()
     }
@@ -183,9 +187,11 @@ mod tests {
         ] {
             let hits = complete(query, 1);
             assert_eq!(hits.len(), 1);
-            assert_eq!(hits[0].text, text);
-            assert_eq!(hits[0].consumed, query.len());
-            let note = hits[0].annotation.as_ref().expect("entity annotation");
+            assert!(hits[0].exact);
+            let hit = &hits[0].candidate;
+            assert_eq!(hit.text, text);
+            assert_eq!(hit.consumed, query.len());
+            let note = hit.annotation.as_ref().expect("entity annotation");
             assert!(!note.pinyin_match && !note.entity_kind.is_empty());
             assert!(note.entity_source.contains(id) && note.entity_source.contains("oldid="));
         }
@@ -198,11 +204,13 @@ mod tests {
         }
         assert!(complete(&"a".repeat(65), 5).is_empty());
         assert!(complete("co", usize::MAX).len() <= MAX_RESULTS);
-        assert_eq!(complete("rust", 1)[0].text, "Rust");
-        assert_eq!(complete("node", 1)[0].text, "Node.js");
+        assert_eq!(complete("rust", 1)[0].candidate.text, "Rust");
+        assert_eq!(complete("node", 1)[0].candidate.text, "Node.js");
+        assert!(!complete("anthr", 1)[0].exact);
         // This module generates entity rows only. The lib merge keeps a separate
         // normal adjective/noun candidate rather than replacing it here.
         assert!(complete("anthropic", 5).iter().all(|hit| hit
+            .candidate
             .annotation
             .as_ref()
             .is_some_and(|note| !note.entity_kind.is_empty())));
@@ -227,12 +235,14 @@ mod tests {
         let hits = catalog.complete("imo", 3, 24);
         assert_eq!(hits.len(), 2);
         assert!(hits[0]
+            .candidate
             .annotation
             .as_ref()
             .unwrap()
             .entity_source
             .contains("Q1@1"));
         assert!(hits[1]
+            .candidate
             .annotation
             .as_ref()
             .unwrap()

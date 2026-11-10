@@ -8,6 +8,7 @@ Cargo.lock.bak
 /data/dict/*.tsv
 !/data/dict/modern-entities.tsv
 !/data/dict/modern-lexicon.tsv
+!/data/dict/english-ranking.tsv
 /dist/
 
 # Android / Gradle build outputs

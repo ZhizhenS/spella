@@ -2,28 +2,31 @@
   "schema": 1,
   "format": "EAMODLX1",
   "runtime_format": "EAMODLX1",
-  "producerSha256": "1b1440094f60671bd79578bdabe63ad2a5626041680a6a31a5a22e8b7a2d4ef6",
+  "producerSha256": "24f34b43a8feee33b11bb7e3d9eb09114a53e4139aa267c856ba555e2cafeef3",
   "file": "modern-lexicon.tsv",
-  "bytes": 620800,
-  "sha256": "ccbb70532631d3cdc000ff63fd702b6d496e09d1b4f024e11a9670d4bfaa9749",
+  "bytes": 606397,
+  "sha256": "ed62c0b0b4e4caa5544728af2e0ee8ad7b3f08cc8f353a30f50cf334bd9f600c",
   "data_license": "CC-BY-SA-4.0",
   "source_sha256": "5ff2c072f8099f2d2ce484bd6957bf179f046d2ad37bc36555edf8bb84cb5291",
   "chinese_source_sha256": "30f175aa641b204c43755e942a6e97d38cf5e93d7815ce1e2475e68c068b82c0",
   "counts": {
-    "upstream_chinese_senses": 3982,
+    "upstream_chinese_senses": 3882,
     "editorial_chinese_senses": 61,
     "missing_chinese_senses": 99074,
     "unsupported_pos_senses": 275,
     "duplicate_senses": 4,
     "relation_only_chinese_senses": 930,
     "invalid_lexical_chinese_senses": 12,
-    "admitted_senses_before_merge": 4043,
+    "excluded_offensive_senses": 50,
+    "excluded_obsolete_senses": 50,
+    "vulgar_exact_only_senses": 280,
+    "admitted_senses_before_merge": 3943,
     "cross_source_merged_senses": 34,
-    "entries": 4009,
-    "senses": 4009,
-    "distinct_keys": 2134,
-    "runtime_senses": 4009,
-    "runtime_keys": 2134
+    "entries": 3909,
+    "senses": 3909,
+    "distinct_keys": 2080,
+    "runtime_senses": 3909,
+    "runtime_keys": 2080
   },
   "inputs": {
     "data/dict/raw/kaikki-modern/SOURCES.json": {
@@ -813,7 +816,7 @@
       "full_form": "",
       "definition_zh": "沒錯",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -835,7 +838,7 @@
       "full_form": "",
       "definition_zh": "絕屄，絕對",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -2640,29 +2643,6 @@
       "priority": 500
     },
     {
-      "sense_id": "zh-198616a6e17a546fefaeb6d4500636fa01d3aa00",
-      "edition": "zh",
-      "word": "aggravator",
-      "source_line": 2300019,
-      "source_entry_sha256": "483a1f6b37fedffd98a62920bd47aac538121724c9272c700944737a620b4fdc",
-      "source_url": "https://zh.wiktionary.org/wiki/aggravator#英語",
-      "pos": "noun",
-      "glosses": [
-        "Newgate knocker (“一绺向后卷曲的头发”)之同義詞"
-      ],
-      "tags": [
-        "form-of",
-        "obsolete",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "一绺向后卷曲的头发",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
-    },
-    {
       "sense_id": "zh-39e64105f30d634e07903362bf861c986a2e7331",
       "edition": "zh",
       "word": "aggro",
@@ -3314,7 +3294,7 @@
       "full_form": "",
       "definition_zh": "包夜卖淫",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -3634,7 +3614,7 @@
       "full_form": "",
       "definition_zh": "肛交",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 350
     },
@@ -4465,29 +4445,6 @@
       "priority": 500
     },
     {
-      "sense_id": "zh-76a68d19f678fe579eb30e165c51452a2db701fc",
-      "edition": "zh",
-      "word": "apple",
-      "source_line": 1642,
-      "source_entry_sha256": "b7a525ae31f26b7c18c84610c88f6d816e1819a77657ef2e7386caebeb6d5d50",
-      "source_url": "https://zh.wiktionary.org/wiki/apple#英語",
-      "pos": "noun",
-      "glosses": [
-        "像蘋果的東西，例如球或胸部。",
-        "棒球的球。"
-      ],
-      "tags": [
-        "obsolete",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "棒球的球。",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
-    },
-    {
       "sense_id": "zh-8c57947df9f7b29ac83ae32ca2d745e74726be9f",
       "edition": "zh",
       "word": "apples",
@@ -4526,7 +4483,7 @@
       "full_form": "",
       "definition_zh": "睪丸",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -5374,7 +5331,7 @@
       "full_form": "",
       "definition_zh": "（用于英国、爱尔兰、澳大利亚、新西兰）臀部，屁股；肛门",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -5609,7 +5566,7 @@
       "full_form": "",
       "definition_zh": "得不得了，得一屄，得要死",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -6021,7 +5978,7 @@
       "full_form": "",
       "definition_zh": "家伙，人 （能指代自己。可指代身体，安全，或者比喻性地指代工作，将来等）",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -6043,7 +6000,7 @@
       "full_form": "",
       "definition_zh": "差劲的，不行的，垃圾的",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -6064,7 +6021,7 @@
       "full_form": "",
       "definition_zh": "蠢货",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -6087,7 +6044,7 @@
       "full_form": "",
       "definition_zh": "讨厌的东西，差劲的东西，垃圾",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -6110,7 +6067,7 @@
       "full_form": "",
       "definition_zh": "性交对象 （粗俗地强调了其身体而非其人格）",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -6132,7 +6089,7 @@
       "full_form": "",
       "definition_zh": "屁股",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -6154,31 +6111,9 @@
       "full_form": "",
       "definition_zh": "屁眼",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
-    },
-    {
-      "sense_id": "zh-cdd4607f3853cc9a3b4be2015b3e30f8ad9f02f9",
-      "edition": "zh",
-      "word": "ass",
-      "source_line": 1047774,
-      "source_entry_sha256": "59c449906afb9ca50b1ef18b33bae4c07aaa1dd13d40ea7a897046fe15265cbd",
-      "source_url": "https://zh.wiktionary.org/wiki/ass#英語",
-      "pos": "noun",
-      "glosses": [
-        "排版工人"
-      ],
-      "tags": [
-        "obsolete",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "排版工人",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
     },
     {
       "sense_id": "zh-3e2e2ff39e7612b389cafb9b058c59582dd73b08",
@@ -6219,7 +6154,7 @@
       "full_form": "",
       "definition_zh": "馬屁精；為獲取他人好感而採取卑鄙手段者",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -6242,7 +6177,7 @@
       "full_form": "",
       "definition_zh": "馬屁精，屈服於權威者；做權威人士要求的任何事情，並試圖用一切可能的方式取悅他們的人；（引申為）任何可鄙的人",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -6265,7 +6200,7 @@
       "full_form": "",
       "definition_zh": "舔肛者",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -6287,7 +6222,7 @@
       "full_form": "",
       "definition_zh": "傻瓜，笨蛋",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -6772,7 +6707,7 @@
       "full_form": "ass to mouth",
       "definition_zh": "從肛門拔出後直接入口",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "缩写",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -6985,29 +6920,6 @@
       "definition_zh": "刻意營造出毫不費力、滿不在乎的魅力外表或美感的行為",
       "definition_origin": "upstream-chinese-edition-gloss",
       "usage": "俚语",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
-      "sense_id": "zh-fd323387971de36323435efd2f0b1425f07ea440",
-      "edition": "zh",
-      "word": "autism",
-      "source_line": 1036829,
-      "source_entry_sha256": "61005e826e98daedb0d91c1fe14c1a8a255c9cac8fa9641010f22753800385ac",
-      "source_url": "https://zh.wiktionary.org/wiki/autism#英語",
-      "pos": "noun",
-      "glosses": [
-        "異常或病態的專注和執著"
-      ],
-      "tags": [
-        "Internet",
-        "derogatory",
-        "offensive"
-      ],
-      "full_form": "",
-      "definition_zh": "異常或病態的專注和執著",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "网络",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -7453,7 +7365,7 @@
       "full_form": "",
       "definition_zh": "性交，交媾",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -7475,7 +7387,7 @@
       "full_form": "",
       "definition_zh": "性交，交媾",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -7671,7 +7583,7 @@
       "full_form": "",
       "definition_zh": "不戴保險套肛交",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -7693,7 +7605,7 @@
       "full_form": "",
       "definition_zh": "從事不戴保險套的性行為",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -7715,7 +7627,7 @@
       "full_form": "",
       "definition_zh": "不戴保險套進入肛門",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -8488,7 +8400,7 @@
       "full_form": "",
       "definition_zh": "涉及綁縛、調教、支配、臣服和性虐戀的性行為或非性行為活動",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "词汇",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -8553,7 +8465,7 @@
       "full_form": "",
       "definition_zh": "自慰（摩擦擼動陰莖）",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -8576,7 +8488,7 @@
       "full_form": "",
       "definition_zh": "浪費時間；幹沒用的事情",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -8747,30 +8659,7 @@
       "full_form": "",
       "definition_zh": "龟头",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
-      "sense_id": "zh-af08e8d90e75d5f8bb850e6c6749e37bcba0104f",
-      "edition": "zh",
-      "word": "bell-end",
-      "source_line": 1763518,
-      "source_entry_sha256": "4f7686b38e7eae20b2820ff42d3581015d20650516a2f544e3fe3b2df9112bfd",
-      "source_url": "https://zh.wiktionary.org/wiki/bell-end#英語",
-      "pos": "noun",
-      "glosses": [
-        "傻屄"
-      ],
-      "tags": [
-        "offensive",
-        "slang",
-        "vulgar"
-      ],
-      "full_form": "",
-      "definition_zh": "傻屄",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -8818,28 +8707,6 @@
       "usage": "俚语",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
-    },
-    {
-      "sense_id": "zh-eaf02828d3a85e9d50e3f5b17fe830d6dc36f9df",
-      "edition": "zh",
-      "word": "bester",
-      "source_line": 118515,
-      "source_entry_sha256": "95d54a84c6fa4030c0d4a94156460e3a61da6c18a2ddeb3382198751777a1f21",
-      "source_url": "https://zh.wiktionary.org/wiki/bester#英語",
-      "pos": "noun",
-      "glosses": [
-        "一个欺诈他人的人。"
-      ],
-      "tags": [
-        "archaic",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "一个欺诈他人的人。",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
     },
     {
       "sense_id": "zh-a8020e28abfc3853251cd765bc5bd14d7e731c22",
@@ -8966,7 +8833,7 @@
       "full_form": "",
       "definition_zh": "謙遜、不張揚的自信",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -9054,28 +8921,6 @@
       "usage": "俚语",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
-    },
-    {
-      "sense_id": "zh-b2c3daedcd3c6655691d8d26b00e2ff3c6e9449f",
-      "edition": "zh",
-      "word": "big house",
-      "source_line": 1802412,
-      "source_entry_sha256": "d129c662915b96354fb816e595736d445d260694a110d7d8528852622f03c092",
-      "source_url": "https://zh.wiktionary.org/wiki/big%20house#英語",
-      "pos": "noun",
-      "glosses": [
-        "济贫院"
-      ],
-      "tags": [
-        "obsolete",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "济贫院",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
     },
     {
       "sense_id": "zh-7122f86d62884a256b445a7d46ff3c793ff18232",
@@ -9396,7 +9241,7 @@
       "full_form": "",
       "definition_zh": "（多单）难题，棘手的问题",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -9417,7 +9262,7 @@
       "full_form": "",
       "definition_zh": "（与属有代词连用，多在女性间、男同性恋者间及女性和男同性恋者间）朋友，哥们，姐们",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -9438,7 +9283,7 @@
       "full_form": "",
       "definition_zh": "抱怨，埋怨，投诉",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -9459,7 +9304,7 @@
       "full_form": "",
       "definition_zh": "见鬼，愚蠢",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -9781,28 +9626,6 @@
       "usage": "俚语",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
-    },
-    {
-      "sense_id": "zh-d5d851e5d6758694d1ca5de092ce92964ab45816",
-      "edition": "zh",
-      "word": "blind",
-      "source_line": 42487,
-      "source_entry_sha256": "6be8cc69a8c24a15436c49da700852244eb2a74f042e8ecf46672e4d62ca85ea",
-      "source_url": "https://zh.wiktionary.org/wiki/blind#英語",
-      "pos": "verb",
-      "glosses": [
-        "诅咒"
-      ],
-      "tags": [
-        "obsolete",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "诅咒",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
     },
     {
       "sense_id": "zh-2d6ee6a4938900250fe8970555639776bb728629",
@@ -10383,7 +10206,7 @@
       "full_form": "",
       "definition_zh": "等同於 \"both of my balls\" 或 \"both of deez nuts\"（我的兩顆睪丸）。",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "网络",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -10488,7 +10311,7 @@
       "full_form": "",
       "definition_zh": "勃起的陰莖",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -10766,72 +10589,6 @@
       "usage": "非正式",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
-    },
-    {
-      "sense_id": "zh-a71cb063f79ca57ce59a273eba3df6dda10f4069",
-      "edition": "zh",
-      "word": "bouncer",
-      "source_line": 95046,
-      "source_entry_sha256": "ea5315fd8f669b102f7ab67911d5287b37ac674e26bc064308d1f54324d26b6d",
-      "source_url": "https://zh.wiktionary.org/wiki/bouncer#英語",
-      "pos": "noun",
-      "glosses": [
-        "吹牛皮的人"
-      ],
-      "tags": [
-        "archaic",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "吹牛皮的人",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
-    },
-    {
-      "sense_id": "zh-c2ca681e00e901cf83cc97d87b96cfb0414c737c",
-      "edition": "zh",
-      "word": "bouncer",
-      "source_line": 95046,
-      "source_entry_sha256": "ea5315fd8f669b102f7ab67911d5287b37ac674e26bc064308d1f54324d26b6d",
-      "source_url": "https://zh.wiktionary.org/wiki/bouncer#英語",
-      "pos": "noun",
-      "glosses": [
-        "弥天大谎"
-      ],
-      "tags": [
-        "archaic",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "弥天大谎",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
-    },
-    {
-      "sense_id": "zh-ccf2cd8565e0cb419503f8cccef4148a70658be2",
-      "edition": "zh",
-      "word": "bouncer",
-      "source_line": 95046,
-      "source_entry_sha256": "ea5315fd8f669b102f7ab67911d5287b37ac674e26bc064308d1f54324d26b6d",
-      "source_url": "https://zh.wiktionary.org/wiki/bouncer#英語",
-      "pos": "noun",
-      "glosses": [
-        "说谎的人，骗子"
-      ],
-      "tags": [
-        "archaic",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "说谎的人，骗子",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
     },
     {
       "sense_id": "zh-28d2cbde51eb208e362099798e6ce9b6d0835c1b",
@@ -11239,28 +10996,6 @@
       "definition_zh": "巴西、俄羅斯、印度、中國、南非",
       "definition_origin": "upstream-chinese-edition-gloss",
       "usage": "缩写",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
-      "sense_id": "zh-3d6a1ae8ccb43d40c9d7e34681d062f933d6847d",
-      "edition": "zh",
-      "word": "Brit",
-      "source_line": 1192540,
-      "source_entry_sha256": "62c98e91bbedf808022890c37c3fea397491b55c53591f0749b6ca41cfbfcf1b",
-      "source_url": "https://zh.wiktionary.org/wiki/Brit#英語",
-      "pos": "noun",
-      "glosses": [
-        "英國人"
-      ],
-      "tags": [
-        "informal",
-        "offensive"
-      ],
-      "full_form": "",
-      "definition_zh": "英國人",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "非正式",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -11883,7 +11618,7 @@
       "full_form": "",
       "definition_zh": "翹臀 /翘臀",
       "definition_origin": "upstream-sense-translation",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -12079,7 +11814,7 @@
       "full_form": "",
       "definition_zh": "假话，谎话，胡说",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -12102,7 +11837,7 @@
       "full_form": "",
       "definition_zh": "临时做，即兴做",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -12124,7 +11859,7 @@
       "full_form": "",
       "definition_zh": "狗屁！放屁！胡说！ （表达不相信。）",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -12148,7 +11883,7 @@
       "full_form": "",
       "definition_zh": "乱讲，胡诌",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -12171,7 +11906,7 @@
       "full_form": "",
       "definition_zh": "聊天，吹牛屄",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -12193,7 +11928,7 @@
       "full_form": "",
       "definition_zh": "乱讲的话，夸张的话，吹牛屄，放屁，胡话，胡说",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -12216,7 +11951,7 @@
       "full_form": "",
       "definition_zh": "玩意儿",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -12238,7 +11973,7 @@
       "full_form": "",
       "definition_zh": "荒唐的，乱讲的，胡说八道的",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -12410,7 +12145,7 @@
       "full_form": "",
       "definition_zh": "舔肛者",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -12762,29 +12497,6 @@
       "priority": 500
     },
     {
-      "sense_id": "zh-9358d5d179f232e546bed3b2949a6d8fcdafedae",
-      "edition": "zh",
-      "word": "cadet",
-      "source_line": 59197,
-      "source_entry_sha256": "283fc4eed44778bdeb7ce2ae5919d9c82ad9bfd24fc4115730886ca5830e6f6c",
-      "source_url": "https://zh.wiktionary.org/wiki/cadet#英語",
-      "pos": "noun",
-      "glosses": [
-        "招妓者 （让少女堕落诱其进入妓院的人）"
-      ],
-      "tags": [
-        "US",
-        "archaic",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "招妓者 （让少女堕落诱其进入妓院的人）",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
-    },
-    {
       "sense_id": "zh-5cd6092cf8f34321f5eadfe1324c28634697ff4a",
       "edition": "zh",
       "word": "CAG",
@@ -13021,28 +12733,6 @@
       "priority": 500
     },
     {
-      "sense_id": "zh-3f0a4aa50fc195cef9736ed51c76e79d762fd027",
-      "edition": "zh",
-      "word": "cake",
-      "source_line": 22016,
-      "source_entry_sha256": "fd9f901aa72d29ccf195ffae0dacdb30ff0e82286347bd49957bdcb24ab18b2c",
-      "source_url": "https://zh.wiktionary.org/wiki/cake#英語",
-      "pos": "noun",
-      "glosses": [
-        "愚蠢的人"
-      ],
-      "tags": [
-        "obsolete",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "愚蠢的人",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
-    },
-    {
       "sense_id": "zh-b8ffb2b7128bcc7d5749ba4cba0e92c307518619",
       "edition": "zh",
       "word": "Calamity Jane",
@@ -13107,7 +12797,7 @@
       "full_form": "",
       "definition_zh": "屁股",
       "definition_origin": "upstream-sense-translation",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -15529,7 +15219,7 @@
       "full_form": "corps diplomatique",
       "definition_zh": "外交使團",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "缩写",
+      "usage": "旧义",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -16093,7 +15783,7 @@
       "full_form": "",
       "definition_zh": "肛門，屁眼",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -16137,7 +15827,7 @@
       "full_form": "",
       "definition_zh": "男性自慰",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -17263,28 +16953,6 @@
       "priority": 500
     },
     {
-      "sense_id": "zh-aedbed6eb5f85a07c52d8dc0d9b491ca333431a5",
-      "edition": "zh",
-      "word": "clouts",
-      "source_line": 2683868,
-      "source_entry_sha256": "e9eccf7f3da3c18a1aec4e0afc44f3a3761db11ef98daf9458c6a3dd06f58099",
-      "source_url": "https://zh.wiktionary.org/wiki/clouts#英語",
-      "pos": "noun",
-      "glosses": [
-        "衣物"
-      ],
-      "tags": [
-        "obsolete",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "衣物",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
-    },
-    {
       "sense_id": "zh-3d2c8e5edea918e7e25c819fdb7ab26d7addad1e",
       "edition": "zh",
       "word": "CLP",
@@ -17449,7 +17117,7 @@
       "full_form": "",
       "definition_zh": "女陰，陰戶",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -17471,7 +17139,7 @@
       "full_form": "",
       "definition_zh": "屁股",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -17794,7 +17462,7 @@
       "full_form": "",
       "definition_zh": "包皮垢或包皮下乾了的精液",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -17816,7 +17484,7 @@
       "full_form": "",
       "definition_zh": "使或試圖使他人建立戀愛關係或發生性關係的預期目標成為不可能。",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -17838,7 +17506,7 @@
       "full_form": "",
       "definition_zh": "阻撓性愛的人。",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -17860,7 +17528,7 @@
       "full_form": "",
       "definition_zh": "阻撓性行為。",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -17881,49 +17549,7 @@
       "full_form": "",
       "definition_zh": "荒唐的，愚蠢的 （一般形容想法而非人）",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "非正式",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
-      "sense_id": "zh-5ff5ab953fe0f9ef939f49a488f433a4de3191de",
-      "edition": "zh",
-      "word": "cockroach",
-      "source_line": 1912,
-      "source_entry_sha256": "f3e28e25272f9bd1bc61d089d04dc00d0158213df5a8b63f50c795ff1d8e351a",
-      "source_url": "https://zh.wiktionary.org/wiki/cockroach#英語",
-      "pos": "noun",
-      "glosses": [
-        "不受周圍人歡迎，又生育多個子女的人"
-      ],
-      "tags": [
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "不受周圍人歡迎，又生育多個子女的人",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
-      "sense_id": "zh-85d1549b846c008ad2cc819b76e782465a3c6c8a",
-      "edition": "zh",
-      "word": "cockroach",
-      "source_line": 1912,
-      "source_entry_sha256": "f3e28e25272f9bd1bc61d089d04dc00d0158213df5a8b63f50c795ff1d8e351a",
-      "source_url": "https://zh.wiktionary.org/wiki/cockroach#英語",
-      "pos": "noun",
-      "glosses": [
-        "圖西族（Tutsi）"
-      ],
-      "tags": [
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "圖西族（Tutsi）",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -17947,32 +17573,9 @@
       "full_form": "",
       "definition_zh": "來自新南威爾斯州的人",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 400
-    },
-    {
-      "sense_id": "zh-0155ae17a486508fb9cd556d36123a70fd0ce3fe",
-      "edition": "zh",
-      "word": "cockroach",
-      "source_line": 1912,
-      "source_entry_sha256": "f3e28e25272f9bd1bc61d089d04dc00d0158213df5a8b63f50c795ff1d8e351a",
-      "source_url": "https://zh.wiktionary.org/wiki/cockroach#英語",
-      "pos": "noun",
-      "glosses": [
-        "結成塊的黑糖"
-      ],
-      "tags": [
-        "Australia",
-        "obsolete",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "結成塊的黑糖",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 100
     },
     {
       "sense_id": "zh-105594508997329ccac0f644b0d42088873fc268",
@@ -18208,7 +17811,7 @@
       "full_form": "",
       "definition_zh": "性交时冷漠没有激情的人",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -18316,7 +17919,7 @@
       "full_form": "",
       "definition_zh": "探索",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "旧义",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -18946,28 +18549,6 @@
       "priority": 500
     },
     {
-      "sense_id": "zh-c434f0a79196889b481101ca1cacfb6f9fa9bb5b",
-      "edition": "zh",
-      "word": "corny",
-      "source_line": 64785,
-      "source_entry_sha256": "2d7f4cadb4ae834e0cc80a43d876aca4fdebb4eb443cfaee66a5bca9b4e880e6",
-      "source_url": "https://zh.wiktionary.org/wiki/corny#英語",
-      "pos": "adj",
-      "glosses": [
-        "烂醉的"
-      ],
-      "tags": [
-        "obsolete",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "烂醉的",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
-    },
-    {
       "sense_id": "zh-faa18bf57a54f57dbcff5a888babf79c82884391",
       "edition": "zh",
       "word": "cosysop",
@@ -18984,28 +18565,6 @@
       ],
       "full_form": "",
       "definition_zh": "被授予了系统操作员的部分管理性权限的用户。",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
-    },
-    {
-      "sense_id": "zh-d37d3a1ab881c7246ac893905b981a8bd0fe1e67",
-      "edition": "zh",
-      "word": "cottage",
-      "source_line": 26480,
-      "source_entry_sha256": "492f2e002b270915ba4e251427d80bcc4d5895d8c3c4150d316cd83cfba50c1f",
-      "source_url": "https://zh.wiktionary.org/wiki/cottage#英語",
-      "pos": "noun",
-      "glosses": [
-        "公厕"
-      ],
-      "tags": [
-        "archaic",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "公厕",
       "definition_origin": "upstream-chinese-edition-gloss",
       "usage": "旧义",
       "usage_origin": "upstream-tags-or-neutral",
@@ -19827,30 +19386,6 @@
       "priority": 500
     },
     {
-      "sense_id": "zh-d53601fe04344c53a93a460d512aaa7e5c3efb88",
-      "edition": "zh",
-      "word": "crapaud",
-      "source_line": 874499,
-      "source_entry_sha256": "c5cf38a6f7a11a844ddaab11110b8d3619769d1b1a88491db4ff436156d044b8",
-      "source_url": "https://zh.wiktionary.org/wiki/crapaud#英語",
-      "pos": "noun",
-      "glosses": [
-        "法国佬"
-      ],
-      "tags": [
-        "derogatory",
-        "offensive",
-        "slang",
-        "slur"
-      ],
-      "full_form": "",
-      "definition_zh": "法国佬",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
       "sense_id": "zh-3ad1195c0a16d1798af0cdf3ac125221ab040b66",
       "edition": "zh",
       "word": "crash",
@@ -19930,7 +19465,7 @@
       "full_form": "",
       "definition_zh": "內射，中出（精液射入陰道的行為）",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -19953,7 +19488,7 @@
       "full_form": "",
       "definition_zh": "內射，中出（將精液射入陰道）",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -19975,7 +19510,7 @@
       "full_form": "",
       "definition_zh": "射精後在陰道內清晰可見的精液",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -20217,50 +19752,6 @@
       "usage": "词汇",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 400
-    },
-    {
-      "sense_id": "zh-81be74e754b981d5fba3726e3984968b6884507f",
-      "edition": "zh",
-      "word": "cringe",
-      "source_line": 63159,
-      "source_entry_sha256": "2322465e41973d22e1b1e7856ad11070109c15cfcd2c4f3bba171004734aae4f",
-      "source_url": "https://zh.wiktionary.org/wiki/cringe#英語",
-      "pos": "verb",
-      "glosses": [
-        "将...拉近(身体部位)；皱起(脸)"
-      ],
-      "tags": [
-        "obsolete",
-        "transitive"
-      ],
-      "full_form": "",
-      "definition_zh": "将...拉近(身体部位)；皱起(脸)",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
-    },
-    {
-      "sense_id": "zh-f761d3d1e37dda1af1718b5edb1f954c7a258f17",
-      "edition": "zh",
-      "word": "cringe",
-      "source_line": 63159,
-      "source_entry_sha256": "2322465e41973d22e1b1e7856ad11070109c15cfcd2c4f3bba171004734aae4f",
-      "source_url": "https://zh.wiktionary.org/wiki/cringe#英語",
-      "pos": "verb",
-      "glosses": [
-        "对...点头哈腰；（点头哈腰地）陪同"
-      ],
-      "tags": [
-        "obsolete",
-        "transitive"
-      ],
-      "full_form": "",
-      "definition_zh": "对...点头哈腰；（点头哈腰地）陪同",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
     },
     {
       "sense_id": "zh-6752bbb22acfcf02c89622baccba4b9a2ad1b765",
@@ -20632,7 +20123,7 @@
       "full_form": "",
       "definition_zh": "射精",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -20653,7 +20144,7 @@
       "full_form": "",
       "definition_zh": "性高潮",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -20674,7 +20165,7 @@
       "full_form": "",
       "definition_zh": "潮吹",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -20695,7 +20186,7 @@
       "full_form": "",
       "definition_zh": "精液",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -20716,7 +20207,7 @@
       "full_form": "",
       "definition_zh": "性高潮",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -20738,7 +20229,7 @@
       "full_form": "",
       "definition_zh": "精液的痕跡",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -20760,7 +20251,7 @@
       "full_form": "",
       "definition_zh": "對射精的描寫、描繪",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -20782,7 +20273,7 @@
       "full_form": "",
       "definition_zh": "射精鏡頭/射精場景：色情影片或雜誌中，男演員射精的畫面或片段。",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -20806,7 +20297,7 @@
       "full_form": "",
       "definition_zh": "萝莉的屄",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -20831,7 +20322,7 @@
       "full_form": "",
       "definition_zh": "与萝莉有关的黄色作品",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -20853,7 +20344,7 @@
       "full_form": "",
       "definition_zh": "屄",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -20877,7 +20368,7 @@
       "full_form": "",
       "definition_zh": "萝莉",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -20898,7 +20389,7 @@
       "full_form": "",
       "definition_zh": "陰戶",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -23053,7 +22544,7 @@
       "full_form": "don't/doesn't give a fuck",
       "definition_zh": "完全不管，完全不理会",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "缩写",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -23182,7 +22673,7 @@
       "full_form": "",
       "definition_zh": "與男性性交",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -23207,7 +22698,7 @@
       "full_form": "",
       "definition_zh": "什麼也沒有",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -23230,7 +22721,7 @@
       "full_form": "",
       "definition_zh": "與……性交",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -23253,7 +22744,7 @@
       "full_form": "",
       "definition_zh": "欺騙，捉弄，被佔便宜",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -23278,7 +22769,7 @@
       "full_form": "",
       "definition_zh": "令人不快的人",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -23302,7 +22793,7 @@
       "full_form": "",
       "definition_zh": "陰莖，屌",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -23325,7 +22816,7 @@
       "full_form": "",
       "definition_zh": "偵探",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 200
     },
@@ -23347,7 +22838,7 @@
       "full_form": "",
       "definition_zh": "包皮垢或包皮下乾了的精液",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -23369,7 +22860,7 @@
       "full_form": "",
       "definition_zh": "詈語。",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -23391,7 +22882,7 @@
       "full_form": "",
       "definition_zh": "懦弱的，没有男子气概的。",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -23412,7 +22903,7 @@
       "full_form": "",
       "definition_zh": "没有阴茎的。",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -23434,7 +22925,7 @@
       "full_form": "",
       "definition_zh": "割过包皮的。",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -23545,7 +23036,7 @@
       "full_form": "dick",
       "definition_zh": "屌",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "网络",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -23568,7 +23059,7 @@
       "full_form": "",
       "definition_zh": "任何設備或工具。",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -23590,7 +23081,7 @@
       "full_form": "",
       "definition_zh": "形容性感的中年乃至老年男性",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -23696,7 +23187,7 @@
       "full_form": "",
       "definition_zh": "陰莖",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -23760,7 +23251,7 @@
       "full_form": "",
       "definition_zh": "鸡巴",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -25169,29 +24660,6 @@
       "priority": 500
     },
     {
-      "sense_id": "zh-b0961bb167a3f80bff8dec277c958e4e47213591",
-      "edition": "zh",
-      "word": "doozy",
-      "source_line": 1989753,
-      "source_entry_sha256": "39f62da2a623c8d18b4cf965c9843eee46dc048de8ba8aa9e371c38f2138a87e",
-      "source_url": "https://zh.wiktionary.org/wiki/doozy#英語",
-      "pos": "adj",
-      "glosses": [
-        "花哨的，俗艳的"
-      ],
-      "tags": [
-        "US",
-        "archaic",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "花哨的，俗艳的",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
-    },
-    {
       "sense_id": "zh-fff198962bc1d0a80a61ba98e448626815f2efa9",
       "edition": "zh",
       "word": "doozy",
@@ -25209,7 +24677,7 @@
       "full_form": "",
       "definition_zh": "厉害的，很好的，牛屄的",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 200
     },
@@ -25337,7 +24805,7 @@
       "full_form": "",
       "definition_zh": "鸡巴",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -25530,7 +24998,7 @@
       "full_form": "",
       "definition_zh": "傻瓜，蠢人，笨蛋",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -25554,7 +25022,7 @@
       "full_form": "",
       "definition_zh": "混蛋",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -25983,7 +25451,7 @@
       "full_form": "",
       "definition_zh": "（用力）將陰莖插入陰道進行性交；肏",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -26221,7 +25689,7 @@
       "full_form": "",
       "definition_zh": "蠢貨",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -26244,7 +25712,7 @@
       "full_form": "",
       "definition_zh": "愚蠢的",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -26310,7 +25778,7 @@
       "full_form": "",
       "definition_zh": "愚蠢",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -26849,7 +26317,7 @@
       "full_form": "",
       "definition_zh": "舔肛",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -26871,7 +26339,7 @@
       "full_form": "",
       "definition_zh": "舔陰 /舔阴",
       "definition_origin": "upstream-sense-translation",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -26893,7 +26361,7 @@
       "full_form": "",
       "definition_zh": "舔陰，陰戶口交",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -26915,7 +26383,7 @@
       "full_form": "",
       "definition_zh": "一败涂地，大败",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -26937,7 +26405,7 @@
       "full_form": "",
       "definition_zh": "脸着地摔倒，摔个狗吃屎",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -26960,7 +26428,7 @@
       "full_form": "",
       "definition_zh": "闲逛，无所事事，瞎混",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -26983,7 +26451,7 @@
       "full_form": "",
       "definition_zh": "做恶心或讨厌的事",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -27005,7 +26473,7 @@
       "full_form": "",
       "definition_zh": "一塌糊涂",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -28109,7 +27577,7 @@
       "full_form": "",
       "definition_zh": "变差，恶化；垃圾化，粪坑化 （指在线网络平台因追求利益而质量下降的现象，通常体现在广告等赞助内容中）",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "网络",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -28852,7 +28320,7 @@
       "full_form": "",
       "definition_zh": "在傍晚，在晚上",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "非正式",
+      "usage": "旧义",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -29152,28 +28620,6 @@
       "priority": 500
     },
     {
-      "sense_id": "zh-d77e163cb99976ab8c5dcbb2d974568a516fde0a",
-      "edition": "zh",
-      "word": "faggot",
-      "source_line": 136,
-      "source_entry_sha256": "f6087c89b261aa2d3bd783e436e8704a97679157737880a0096753ab8530c599",
-      "source_url": "https://zh.wiktionary.org/wiki/faggot#英語",
-      "pos": "noun",
-      "glosses": [
-        "懒人"
-      ],
-      "tags": [
-        "dated",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "懒人",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
-    },
-    {
       "sense_id": "zh-5ba63fd0c014a4ff03ca641c51bcaa94ae8e30e6",
       "edition": "zh",
       "word": "fairy",
@@ -29342,7 +28788,7 @@
       "full_form": "",
       "definition_zh": "表示正在自慰或被激起性慾",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "网络",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -29364,7 +28810,7 @@
       "full_form": "",
       "definition_zh": "自慰",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -29386,7 +28832,7 @@
       "full_form": "",
       "definition_zh": "自慰",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -29408,7 +28854,7 @@
       "full_form": "",
       "definition_zh": "色情",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "非正式",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -29490,7 +28936,7 @@
       "full_form": "",
       "definition_zh": "辱骂的通用词汇，类似于 motherfucker 。",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -29511,7 +28957,7 @@
       "full_form": "",
       "definition_zh": "（无礼的）指男同性恋者。",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -29533,7 +28979,7 @@
       "full_form": "",
       "definition_zh": "与父亲乱伦的人。",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -29554,7 +29000,7 @@
       "full_form": "",
       "definition_zh": "与比自己大得多的男性交往的，或有恋父情结的女性。",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -30219,7 +29665,7 @@
       "full_form": "",
       "definition_zh": "陰毛為紅色的人",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -30308,28 +29754,6 @@
       "priority": 500
     },
     {
-      "sense_id": "zh-b39ea1f217277462910ef547241b8571c15c0aea",
-      "edition": "zh",
-      "word": "flesh and blood",
-      "source_line": 1771846,
-      "source_entry_sha256": "3cdde288600b51052351afcf6603706b67449ef6ee07172ee1c27d8477410edb",
-      "source_url": "https://zh.wiktionary.org/wiki/flesh%20and%20blood#英語",
-      "pos": "noun",
-      "glosses": [
-        "等量混合的白兰地和波特酒"
-      ],
-      "tags": [
-        "obsolete",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "等量混合的白兰地和波特酒",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
-    },
-    {
       "sense_id": "zh-d22649a250169cc6eac82d2fb4e8e8100f143c8e",
       "edition": "zh",
       "word": "flog the dolphin",
@@ -30347,7 +29771,7 @@
       "full_form": "",
       "definition_zh": "男性自慰",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -31170,7 +30594,7 @@
       "full_form": "",
       "definition_zh": "口交",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "词汇",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -31191,7 +30615,7 @@
       "full_form": "",
       "definition_zh": "與口交有關的",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -31406,7 +30830,7 @@
       "full_form": "",
       "definition_zh": "判斷力差或沒品味的年輕人，特別指那些感覺膽小或想嘗試追逐潮流但行為過於激進的人。",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -31428,7 +30852,7 @@
       "full_form": "",
       "definition_zh": "用作表示多个常见疑问句的缩短形式。",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -31451,7 +30875,7 @@
       "full_form": "",
       "definition_zh": "胡来然后自食恶果，作死然后自食其果",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -31473,7 +30897,7 @@
       "full_form": "",
       "definition_zh": "炮友，性夥伴",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -31495,7 +30919,7 @@
       "full_form": "",
       "definition_zh": "中指",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -31516,7 +30940,7 @@
       "full_form": "",
       "definition_zh": "（习语）表达懊恼、沮丧的情感。",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -31537,7 +30961,7 @@
       "full_form": "",
       "definition_zh": "（习语）表达强烈的冷淡、不在乎。",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -31560,7 +30984,7 @@
       "full_form": "",
       "definition_zh": "搞砸",
       "definition_origin": "upstream-sense-translation",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -31583,7 +31007,7 @@
       "full_form": "",
       "definition_zh": "逗，耍，和...开玩笑",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -31606,7 +31030,7 @@
       "full_form": "",
       "definition_zh": "轻佻地对待；看不起；惹",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -31629,7 +31053,7 @@
       "full_form": "",
       "definition_zh": "影响，烦扰，干扰",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -31652,7 +31076,7 @@
       "full_form": "",
       "definition_zh": "与...合作，与...有关联； 喜欢，中意",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -31674,7 +31098,7 @@
       "full_form": "",
       "definition_zh": "肏你媽；肏你媽屄",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -31696,7 +31120,7 @@
       "full_form": "",
       "definition_zh": "能夠或適合被操；性吸引力。",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -31718,7 +31142,7 @@
       "full_form": "",
       "definition_zh": "具有性吸引力的人。",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -31740,7 +31164,7 @@
       "full_form": "",
       "definition_zh": "有理會的精力；有心情做某事",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -31763,7 +31187,7 @@
       "full_form": "",
       "definition_zh": "辱罵用語。",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -31786,7 +31210,7 @@
       "full_form": "",
       "definition_zh": "懶惰、無能或可鄙的人",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -31808,7 +31232,7 @@
       "full_form": "",
       "definition_zh": "十分愚蠢的人。",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -31831,7 +31255,7 @@
       "full_form": "",
       "definition_zh": "醜陋的人",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 350
     },
@@ -31856,28 +31280,6 @@
       "usage": "俚语",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
-    },
-    {
-      "sense_id": "zh-012bbf93dc2b0ee275071580cc702b45faa5a2e4",
-      "edition": "zh",
-      "word": "fumble",
-      "source_line": 79373,
-      "source_entry_sha256": "c09b0cca5d4ea915796442acbab6fffab2ee66cce4525627e33efe02cc7d600c",
-      "source_url": "https://zh.wiktionary.org/wiki/fumble#英語",
-      "pos": "verb",
-      "glosses": [
-        "性方面不尽人意"
-      ],
-      "tags": [
-        "obsolete",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "性方面不尽人意",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
     },
     {
       "sense_id": "zh-385042da448241c32076c6b1d93a7b90255afd3d",
@@ -32698,28 +32100,6 @@
       "priority": 500
     },
     {
-      "sense_id": "zh-57ed71e49c656fc974ebdb82e11086c89d8ae36f",
-      "edition": "zh",
-      "word": "gen",
-      "source_line": 24096,
-      "source_entry_sha256": "567d486adde58adb506cb5873697380829fcd524a165aee3532d03de76ed69a1",
-      "source_url": "https://zh.wiktionary.org/wiki/gen#英語",
-      "pos": "noun",
-      "glosses": [
-        "先令"
-      ],
-      "tags": [
-        "obsolete",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "先令",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
-    },
-    {
       "sense_id": "zh-54f34cb10993eeadf3085eb22aefdb1ab8125df6",
       "edition": "zh",
       "word": "gen. et sp. nov.",
@@ -32890,7 +32270,7 @@
       "full_form": "",
       "definition_zh": "做愛（尤指与新伴侣或在禁欲一段时间后发生性行为）",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -32912,7 +32292,7 @@
       "full_form": "",
       "definition_zh": "使做愛，使發生性行為",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -32934,7 +32314,7 @@
       "full_form": "",
       "definition_zh": "被打[败]得落花流水，被打得满地找牙",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -33313,7 +32693,7 @@
       "full_form": "",
       "definition_zh": "陰毛為紅色的人",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -33336,7 +32716,7 @@
       "full_form": "",
       "definition_zh": "頭髮為紅色的人",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -33466,28 +32846,6 @@
       "usage": "网络",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
-    },
-    {
-      "sense_id": "zh-5599a2434d920c3c86e0119cdd6602483fdf5507",
-      "edition": "zh",
-      "word": "glib",
-      "source_line": 27211,
-      "source_entry_sha256": "772820e1c3fbb5643c740620c8507b5d95ebfcffb7c88fcff1f26f6d7048ab78",
-      "source_url": "https://zh.wiktionary.org/wiki/glib#英語",
-      "pos": "noun",
-      "glosses": [
-        "嘴巴或舌头"
-      ],
-      "tags": [
-        "obsolete",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "嘴巴或舌头",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
     },
     {
       "sense_id": "zh-b3eeed914a3ad4713f343070798492ec03c096db",
@@ -33697,7 +33055,7 @@
       "full_form": "",
       "definition_zh": "行口交",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -34223,7 +33581,7 @@
       "full_form": "",
       "definition_zh": "指一般的自慰",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "词汇",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -34244,7 +33602,7 @@
       "full_form": "",
       "definition_zh": "控射；長時間自慰而不達到高潮",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "词汇",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -34327,7 +33685,7 @@
       "full_form": "",
       "definition_zh": "进行性高潮控制的人",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "词汇",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -34496,28 +33854,6 @@
       "usage": "俚语",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
-    },
-    {
-      "sense_id": "zh-cf5fdcfb8a6b15c11e976948b15d4b6a225cd3b4",
-      "edition": "zh",
-      "word": "goss",
-      "source_line": 1620243,
-      "source_entry_sha256": "a58214151ac1a5ab1ed3a69b0cd166226ec796af12ad99fb3d650021aec8d058",
-      "source_url": "https://zh.wiktionary.org/wiki/goss#英語",
-      "pos": "noun",
-      "glosses": [
-        "帽子"
-      ],
-      "tags": [
-        "obsolete",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "帽子",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
     },
     {
       "sense_id": "zh-564f0712002d7a5519719594fdf1d0b831276c74",
@@ -34857,7 +34193,7 @@
       "full_form": "",
       "definition_zh": "肛交",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -34901,27 +34237,6 @@
       "usage": "俚语",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
-    },
-    {
-      "sense_id": "zh-86d8e8e8c4af08ccfd074ceb391828ba2485ce7f",
-      "edition": "zh",
-      "word": "gremlin",
-      "source_line": 80562,
-      "source_entry_sha256": "50b432b6aad34f07cd3c411e5299ab38e1532bbbf3e5be241809f0fafe7c0a60",
-      "source_url": "https://zh.wiktionary.org/wiki/gremlin#英語",
-      "pos": "noun",
-      "glosses": [
-        "讨厌可鄙的人"
-      ],
-      "tags": [
-        "obsolete"
-      ],
-      "full_form": "",
-      "definition_zh": "讨厌可鄙的人",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
     },
     {
       "sense_id": "zh-5f02131c2e870932ec670f671d1df08d190e614a",
@@ -35369,29 +34684,6 @@
       "usage": "俚语",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
-    },
-    {
-      "sense_id": "zh-189f5640e2f6f86f90e4dd5e5dccdef0a22ea9e5",
-      "edition": "zh",
-      "word": "gruel",
-      "source_line": 81423,
-      "source_entry_sha256": "ff343b0edc7e1122babb40618afbd91a06976c1d546d8659cfcff155073591e5",
-      "source_url": "https://zh.wiktionary.org/wiki/gruel#英語",
-      "pos": "noun",
-      "glosses": [
-        "感伤的诗歌"
-      ],
-      "tags": [
-        "US",
-        "obsolete",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "感伤的诗歌",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
     },
     {
       "sense_id": "zh-9106c8e3a7ef4c8eec9349e86c83f447656aac72",
@@ -36292,7 +35584,7 @@
       "full_form": "",
       "definition_zh": "手淫，手交",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -36313,7 +35605,7 @@
       "full_form": "",
       "definition_zh": "把手伸到肛門裡",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -36334,7 +35626,7 @@
       "full_form": "",
       "definition_zh": "肛門拳交",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -36547,7 +35839,7 @@
       "full_form": "",
       "definition_zh": "懷孕，有了（字面意思是「烤箱裡有個圓包」）",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "非正式",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -36855,28 +36147,6 @@
       "priority": 200
     },
     {
-      "sense_id": "zh-b9a4e719c7b48125c330aa1a288204f7db53de9d",
-      "edition": "zh",
-      "word": "heavy",
-      "source_line": 3092,
-      "source_entry_sha256": "d7ccaf6e33e28911bb69e8244a70f25101fce1e1df26a410091408852a7edc45",
-      "source_url": "https://zh.wiktionary.org/wiki/heavy#英語",
-      "pos": "noun",
-      "glosses": [
-        "重要的角色"
-      ],
-      "tags": [
-        "archaic",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "重要的角色",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
-    },
-    {
       "sense_id": "en-79c3f85c117e10f6273f251c39faf2114c28ad8f",
       "edition": "en",
       "word": "heavy-duty",
@@ -36894,30 +36164,6 @@
       "definition_zh": "激烈的；繁重的",
       "definition_origin": "upstream-sense-translation",
       "usage": "非正式",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
-      "sense_id": "zh-95affc00f5c0596daefe475a5b28994461ddf6ac",
-      "edition": "zh",
-      "word": "hebe",
-      "source_line": 84036,
-      "source_entry_sha256": "0eb3787fc7284b991e3b95c2050cbb33afa0c23a4401bdf2d2a0bd1c13ec9f12",
-      "source_url": "https://zh.wiktionary.org/wiki/hebe#英語",
-      "pos": "noun",
-      "glosses": [
-        "Hebe (“犹太人”)的另一種寫法"
-      ],
-      "tags": [
-        "alt-of",
-        "derogatory",
-        "offensive",
-        "slang"
-      ],
-      "full_form": "Hebe",
-      "definition_zh": "犹太人",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -37259,7 +36505,7 @@
       "full_form": "",
       "definition_zh": "他，他他妈",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -37385,7 +36631,7 @@
       "full_form": "",
       "definition_zh": "做爱",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -37791,7 +37037,7 @@
       "full_form": "",
       "definition_zh": "表達驚奇。",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -37814,7 +37060,7 @@
       "full_form": "",
       "definition_zh": "天啊；用於表達恐懼、敬畏、驚訝等情感",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -38005,7 +37251,7 @@
       "full_form": "",
       "definition_zh": "蕩婦，淫婦",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -38049,7 +37295,7 @@
       "full_form": "",
       "definition_zh": "性交",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -38326,7 +37572,7 @@
       "full_form": "",
       "definition_zh": "巨根",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -38371,50 +37617,6 @@
       "usage": "俚语",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
-    },
-    {
-      "sense_id": "zh-e74fa093747fdef3ae67fe92316beb6f4f54ba2b",
-      "edition": "zh",
-      "word": "hout",
-      "source_line": 1582423,
-      "source_entry_sha256": "00355fe6d35184433f8fec10c190f99ec1483b909478eeba6de08764578af465",
-      "source_url": "https://zh.wiktionary.org/wiki/hout#英語",
-      "pos": "noun",
-      "glosses": [
-        "非洲黑人"
-      ],
-      "tags": [
-        "slang",
-        "slur"
-      ],
-      "full_form": "",
-      "definition_zh": "非洲黑人",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
-      "sense_id": "zh-ccbdcdd2e3db50180c823465fa2ec44d54b82f82",
-      "edition": "zh",
-      "word": "how much",
-      "source_line": 2845926,
-      "source_entry_sha256": "659238c84d786d2df66d7ceab2e8e566c969484c23941e32f6cf73721a7e35ee",
-      "source_url": "https://zh.wiktionary.org/wiki/how%20much#英語",
-      "pos": "intj",
-      "glosses": [
-        "你說什麼？"
-      ],
-      "tags": [
-        "obsolete",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "你說什麼？",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
     },
     {
       "sense_id": "en-c4114b99c1837b6c15447c3c53b6b2ddc19969a9",
@@ -40670,50 +39872,6 @@
       "priority": 500
     },
     {
-      "sense_id": "zh-fa548024c73221c153b5730ee49ca22b2d0e164b",
-      "edition": "zh",
-      "word": "Indian giver",
-      "source_line": 2157626,
-      "source_entry_sha256": "6e1dad221bc3ef79e12fa9745acbe1050e8e8171871ec5bb94c9f57dbc4f4a48",
-      "source_url": "https://zh.wiktionary.org/wiki/Indian%20giver#英語",
-      "pos": "noun",
-      "glosses": [
-        "送人东西后又想讨回来的人"
-      ],
-      "tags": [
-        "informal"
-      ],
-      "full_form": "",
-      "definition_zh": "送人东西后又想讨回来的人",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "非正式",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
-      "sense_id": "zh-cf2f16ffecc7bb62878bf917345f08ea37463971",
-      "edition": "zh",
-      "word": "Indian giving",
-      "source_line": 2157628,
-      "source_entry_sha256": "99b8a705e2de902bdf313188742d15ea16bf5d4953688f6ba66a99e565254d28",
-      "source_url": "https://zh.wiktionary.org/wiki/Indian%20giving#英語",
-      "pos": "noun",
-      "glosses": [
-        "送别人东西以后又想讨回来，或想让别人回礼"
-      ],
-      "tags": [
-        "derogatory",
-        "informal",
-        "offensive"
-      ],
-      "full_form": "",
-      "definition_zh": "送别人东西以后又想讨回来，或想让别人回礼",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "非正式",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
       "sense_id": "zh-496f9470a5f864cc2bd0734faf19b5eda7c692ed",
       "edition": "zh",
       "word": "Indianapolis",
@@ -41994,50 +41152,6 @@
       "priority": 500
     },
     {
-      "sense_id": "zh-8033afc809bfc49e6b8e2c26ac399b06ac968ea0",
-      "edition": "zh",
-      "word": "Ivan",
-      "source_line": 647465,
-      "source_entry_sha256": "8fcb6a7f18d4df1e0e5f4e6af6806aef87458d4018187acfa086ab80a738185d",
-      "source_url": "https://zh.wiktionary.org/wiki/Ivan#英語",
-      "pos": "name",
-      "glosses": [
-        "一位蘇聯人"
-      ],
-      "tags": [
-        "archaic",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "一位蘇聯人",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
-    },
-    {
-      "sense_id": "zh-e8601036aa95dd0996725dabc7244b6067908c1d",
-      "edition": "zh",
-      "word": "Ivan",
-      "source_line": 647465,
-      "source_entry_sha256": "8fcb6a7f18d4df1e0e5f4e6af6806aef87458d4018187acfa086ab80a738185d",
-      "source_url": "https://zh.wiktionary.org/wiki/Ivan#英語",
-      "pos": "name",
-      "glosses": [
-        "蘇聯人（集體、人格化）"
-      ],
-      "tags": [
-        "archaic",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "蘇聯人（集體、人格化）",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
-    },
-    {
       "sense_id": "zh-9214254815617a9c4ca41f3d5090ce295d43b1b1",
       "edition": "zh",
       "word": "IVF",
@@ -42101,50 +41215,6 @@
       "priority": 500
     },
     {
-      "sense_id": "zh-8b2675da17cc4e589e748092bf1bdee684ceb809",
-      "edition": "zh",
-      "word": "Jack",
-      "source_line": 44269,
-      "source_entry_sha256": "868b1e17b4ea039cb82d6b11544bb0790d6bd792888f76a7a4fcbc8ffa166521",
-      "source_url": "https://zh.wiktionary.org/wiki/Jack#英語",
-      "pos": "noun",
-      "glosses": [
-        "士兵"
-      ],
-      "tags": [
-        "archaic",
-        "informal"
-      ],
-      "full_form": "",
-      "definition_zh": "士兵",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
-    },
-    {
-      "sense_id": "zh-b5382179a5bcbcc8ac106584ce90cf4e1410427d",
-      "edition": "zh",
-      "word": "Jack",
-      "source_line": 44269,
-      "source_entry_sha256": "868b1e17b4ea039cb82d6b11544bb0790d6bd792888f76a7a4fcbc8ffa166521",
-      "source_url": "https://zh.wiktionary.org/wiki/Jack#英語",
-      "pos": "noun",
-      "glosses": [
-        "水手"
-      ],
-      "tags": [
-        "archaic",
-        "informal"
-      ],
-      "full_form": "",
-      "definition_zh": "水手",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
-    },
-    {
       "sense_id": "zh-e8e48b1aa9c84c950b2ebf8533845f77aaabd10a",
       "edition": "zh",
       "word": "jack off",
@@ -42206,7 +41276,7 @@
       "full_form": "",
       "definition_zh": "混蛋",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -42229,7 +41299,7 @@
       "full_form": "",
       "definition_zh": "懶惰懈怠的人",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -42292,7 +41362,7 @@
       "full_form": "",
       "definition_zh": "“禍水妞”，與其發生性行為即構成強姦罪的未成年女性。",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -42339,53 +41409,6 @@
       "usage": "缩写",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
-    },
-    {
-      "sense_id": "zh-68bd58999c6c3bd7fd918b09821ff269d4e43795",
-      "edition": "zh",
-      "word": "jap",
-      "source_line": 88880,
-      "source_entry_sha256": "11e3b46d8fd41ae6e5be84248aa7b418c137f43985d80ca2ddde5f05378ece16",
-      "source_url": "https://zh.wiktionary.org/wiki/jap#英語",
-      "pos": "verb",
-      "glosses": [
-        "偷襲"
-      ],
-      "tags": [
-        "slang",
-        "slur",
-        "transitive"
-      ],
-      "full_form": "",
-      "definition_zh": "偷襲",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
-      "sense_id": "zh-6e9c4a64110ec5e63997daac6cba9a172a8d7987",
-      "edition": "zh",
-      "word": "Jap",
-      "source_line": 2927981,
-      "source_entry_sha256": "08173d2f2322732452dd6b5ef5f6d15feafdeab6e7d64e4146bcc050b28db6fc",
-      "source_url": "https://zh.wiktionary.org/wiki/Jap#英語",
-      "pos": "name",
-      "glosses": [
-        "日語；日本鬼子語"
-      ],
-      "tags": [
-        "dated",
-        "offensive",
-        "slang",
-        "slur"
-      ],
-      "full_form": "",
-      "definition_zh": "日語；日本鬼子語",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
     },
     {
       "sense_id": "zh-67e85db424c5242b95d6ae028845197a7c4b25ee",
@@ -42689,7 +41712,7 @@
       "full_form": "just fucking google it",
       "definition_zh": "你他媽的自己去用谷歌搜索；肏你妈你不会百度吗",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "缩写",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -42864,7 +41887,7 @@
       "full_form": "",
       "definition_zh": "用精液覆蓋",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -42886,7 +41909,7 @@
       "full_form": "",
       "definition_zh": "精液",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -42930,7 +41953,7 @@
       "full_form": "",
       "definition_zh": "射精",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -43064,29 +42087,6 @@
       "priority": 500
     },
     {
-      "sense_id": "zh-4755f37703e741d5d6fa81d1b8bc4047bc135c79",
-      "edition": "zh",
-      "word": "Joe",
-      "source_line": 608959,
-      "source_entry_sha256": "3ae077fda317a5e32f5c91238931196af10451c9e06c4d545456194921de2953",
-      "source_url": "https://zh.wiktionary.org/wiki/Joe#英語",
-      "pos": "noun",
-      "glosses": [
-        "Joe Miller (“老掉牙的笑话”)之同義詞。"
-      ],
-      "tags": [
-        "archaic",
-        "form-of",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "老掉牙的笑话",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
-    },
-    {
       "sense_id": "zh-b45f7fe53d9d3606b959a0f92b5999c5a24b45b4",
       "edition": "zh",
       "word": "JOIDES",
@@ -43172,28 +42172,6 @@
       "usage": "俚语",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
-    },
-    {
-      "sense_id": "zh-f6e8e8ee06c9a43f7b22305f5bd09b7769f5e2c2",
-      "edition": "zh",
-      "word": "juniper",
-      "source_line": 89506,
-      "source_entry_sha256": "2b70a88def6ffda3a938647eb523f7aae1d5896fe17759ee46a32e2108f82ec7",
-      "source_url": "https://zh.wiktionary.org/wiki/juniper#英語",
-      "pos": "noun",
-      "glosses": [
-        "金酒/氈酒"
-      ],
-      "tags": [
-        "archaic",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "金酒/氈酒",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
     },
     {
       "sense_id": "zh-e24cb266aaf182d184e516c6901764cf45a735d6",
@@ -43842,52 +42820,6 @@
       "priority": 500
     },
     {
-      "sense_id": "zh-4bbe6479e2e37c8ac44816d532efad1200ac5f5e",
-      "edition": "zh",
-      "word": "kibosh",
-      "source_line": 89666,
-      "source_entry_sha256": "8b26018333d1bba637cb9718e7ac1bbda20eed3ff3452eabe94d0ca66186e274",
-      "source_url": "https://zh.wiktionary.org/wiki/kibosh#英語",
-      "pos": "noun",
-      "glosses": [
-        "风尚，时尚"
-      ],
-      "tags": [
-        "obsolete",
-        "rare",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "风尚，时尚",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 50
-    },
-    {
-      "sense_id": "zh-5142f2dfd6ec02067681f1d5f4933f4bd2452396",
-      "edition": "zh",
-      "word": "kibosh",
-      "source_line": 89665,
-      "source_entry_sha256": "94f8e5da5fd3183f6578b334e63356d1fbe1e0d3745d80c8c3aac23bc7e8295a",
-      "source_url": "https://zh.wiktionary.org/wiki/kibosh#英語",
-      "pos": "noun",
-      "glosses": [
-        "废话，胡言"
-      ],
-      "tags": [
-        "obsolete",
-        "rare",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "废话，胡言",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 50
-    },
-    {
       "sense_id": "zh-267caf8dcd38e5c9c817f4f28e8aa59a58a3bbd2",
       "edition": "zh",
       "word": "kick back",
@@ -43990,7 +42922,7 @@
       "full_form": "",
       "definition_zh": "陰莖",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -44010,30 +42942,6 @@
       ],
       "full_form": "",
       "definition_zh": "偷竊",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
-      "sense_id": "zh-2e2a14dc1631653cfd51f1d5efa47f8fa6876287",
-      "edition": "zh",
-      "word": "kimchi",
-      "source_line": 1046254,
-      "source_entry_sha256": "e9ab36cd4fb72b3e851d5c27318fd337baf16b5b472601d8d14bc12e735e6494",
-      "source_url": "https://zh.wiktionary.org/wiki/kimchi#英語",
-      "pos": "noun",
-      "glosses": [
-        "朝鮮人；高麗棒子"
-      ],
-      "tags": [
-        "countable",
-        "derogatory",
-        "slang",
-        "slur"
-      ],
-      "full_form": "",
-      "definition_zh": "朝鮮人；高麗棒子",
       "definition_origin": "upstream-chinese-edition-gloss",
       "usage": "俚语",
       "usage_origin": "upstream-tags-or-neutral",
@@ -44190,28 +43098,6 @@
       "priority": 500
     },
     {
-      "sense_id": "zh-9aa346d071ee1894e5efd1afe342d7c80bb84593",
-      "edition": "zh",
-      "word": "knackered",
-      "source_line": 2893648,
-      "source_entry_sha256": "2dcef5ebaeb71502feea6d1c41f354dc8c110e5fe75bbdf8f4ca4580442aeab3",
-      "source_url": "https://zh.wiktionary.org/wiki/knackered#英語",
-      "pos": "adj",
-      "glosses": [
-        "筋疲力盡的"
-      ],
-      "tags": [
-        "error-lua-exec",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "筋疲力盡的",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
       "sense_id": "en-f371cd5b68812d7ee867f968919ce31905d2dfc7",
       "edition": "en",
       "word": "knock someone over with a feather",
@@ -44254,49 +43140,6 @@
       "usage": "俚语",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
-    },
-    {
-      "sense_id": "zh-32bfdec13c53ed378746a70531cbf1122b59f11d",
-      "edition": "zh",
-      "word": "knocked up",
-      "source_line": 2298348,
-      "source_entry_sha256": "ef1abcd124ea815c87ccd144bafa1b7cb3b071b48718fa902b403bf793bd9fe4",
-      "source_url": "https://zh.wiktionary.org/wiki/knocked%20up#英語",
-      "pos": "adj",
-      "glosses": [
-        "怀孕的 （多指婚外孕）"
-      ],
-      "tags": [
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "怀孕的 （多指婚外孕）",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
-      "sense_id": "zh-b6762c9929863bfa1edb817313c9c8d90e057a5e",
-      "edition": "zh",
-      "word": "knocked up",
-      "source_line": 2298348,
-      "source_entry_sha256": "ef1abcd124ea815c87ccd144bafa1b7cb3b071b48718fa902b403bf793bd9fe4",
-      "source_url": "https://zh.wiktionary.org/wiki/knocked%20up#英語",
-      "pos": "adj",
-      "glosses": [
-        "筋疲力竭的"
-      ],
-      "tags": [
-        "archaic",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "筋疲力竭的",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
     },
     {
       "sense_id": "zh-d87942221e3ca91e9d999705b47f4b17a4bf0037",
@@ -44768,27 +43611,6 @@
       "priority": 500
     },
     {
-      "sense_id": "zh-7c79327de90be456f9835b2d71979d510dd5e42b",
-      "edition": "zh",
-      "word": "lass",
-      "source_line": 90087,
-      "source_entry_sha256": "d58511f7d1d227cc92edd2f01ce0a6b5e2e4939a05b374067e36844524ac84f3",
-      "source_url": "https://zh.wiktionary.org/wiki/lass#英語",
-      "pos": "noun",
-      "glosses": [
-        "姑娘"
-      ],
-      "tags": [
-        "informal"
-      ],
-      "full_form": "",
-      "definition_zh": "姑娘",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "非正式",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
       "sense_id": "zh-e807266a1a8090f28691cf98b54a3909130b56d5",
       "edition": "zh",
       "word": "late",
@@ -44871,28 +43693,6 @@
       "usage": "俚语",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
-    },
-    {
-      "sense_id": "zh-d9aea6e0f65cfaa9a5cc92e05d73ec99c6751f9f",
-      "edition": "zh",
-      "word": "latitat",
-      "source_line": 2706225,
-      "source_entry_sha256": "8e8e2a6bdaae598aeee5756c17073c90d6a2ba6c503a437ad96c40d8c14ea884",
-      "source_url": "https://zh.wiktionary.org/wiki/latitat#英語",
-      "pos": "noun",
-      "glosses": [
-        "律師"
-      ],
-      "tags": [
-        "obsolete",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "律師",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
     },
     {
       "sense_id": "zh-ca10b5f0771f1038d27666a2cce772d9cc5b9525",
@@ -45348,28 +44148,6 @@
       "priority": 500
     },
     {
-      "sense_id": "zh-4318bc998a1090a224589e6cdec4c7d7744041f6",
-      "edition": "zh",
-      "word": "lig",
-      "source_line": 2863061,
-      "source_entry_sha256": "64ae2542fe539dded1442ac076308edfaaebfa56acc9e0035b3fd52fbded5c61",
-      "source_url": "https://zh.wiktionary.org/wiki/lig#英語",
-      "pos": "noun",
-      "glosses": [
-        "謊言，虛偽"
-      ],
-      "tags": [
-        "obsolete",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "謊言，虛偽",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
-    },
-    {
       "sense_id": "en-3d90c1b58e6a388c2f0dbc50a766246b895578ec",
       "edition": "en",
       "word": "light year",
@@ -45591,7 +44369,7 @@
       "full_form": "laughing my ass/arse off",
       "definition_zh": "笑死了；笑得不行（较粗俗）",
       "definition_origin": "project-editorial",
-      "usage": "缩写",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 2000
     },
@@ -46886,7 +45664,7 @@
       "full_form": "",
       "definition_zh": "妓院女老板，女淫媒",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -46908,29 +45686,6 @@
       "definition_zh": "讓美國再次偉大",
       "definition_origin": "upstream-chinese-edition-gloss",
       "usage": "缩写",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
-      "sense_id": "zh-4a0e60ebfc99325731c66826bed2e1f235e7208d",
-      "edition": "zh",
-      "word": "MAGAt",
-      "source_line": 2824547,
-      "source_entry_sha256": "ed5727cc0421e5e5d78bdeabdf605bcbffd99cba70fc41a8d1033b38698d7f2f",
-      "source_url": "https://zh.wiktionary.org/wiki/MAGAt#英語",
-      "pos": "noun",
-      "glosses": [
-        "唐納·川普的支持者"
-      ],
-      "tags": [
-        "derogatory",
-        "offensive",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "唐納·川普的支持者",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -47082,7 +45837,7 @@
       "full_form": "",
       "definition_zh": "不关心自己的性伴侣或感情价值的滥交的男性；花花公子。",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -47103,7 +45858,7 @@
       "full_form": "",
       "definition_zh": "男妓，男娼（为了金钱与他人发生性关系的男性）。",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -47383,53 +46138,6 @@
       "definition_zh": "陽性的",
       "definition_origin": "upstream-chinese-edition-gloss",
       "usage": "缩写",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
-      "sense_id": "zh-5d1d46d25efc13e0132ef7c9984fb93eb5d97697",
-      "edition": "zh",
-      "word": "mater",
-      "source_line": 5775,
-      "source_entry_sha256": "4162ab14ad3ae36bfcc54c7666158f658a3f1f1d9d8a9514993597fa6a51a187",
-      "source_url": "https://zh.wiktionary.org/wiki/mater#英語",
-      "pos": "noun",
-      "glosses": [
-        "母親"
-      ],
-      "tags": [
-        "humorous",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "母親",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
-      "sense_id": "zh-e6ce275f81b42e734ee1e8e9a73e3a76d012268d",
-      "edition": "zh",
-      "word": "mayo",
-      "source_line": 741924,
-      "source_entry_sha256": "b7db78d513aa2a56db13183b5a63a76554f972964bbee9f5b4ab83aa4943d80e",
-      "source_url": "https://zh.wiktionary.org/wiki/mayo#英語",
-      "pos": "noun",
-      "glosses": [
-        "白人"
-      ],
-      "tags": [
-        "Internet",
-        "countable",
-        "derogatory",
-        "offensive",
-        "slur"
-      ],
-      "full_form": "",
-      "definition_zh": "白人",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "网络",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -48657,7 +47365,7 @@
       "full_form": "male genital mutilation",
       "definition_zh": "男性生殖器殘缺",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "缩写",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -48911,7 +47619,7 @@
       "full_form": "",
       "definition_zh": "富有性吸引力的母親；熟女，辣媽，性感少婦",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -48976,7 +47684,7 @@
       "full_form": "",
       "definition_zh": "榨精，尤指仅为自己的快感给男性行手淫",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "词汇",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -50153,7 +48861,7 @@
       "full_form": "",
       "definition_zh": "（年輕）男妓",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -50392,7 +49100,7 @@
       "full_form": "",
       "definition_zh": "混蛋，王八蛋 （指代 motherfucker）",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -50413,7 +49121,7 @@
       "full_form": "",
       "definition_zh": "十分激烈或难受的活动、事件。（常带贬义）",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -51318,28 +50026,6 @@
       "priority": 500
     },
     {
-      "sense_id": "zh-a1b8c195921399a7241cfac4f1f40ccd30207eda",
-      "edition": "zh",
-      "word": "muffle",
-      "source_line": 90833,
-      "source_entry_sha256": "a437539783b708128a8d364b7e43f3fa1648948a3fd739716c95af861368276e",
-      "source_url": "https://zh.wiktionary.org/wiki/muffle#英語",
-      "pos": "noun",
-      "glosses": [
-        "拳擊手套"
-      ],
-      "tags": [
-        "archaic",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "拳擊手套",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
-    },
-    {
       "sense_id": "zh-56e86d9d41f64fc8453934802ceac430f4ee19f3",
       "edition": "zh",
       "word": "mukbang",
@@ -51487,30 +50173,6 @@
       ],
       "full_form": "",
       "definition_zh": "參與munting（戀屍相關的假想活動）活動",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
-      "sense_id": "zh-f1b9e77f51a267b510d3afe8c7a4f8949e95e9fe",
-      "edition": "zh",
-      "word": "munt",
-      "source_line": 1749123,
-      "source_entry_sha256": "4ffd759c2ab454ea4f1c342577eac05f0280f58b74bc40d398d2f25b5e043a65",
-      "source_url": "https://zh.wiktionary.org/wiki/munt#英語",
-      "pos": "noun",
-      "glosses": [
-        "黑人（多指男人）"
-      ],
-      "tags": [
-        "derogatory",
-        "offensive",
-        "slang",
-        "slur"
-      ],
-      "full_form": "",
-      "definition_zh": "黑人（多指男人）",
       "definition_origin": "upstream-chinese-edition-gloss",
       "usage": "俚语",
       "usage_origin": "upstream-tags-or-neutral",
@@ -51692,29 +50354,6 @@
       "priority": 200
     },
     {
-      "sense_id": "zh-5f2f4ca1fcf51194df39b9e2e18d2a4c34c71dd7",
-      "edition": "zh",
-      "word": "Muslime",
-      "source_line": 1917048,
-      "source_entry_sha256": "4be472478f6f842639eb916c0ff06005b57daaffb33f40c0b66f5015dcc9b7b6",
-      "source_url": "https://zh.wiktionary.org/wiki/Muslime#英語",
-      "pos": "noun",
-      "glosses": [
-        "穆斯林"
-      ],
-      "tags": [
-        "derogatory",
-        "offensive",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "穆斯林",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
       "sense_id": "zh-a2bcf1fd315045827d84b42d401dc798c7bcc3f2",
       "edition": "zh",
       "word": "mwah",
@@ -51751,7 +50390,7 @@
       "full_form": "",
       "definition_zh": "我，我自己（但动词用第三人称）",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -51773,7 +50412,7 @@
       "full_form": "",
       "definition_zh": "个屁，个毛，才怪（表示否定、不信、不同意，带有厌恶语气）",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -51794,7 +50433,7 @@
       "full_form": "",
       "definition_zh": "(南非) 性交",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -51965,29 +50604,6 @@
       "definition_zh": "鼻元音",
       "definition_origin": "upstream-chinese-edition-gloss",
       "usage": "缩写",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
-      "sense_id": "zh-c07a08b266100abc72e744332c5e25a2e6285c61",
-      "edition": "zh",
-      "word": "Nasibi",
-      "source_line": 1206740,
-      "source_entry_sha256": "9bc0c5c610d1dda880846de1713e05b639f22ae5fe7ff67501409078e763d227",
-      "source_url": "https://zh.wiktionary.org/wiki/Nasibi#英語",
-      "pos": "noun",
-      "glosses": [
-        "薩拉菲運動者"
-      ],
-      "tags": [
-        "derogatory",
-        "offensive",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "薩拉菲運動者",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -52865,142 +51481,6 @@
       "priority": 500
     },
     {
-      "sense_id": "zh-20f93bc8fde2738b5bfcfb06617234d0bd6018c7",
-      "edition": "zh",
-      "word": "nig",
-      "source_line": 2863834,
-      "source_entry_sha256": "df3a0c877fe88400f83a4db6349f2ce9ef9fab5074a78026ba0754c3d9d3b845",
-      "source_url": "https://zh.wiktionary.org/wiki/nig#英語",
-      "pos": "verb",
-      "glosses": [
-        "表现得像个典型的黑人"
-      ],
-      "tags": [
-        "Internet",
-        "intransitive",
-        "slur"
-      ],
-      "full_form": "",
-      "definition_zh": "表现得像个典型的黑人",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "网络",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
-      "sense_id": "zh-4c1e25e98c4774b0778075f3c2eb36a82ad51586",
-      "edition": "zh",
-      "word": "nigga",
-      "source_line": 1693825,
-      "source_entry_sha256": "65d5dbceda6bca84f7eac09b2c3abc0fcf7c0458e7829bd894a86525b1c93be4",
-      "source_url": "https://zh.wiktionary.org/wiki/nigga#英語",
-      "pos": "noun",
-      "glosses": [
-        "哥们，老兄，弟兄"
-      ],
-      "tags": [
-        "slang",
-        "vulgar"
-      ],
-      "full_form": "",
-      "definition_zh": "哥们，老兄，弟兄",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
-      "sense_id": "zh-54c02dd4c9e51e6217af035ef5c8ae91e75f7964",
-      "edition": "zh",
-      "word": "nigga",
-      "source_line": 1693825,
-      "source_entry_sha256": "65d5dbceda6bca84f7eac09b2c3abc0fcf7c0458e7829bd894a86525b1c93be4",
-      "source_url": "https://zh.wiktionary.org/wiki/nigga#英語",
-      "pos": "noun",
-      "glosses": [
-        "男人 （与女性做对比时使用）"
-      ],
-      "tags": [
-        "slang",
-        "vulgar"
-      ],
-      "full_form": "",
-      "definition_zh": "男人 （与女性做对比时使用）",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
-      "sense_id": "zh-8fe9f4efe17e690ddb6624a475da4250a28500df",
-      "edition": "zh",
-      "word": "nigga",
-      "source_line": 1693825,
-      "source_entry_sha256": "65d5dbceda6bca84f7eac09b2c3abc0fcf7c0458e7829bd894a86525b1c93be4",
-      "source_url": "https://zh.wiktionary.org/wiki/nigga#英語",
-      "pos": "noun",
-      "glosses": [
-        "黑人"
-      ],
-      "tags": [
-        "slang",
-        "vulgar"
-      ],
-      "full_form": "",
-      "definition_zh": "黑人",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
-      "sense_id": "zh-9f80769aebfeeb68f69c3bb7c796c37bccaa958a",
-      "edition": "zh",
-      "word": "nigga",
-      "source_line": 1693825,
-      "source_entry_sha256": "65d5dbceda6bca84f7eac09b2c3abc0fcf7c0458e7829bd894a86525b1c93be4",
-      "source_url": "https://zh.wiktionary.org/wiki/nigga#英語",
-      "pos": "noun",
-      "glosses": [
-        "人 （但常指男性）"
-      ],
-      "tags": [
-        "slang",
-        "vulgar"
-      ],
-      "full_form": "",
-      "definition_zh": "人 （但常指男性）",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
-      "sense_id": "zh-67b6aca5ade5ba5215423e904d048b04a8708564",
-      "edition": "zh",
-      "word": "niglet",
-      "source_line": 1918416,
-      "source_entry_sha256": "cd3d8dd11a4349d8d391e3ce8da81c670f55e3923adbac52b484e484a974ede5",
-      "source_url": "https://zh.wiktionary.org/wiki/niglet#英語",
-      "pos": "noun",
-      "glosses": [
-        "黑人小孩"
-      ],
-      "tags": [
-        "US",
-        "derogatory",
-        "offensive",
-        "slang",
-        "slur"
-      ],
-      "full_form": "",
-      "definition_zh": "黑人小孩",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
       "sense_id": "zh-96eeee7632a314aca60c1f3db132e91b5c96d845",
       "edition": "zh",
       "word": "nippy",
@@ -53379,7 +51859,7 @@
       "full_form": "",
       "definition_zh": "禁尻十一月，一項網路／網絡挑戰，參與者被要求在整個十一月期間禁慾，不進行任何形式的射精",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "网络",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -55209,7 +53689,7 @@
       "full_form": "",
       "definition_zh": "女性生殖器",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "词汇",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -55231,7 +53711,7 @@
       "full_form": "",
       "definition_zh": "性交",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "词汇",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -55418,7 +53898,7 @@
       "full_form": "",
       "definition_zh": "正做愛時",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -55588,29 +54068,6 @@
       ],
       "full_form": "",
       "definition_zh": "沒有錢的；貧窮的",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
-      "sense_id": "zh-b8c98049879eb8e6a5f54116a0e6a7774abd655f",
-      "edition": "zh",
-      "word": "ook",
-      "source_line": 2771736,
-      "source_entry_sha256": "03bc101a489800841b5523da8c055fe9d4d719abeff82a3b91c4cf033d24f627",
-      "source_url": "https://zh.wiktionary.org/wiki/ook#英語",
-      "pos": "verb",
-      "glosses": [
-        "指黑人說胡話或廢話"
-      ],
-      "tags": [
-        "offensive",
-        "slang",
-        "slur"
-      ],
-      "full_form": "",
-      "definition_zh": "指黑人說胡話或廢話",
       "definition_origin": "upstream-chinese-edition-gloss",
       "usage": "俚语",
       "usage_origin": "upstream-tags-or-neutral",
@@ -56022,7 +54479,7 @@
       "full_form": "",
       "definition_zh": "女性的胸部，尤指漫畫、動漫角色的乳房；奶子",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -56608,7 +55065,7 @@
       "full_form": "oral without",
       "definition_zh": "無套口交",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "缩写",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -56676,27 +55133,6 @@
       "priority": 500
     },
     {
-      "sense_id": "zh-bccef35d04866b6872b540a9046a1ed13714098e",
-      "edition": "zh",
-      "word": "pain in the butt",
-      "source_line": 1405040,
-      "source_entry_sha256": "3c5ecc7898e493f8d8022dd89878a45d2a0fbaf32e098cfe1392cd164c524d2f",
-      "source_url": "https://zh.wiktionary.org/wiki/pain%20in%20the%20butt#英語",
-      "pos": "noun",
-      "glosses": [
-        "使人感到不快、討厭的人或事物"
-      ],
-      "tags": [
-        "informal"
-      ],
-      "full_form": "",
-      "definition_zh": "使人感到不快、討厭的人或事物",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "非正式",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
       "sense_id": "zh-4f7dd0b785eb16920ac12c7de752e8f8ac16ecbd",
       "edition": "zh",
       "word": "pain in the neck",
@@ -56715,54 +55151,6 @@
       "definition_zh": "使人感到不快、討厭的人或事物",
       "definition_origin": "upstream-chinese-edition-gloss",
       "usage": "俚语",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
-      "sense_id": "zh-63d3fe071c9a7869ab2374f3c59b2b84786fc281",
-      "edition": "zh",
-      "word": "pajeet",
-      "source_line": 2905805,
-      "source_entry_sha256": "b461f75ae7e613c53bec9d2b72706a043216b5d8eb3825a7d526c3de947dc7cc",
-      "source_url": "https://zh.wiktionary.org/wiki/pajeet#英語",
-      "pos": "noun",
-      "glosses": [
-        "南亞裔人士"
-      ],
-      "tags": [
-        "Internet",
-        "derogatory",
-        "offensive",
-        "slur"
-      ],
-      "full_form": "",
-      "definition_zh": "南亞裔人士",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "网络",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
-      "sense_id": "zh-b38fe2f2e6b8bb0b96b6a1f4ce629a04f45891e9",
-      "edition": "zh",
-      "word": "pajeet",
-      "source_line": 2905805,
-      "source_entry_sha256": "b461f75ae7e613c53bec9d2b72706a043216b5d8eb3825a7d526c3de947dc7cc",
-      "source_url": "https://zh.wiktionary.org/wiki/pajeet#英語",
-      "pos": "noun",
-      "glosses": [
-        "印度人，尤其是非穆斯林"
-      ],
-      "tags": [
-        "Internet",
-        "derogatory",
-        "offensive",
-        "slur"
-      ],
-      "full_form": "",
-      "definition_zh": "印度人，尤其是非穆斯林",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "网络",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -56807,28 +55195,6 @@
       "usage": "俚语",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
-    },
-    {
-      "sense_id": "zh-93776ac8047ab3a2e2b6508389171c4d486a52e5",
-      "edition": "zh",
-      "word": "Pan",
-      "source_line": 17424,
-      "source_entry_sha256": "b84ab752952e22e20f305460871e6d422711feeb73a62222bf24114458bcf192",
-      "source_url": "https://zh.wiktionary.org/wiki/Pan#英語",
-      "pos": "name",
-      "glosses": [
-        "倫敦聖潘克拉斯的濟貧院"
-      ],
-      "tags": [
-        "obsolete",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "倫敦聖潘克拉斯的濟貧院",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
     },
     {
       "sense_id": "zh-abf2e78bfbe491c043bda8b92d6afe34f815699c",
@@ -57687,7 +56053,7 @@
       "full_form": "",
       "definition_zh": "牛屄的，强的",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "网络",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -57730,7 +56096,7 @@
       "full_form": "",
       "definition_zh": "在他人的頸部、胸部或乳房處射精，參見珍珠项链 (性行为)",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -58385,28 +56751,6 @@
       "priority": 500
     },
     {
-      "sense_id": "zh-a7dde8c00ff5b8a17d94c5a1d19f1d59573e8441",
-      "edition": "zh",
-      "word": "piehole",
-      "source_line": 1922969,
-      "source_entry_sha256": "9462133dcb85ef30d355c53c3e9aca0d29cbb812e57e71d9369dfa65072d2fb8",
-      "source_url": "https://zh.wiktionary.org/wiki/piehole#英語",
-      "pos": "noun",
-      "glosses": [
-        "嘴，臭嘴"
-      ],
-      "tags": [
-        "offensive",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "嘴，臭嘴",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
       "sense_id": "zh-200a830dac5eb79b825cfb60d383cef2641ce5e0",
       "edition": "zh",
       "word": "pig",
@@ -58511,7 +56855,7 @@
       "full_form": "",
       "definition_zh": "淫荡好色的男人",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -58581,28 +56925,6 @@
       "usage": "俚语",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 400
-    },
-    {
-      "sense_id": "zh-e32407ce1b3e462b5fe5f8be705652ce70682d14",
-      "edition": "zh",
-      "word": "pig",
-      "source_line": 1878,
-      "source_entry_sha256": "62615ea8e6681b2d25c02b3af935bf342d73aeb3f8d515f611f49cb71c8c2d68",
-      "source_url": "https://zh.wiktionary.org/wiki/pig#英語",
-      "pos": "noun",
-      "glosses": [
-        "六便士硬币"
-      ],
-      "tags": [
-        "obsolete",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "六便士硬币",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
     },
     {
       "sense_id": "en-8f22ba82cd7cc07d247d68e908a9f2e6a14f40d2",
@@ -58685,7 +57007,7 @@
       "full_form": "",
       "definition_zh": "令人感到印象深刻的人或事",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -58706,7 +57028,7 @@
       "full_form": "",
       "definition_zh": "廁所",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -58727,7 +57049,7 @@
       "full_form": "",
       "definition_zh": "令人失望或困惑的事情或處境",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -58749,7 +57071,7 @@
       "full_form": "",
       "definition_zh": "很有趣的人或事",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 400
     },
@@ -58771,30 +57093,7 @@
       "full_form": "",
       "definition_zh": "表示對所提及之事物的厭惡或惱怒。",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
-      "sense_id": "zh-764d2964a42174e2d1fdabcdff8118c656966855",
-      "edition": "zh",
-      "word": "Pissrael",
-      "source_line": 2495863,
-      "source_entry_sha256": "28a6dea16b9b4ff3fb646a60c0be0a175811143a586ebe79a90bf031f6b520a2",
-      "source_url": "https://zh.wiktionary.org/wiki/Pissrael#英語",
-      "pos": "name",
-      "glosses": [
-        "以色列"
-      ],
-      "tags": [
-        "derogatory",
-        "offensive",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "以色列",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -58818,30 +57117,6 @@
       "usage": "非正式",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
-    },
-    {
-      "sense_id": "zh-988a31f1cf00379c16e7036a17090d6a73090489",
-      "edition": "zh",
-      "word": "pizza nigger",
-      "source_line": 1280439,
-      "source_entry_sha256": "1936f5917f41b62d96ba7dc1cd6b3cf8f3f3af60659f131aaa32e4b20845f87d",
-      "source_url": "https://zh.wiktionary.org/wiki/pizza%20nigger#英語",
-      "pos": "noun",
-      "glosses": [
-        "意大利裔人"
-      ],
-      "tags": [
-        "derogatory",
-        "offensive",
-        "rare",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "意大利裔人",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 350
     },
     {
       "sense_id": "zh-4ee5790c87379a89cfbcaa9e688b690fd645e2e6",
@@ -59013,7 +57288,7 @@
       "full_form": "",
       "definition_zh": "自慰",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "非正式",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -59435,7 +57710,7 @@
       "full_form": "",
       "definition_zh": "牛屄，厲害，很棒",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "网络",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -60157,7 +58432,7 @@
       "full_form": "piece of shit",
       "definition_zh": "傻屄；垃圾",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "缩写",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -61362,29 +59637,6 @@
       "priority": 500
     },
     {
-      "sense_id": "zh-5c6de79bc94e99c2133066fbe58909edcb2e1791",
-      "edition": "zh",
-      "word": "psc",
-      "source_line": 2543291,
-      "source_entry_sha256": "0c29ebf45aef31888edd013a44530a3c3956e2ee9eb48f6652e9acc361ffb771",
-      "source_url": "https://zh.wiktionary.org/wiki/psc#英語",
-      "pos": "noun",
-      "glosses": [
-        "parsec (“秒差距”)的縮寫"
-      ],
-      "tags": [
-        "abbreviation",
-        "alt-of",
-        "obsolete"
-      ],
-      "full_form": "parsec",
-      "definition_zh": "秒差距",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
-    },
-    {
       "sense_id": "zh-efe5c636d7128553b736cfc435654feed781af9e",
       "edition": "zh",
       "word": "psi",
@@ -61974,7 +60226,7 @@
       "full_form": "",
       "definition_zh": "自慰",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -61996,7 +60248,7 @@
       "full_form": "",
       "definition_zh": "女性生殖器",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -62040,7 +60292,7 @@
       "full_form": "",
       "definition_zh": "懦夫，膽小鬼。",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -62063,7 +60315,7 @@
       "full_form": "",
       "definition_zh": "和女性性交",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -62085,7 +60337,7 @@
       "full_form": "",
       "definition_zh": "貓。",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "非正式",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -62107,7 +60359,7 @@
       "full_form": "",
       "definition_zh": "女性的陰部。",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -62130,7 +60382,7 @@
       "full_form": "",
       "definition_zh": "吃B；吃屄；舔陰 /舔阴",
       "definition_origin": "upstream-sense-translation",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -62152,7 +60404,7 @@
       "full_form": "",
       "definition_zh": "舔陰，陰戶口交",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -62174,7 +60426,7 @@
       "full_form": "",
       "definition_zh": "貓，小貓",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "非正式",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -62195,7 +60447,7 @@
       "full_form": "",
       "definition_zh": "溫柔熱心的人",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "非正式",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -62240,7 +60492,7 @@
       "full_form": "",
       "definition_zh": "同意性交",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "词汇",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -63055,7 +61307,7 @@
       "full_form": "",
       "definition_zh": "（与...）不戴套做爱",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -63409,29 +61661,6 @@
       "priority": 200
     },
     {
-      "sense_id": "zh-a3ab2d67efd5dcf0f114fc6234f02ba126a5aaae",
-      "edition": "zh",
-      "word": "redneck",
-      "source_line": 94842,
-      "source_entry_sha256": "401476fc89900fca7ecf994551bd1d7dc27c99792faffd0e764e3c5e3e45833d",
-      "source_url": "https://zh.wiktionary.org/wiki/redneck#英語",
-      "pos": "noun",
-      "glosses": [
-        "鄉巴佬；紅脖子"
-      ],
-      "tags": [
-        "offensive",
-        "slang",
-        "slur"
-      ],
-      "full_form": "",
-      "definition_zh": "鄉巴佬；紅脖子",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
       "sense_id": "zh-27a92bf6649f63245e1d9b1fc45b224877201599",
       "edition": "zh",
       "word": "redneck",
@@ -63666,7 +61895,7 @@
       "full_form": "",
       "definition_zh": "年轻男妓，男同性戀雛妓",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "非正式",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -64202,28 +62431,6 @@
       "usage": "非正式",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
-    },
-    {
-      "sense_id": "zh-4cf3af4ac513b979e8a5c61a1b346846ab4c1066",
-      "edition": "zh",
-      "word": "ripon",
-      "source_line": 1095133,
-      "source_entry_sha256": "e567ec01354145e76c351106c8b95ea51010e777795db81d6e364b7280bbac38",
-      "source_url": "https://zh.wiktionary.org/wiki/ripon#英語",
-      "pos": "noun",
-      "glosses": [
-        "馬刺"
-      ],
-      "tags": [
-        "obsolete",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "馬刺",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
     },
     {
       "sense_id": "zh-62aac635b7fc6f53cf13c4acf59cf5a554c5021d",
@@ -64869,7 +63076,7 @@
       "full_form": "",
       "definition_zh": "睪丸",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -65490,30 +63697,6 @@
       "priority": 500
     },
     {
-      "sense_id": "zh-9228f7c14491c7e75dd1945cec6abc39581d7241",
-      "edition": "zh",
-      "word": "RuSSia",
-      "source_line": 2495867,
-      "source_entry_sha256": "2fe6444409917769ede855a4d7c769c166ff51411506971d5907a1b3f45a6ca1",
-      "source_url": "https://zh.wiktionary.org/wiki/RuSSia#英語",
-      "pos": "name",
-      "glosses": [
-        "俄羅斯"
-      ],
-      "tags": [
-        "derogatory",
-        "humorous",
-        "offensive",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "俄羅斯",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
       "sense_id": "zh-36995a228385cdbdd610eb49f1f8b36756f8f28f",
       "edition": "zh",
       "word": "Russian",
@@ -65834,28 +64017,6 @@
       "priority": 500
     },
     {
-      "sense_id": "zh-a038e2386e268978079becef63654b2b342d2034",
-      "edition": "zh",
-      "word": "saltee",
-      "source_line": 2458389,
-      "source_entry_sha256": "ef2245796f51a889fcc22f11a80e200080f44dc99efadb835028f7d1cf696f5a",
-      "source_url": "https://zh.wiktionary.org/wiki/saltee#英語",
-      "pos": "noun",
-      "glosses": [
-        "一便士"
-      ],
-      "tags": [
-        "obsolete",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "一便士",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
-    },
-    {
       "sense_id": "en-ff2eefba02522814d76d1680d06bbfdfc3346d20",
       "edition": "en",
       "word": "salty",
@@ -66139,7 +64300,7 @@
       "full_form": "",
       "definition_zh": "肛交時潤滑劑和糞便混合而成的物質",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -67515,7 +65676,7 @@
       "full_form": "small dick energy",
       "definition_zh": "缺乏自信；小屌能量",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "缩写",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -68312,7 +66473,7 @@
       "full_form": "",
       "definition_zh": "幹 /干；搞",
       "definition_origin": "upstream-sense-translation",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 400
     },
@@ -68507,7 +66668,7 @@
       "full_form": "",
       "definition_zh": "放湿屁 （肛門放鬆或放屁而不小心排便）",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "非正式",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -68529,7 +66690,7 @@
       "full_form": "",
       "definition_zh": "放濕屁",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "非正式",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -68640,29 +66801,6 @@
       "priority": 500
     },
     {
-      "sense_id": "zh-a593f24c68999fe470d91dc12024f50999e504cd",
-      "edition": "zh",
-      "word": "Shitrael",
-      "source_line": 2495865,
-      "source_entry_sha256": "0cf10737f4a04fb7f8ff30027df56015e44a17b24006bd57b778d1f5b3298bdd",
-      "source_url": "https://zh.wiktionary.org/wiki/Shitrael#英語",
-      "pos": "name",
-      "glosses": [
-        "以色列"
-      ],
-      "tags": [
-        "derogatory",
-        "offensive",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "以色列",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
       "sense_id": "zh-351167002d3888cfa4f5210e2a5ea07234a01483",
       "edition": "zh",
       "word": "shitton",
@@ -68680,7 +66818,7 @@
       "full_form": "",
       "definition_zh": "一大坨，一大堆（大量的）",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -68833,29 +66971,6 @@
       "usage": "俚语",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
-    },
-    {
-      "sense_id": "zh-69c411dd8478507140195ccbfef946b092d44b11",
-      "edition": "zh",
-      "word": "shut up",
-      "source_line": 1095209,
-      "source_entry_sha256": "cdea52db0da768505151f7e98f07185ed93b21f71c4b4567256db443fd2cd943",
-      "source_url": "https://zh.wiktionary.org/wiki/shut%20up#英語",
-      "pos": "verb",
-      "glosses": [
-        "殺"
-      ],
-      "tags": [
-        "archaic",
-        "slang",
-        "transitive"
-      ],
-      "full_form": "",
-      "definition_zh": "殺",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
     },
     {
       "sense_id": "zh-ffd7bcf5c9a8c3dba0282c0cac35a795bbbb8660",
@@ -69153,7 +67268,7 @@
       "full_form": "",
       "definition_zh": "被插入肛门而达到高潮",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 350
     },
@@ -69327,7 +67442,7 @@
       "full_form": "",
       "definition_zh": "淫秽而丑陋的 （尤指女人）",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -70314,7 +68429,7 @@
       "full_form": "",
       "definition_zh": "膽怯，缺乏自信",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -70855,52 +68970,6 @@
       "usage": "缩写",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
-    },
-    {
-      "sense_id": "zh-c0b52477edf3b2fc36955a0d37a7d077e841abd4",
-      "edition": "zh",
-      "word": "smug",
-      "source_line": 1526510,
-      "source_entry_sha256": "f81c3e2cd8015647c923c8e69a3078b008311450e341227ffe65e6fa864ac173",
-      "source_url": "https://zh.wiktionary.org/wiki/smug#英語",
-      "pos": "verb",
-      "glosses": [
-        "没收"
-      ],
-      "tags": [
-        "obsolete",
-        "slang",
-        "transitive"
-      ],
-      "full_form": "",
-      "definition_zh": "没收",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
-    },
-    {
-      "sense_id": "zh-e9082d22ca1767c5d7e09956c2fab6ceea301bac",
-      "edition": "zh",
-      "word": "smug",
-      "source_line": 1526510,
-      "source_entry_sha256": "f81c3e2cd8015647c923c8e69a3078b008311450e341227ffe65e6fa864ac173",
-      "source_url": "https://zh.wiktionary.org/wiki/smug#英語",
-      "pos": "verb",
-      "glosses": [
-        "隐瞒"
-      ],
-      "tags": [
-        "obsolete",
-        "slang",
-        "transitive"
-      ],
-      "full_form": "",
-      "definition_zh": "隐瞒",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
     },
     {
       "sense_id": "zh-18f0173e3a6256c5521b8b5e76caf53040760744",
@@ -71539,7 +69608,7 @@
       "full_form": "",
       "definition_zh": "（骂人话）",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -71562,7 +69631,7 @@
       "full_form": "",
       "definition_zh": "鸡奸",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -71583,7 +69652,7 @@
       "full_form": "",
       "definition_zh": "家伙 （多用形容词修饰）",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -71649,7 +69718,7 @@
       "full_form": "",
       "definition_zh": "他妈的 （用来表示愤怒、鄙视、震惊、失望等）",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -71672,7 +69741,7 @@
       "full_form": "",
       "definition_zh": "烂东西，破玩意",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -71695,7 +69764,7 @@
       "full_form": "",
       "definition_zh": "王八蛋，狗娘养的，龟儿子",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -71717,7 +69786,7 @@
       "full_form": "",
       "definition_zh": "令人厭惡的人；混蛋，混賬",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -72389,72 +70458,6 @@
       "priority": 350
     },
     {
-      "sense_id": "zh-35dd7ad7790eca769b17a6cafb1f6c8b4827eddb",
-      "edition": "zh",
-      "word": "spastic",
-      "source_line": 2552811,
-      "source_entry_sha256": "b7b94977be6c136aee50d0ef9e3781f26134a8dcd7e84b7e35259fbc1246be75",
-      "source_url": "https://zh.wiktionary.org/wiki/spastic#英語",
-      "pos": "noun",
-      "glosses": [
-        "笨拙的人"
-      ],
-      "tags": [
-        "derogatory",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "笨拙的人",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
-      "sense_id": "zh-726deea857b014f9f6271bbc3ea0b939f18bdfb3",
-      "edition": "zh",
-      "word": "spastic",
-      "source_line": 2552810,
-      "source_entry_sha256": "bf3a4b90c20dca8aba8f1f6f08414a1422bf29eea8d78f66a79baac0430db0dc",
-      "source_url": "https://zh.wiktionary.org/wiki/spastic#英語",
-      "pos": "adj",
-      "glosses": [
-        "过度活跃或行为反常的"
-      ],
-      "tags": [
-        "derogatory",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "过度活跃或行为反常的",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
-      "sense_id": "zh-a1e88c77b21719bfeaf24dff6589051a99354469",
-      "edition": "zh",
-      "word": "spastic",
-      "source_line": 2552810,
-      "source_entry_sha256": "bf3a4b90c20dca8aba8f1f6f08414a1422bf29eea8d78f66a79baac0430db0dc",
-      "source_url": "https://zh.wiktionary.org/wiki/spastic#英語",
-      "pos": "adj",
-      "glosses": [
-        "笨拙的，身體不協調的；無能的"
-      ],
-      "tags": [
-        "derogatory",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "笨拙的，身體不協調的；無能的",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
       "sense_id": "en-bd18b969de158de18bee5d0591e7695f6103030a",
       "edition": "en",
       "word": "special military operation",
@@ -72673,30 +70676,6 @@
       "priority": 500
     },
     {
-      "sense_id": "zh-1ce6b9802ee7f6440a07ce91c10b0b8da69422b4",
-      "edition": "zh",
-      "word": "spook",
-      "source_line": 2552814,
-      "source_entry_sha256": "52efab04738a76afa71fba31cef32cb66b911db9363dd34067ef3d4658cad9fe",
-      "source_url": "https://zh.wiktionary.org/wiki/spook#英語",
-      "pos": "noun",
-      "glosses": [
-        "黑鬼"
-      ],
-      "tags": [
-        "dated",
-        "offensive",
-        "slang",
-        "slur"
-      ],
-      "full_form": "",
-      "definition_zh": "黑鬼",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
-    },
-    {
       "sense_id": "en-ce5dbad2bec4c3d78ed65176dd2324a4cd0bdcd1",
       "edition": "en",
       "word": "spotty",
@@ -72862,7 +70841,7 @@
       "full_form": "",
       "definition_zh": "射精",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 400
     },
@@ -73019,7 +70998,7 @@
       "full_form": "",
       "definition_zh": "潮吹",
       "definition_origin": "upstream-sense-translation",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -73063,7 +71042,7 @@
       "full_form": "",
       "definition_zh": "潮吹",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -73086,7 +71065,7 @@
       "full_form": "",
       "definition_zh": "潮吹",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -73891,28 +71870,6 @@
       "priority": 1700
     },
     {
-      "sense_id": "zh-18ea1335f1d39e3e5a87fc481fcdae992182f383",
-      "edition": "zh",
-      "word": "stark naked",
-      "source_line": 1763332,
-      "source_entry_sha256": "dd749f9198f63ee8e256c9a1f19da52ffa84946f5d0b4de8e5e6bb7bb1ba46a3",
-      "source_url": "https://zh.wiktionary.org/wiki/stark%20naked#英語",
-      "pos": "noun",
-      "glosses": [
-        "生杜松子酒"
-      ],
-      "tags": [
-        "archaic",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "生杜松子酒",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "旧义",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 200
-    },
-    {
       "sense_id": "zh-09d406d053a6a4f58f60799e88ca5dc71a8e8f3b",
       "edition": "zh",
       "word": "stat",
@@ -74194,7 +72151,7 @@
       "full_form": "search the fucking Web",
       "definition_zh": "去搜索那些破网页",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "缩写",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -74384,7 +72341,7 @@
       "full_form": "",
       "definition_zh": "睪丸",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -74988,7 +72945,7 @@
       "full_form": "",
       "definition_zh": "非常糟糕，非常垃圾",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -75010,7 +72967,7 @@
       "full_form": "",
       "definition_zh": "質量差",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -75032,7 +72989,7 @@
       "full_form": "",
       "definition_zh": "進行口交",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -75076,7 +73033,7 @@
       "full_form": "",
       "definition_zh": "口交；吹簫 /吹箫",
       "definition_origin": "upstream-sense-translation",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -75736,7 +73693,7 @@
       "full_form": "",
       "definition_zh": "典雅的，文雅的，高雅的",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "非正式",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -75758,7 +73715,7 @@
       "full_form": "",
       "definition_zh": "亲嘴",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -75953,27 +73910,6 @@
       "definition_zh": "賽車道上的大半徑或中高速彎道，因人們可以用手臂做出「橫掃」的動作來描繪該彎道的輪廓而得名",
       "definition_origin": "upstream-chinese-edition-gloss",
       "usage": "俚语",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
-      "sense_id": "zh-668dbf4bdc5c153812d1cc264da3a74945d15146",
-      "edition": "zh",
-      "word": "sweet cheeks",
-      "source_line": 1705120,
-      "source_entry_sha256": "7dbdc0f4758442525d6c7dc6d50a5b9ed0e534ee5e6dea99c074822a693603c6",
-      "source_url": "https://zh.wiktionary.org/wiki/sweet%20cheeks#英語",
-      "pos": "noun",
-      "glosses": [
-        "翘臀 （用于称呼臀部漂亮的人）"
-      ],
-      "tags": [
-        "informal"
-      ],
-      "full_form": "",
-      "definition_zh": "翘臀 （用于称呼臀部漂亮的人）",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "非正式",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -76406,7 +74342,7 @@
       "full_form": "shut your bitch ass up",
       "definition_zh": "闭上你的狗嘴",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "缩写",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -76646,7 +74582,7 @@
       "full_form": "",
       "definition_zh": "拉屎",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -76806,28 +74742,6 @@
       "priority": 500
     },
     {
-      "sense_id": "zh-859ada2b92b0815ecd4c3d7e686441dee22eb89a",
-      "edition": "zh",
-      "word": "Talibanistan",
-      "source_line": 2254260,
-      "source_entry_sha256": "1ad0b324e3efb94555b33feb00ee261b0582afbe456c4ace4470fff601cbc52b",
-      "source_url": "https://zh.wiktionary.org/wiki/Talibanistan#英語",
-      "pos": "name",
-      "glosses": [
-        "瓦濟里斯坦，瓦澤爾斯坦，瓦齊里斯坦"
-      ],
-      "tags": [
-        "informal",
-        "offensive"
-      ],
-      "full_form": "",
-      "definition_zh": "瓦濟里斯坦，瓦澤爾斯坦，瓦齊里斯坦",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "非正式",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
       "sense_id": "zh-fdda4e232028aac776dc60025739538dee04dfa3",
       "edition": "zh",
       "word": "Talibanistan",
@@ -76929,7 +74843,7 @@
       "full_form": "",
       "definition_zh": "妓女。",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -76951,7 +74865,7 @@
       "full_form": "",
       "definition_zh": "放荡的女人，骚货，娼妓。",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -77678,7 +75592,7 @@
       "full_form": "",
       "definition_zh": "把睪丸放在他人的口中或臉/頭上",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -77916,7 +75830,7 @@
       "full_form": "",
       "definition_zh": "（用于构成常见疑问短语的缩短形式。）",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -77938,7 +75852,7 @@
       "full_form": "",
       "definition_zh": "他妈的 （用于疑问代词后表示愤怒、沮丧、怀疑等强烈的情感。）",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -77960,7 +75874,7 @@
       "full_form": "",
       "definition_zh": "他妈的 （用于构成动词短语的动词后，表达激进的强调情绪。）",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -77982,7 +75896,7 @@
       "full_form": "",
       "definition_zh": "（用于强调表达某事不是事实。）",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -78111,7 +76025,7 @@
       "full_form": "",
       "definition_zh": "陰莖",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -78473,7 +76387,7 @@
       "full_form": "",
       "definition_zh": "人類母乳",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -78942,29 +76856,6 @@
       "priority": 500
     },
     {
-      "sense_id": "zh-30aad69324098808a27e3376371f7fe07142a523",
-      "edition": "zh",
-      "word": "Toorkey",
-      "source_line": 2495864,
-      "source_entry_sha256": "c84244cf1c32ee8ac9c78f88c276ab083314caedac04afcbf25ddbc3c9b6f8ef",
-      "source_url": "https://zh.wiktionary.org/wiki/Toorkey#英語",
-      "pos": "name",
-      "glosses": [
-        "土耳其"
-      ],
-      "tags": [
-        "derogatory",
-        "offensive",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "土耳其",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
       "sense_id": "zh-f2ddb3c0b27f8c879c9127ecb1097bc9376d2a91",
       "edition": "zh",
       "word": "Toro",
@@ -79160,27 +77051,6 @@
       "priority": 500
     },
     {
-      "sense_id": "zh-20c1d79ee307160844164be9d6622ac832a3071c",
-      "edition": "zh",
-      "word": "tran",
-      "source_line": 1628165,
-      "source_entry_sha256": "0aecd28bafa5c01d4ee163e8f2b232336baef32369c3b72bb42b6b630d6186a4",
-      "source_url": "https://zh.wiktionary.org/wiki/tran#英語",
-      "pos": "noun",
-      "glosses": [
-        "跨性別人士；變性人"
-      ],
-      "tags": [
-        "informal"
-      ],
-      "full_form": "",
-      "definition_zh": "跨性別人士；變性人",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "非正式",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
       "sense_id": "zh-5e9203dee9db4065690fc7aad2ef85489c88ed1e",
       "edition": "zh",
       "word": "tranny",
@@ -79240,28 +77110,6 @@
       ],
       "full_form": "",
       "definition_zh": "动作之间的过渡",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
-      "sense_id": "zh-c7468af3d4fe4ab889c9696d39f196eb5d5ef77e",
-      "edition": "zh",
-      "word": "tranny",
-      "source_line": 2824395,
-      "source_entry_sha256": "1d19c2210daec7c419c357d28727785e090fd6a94bad79feb2079795ffbfbc8a",
-      "source_url": "https://zh.wiktionary.org/wiki/tranny#英語",
-      "pos": "noun",
-      "glosses": [
-        "跨性别者，尤指跨性别女性"
-      ],
-      "tags": [
-        "offensive",
-        "slang"
-      ],
-      "full_form": "",
-      "definition_zh": "跨性别者，尤指跨性别女性",
       "definition_origin": "upstream-chinese-edition-gloss",
       "usage": "俚语",
       "usage_origin": "upstream-tags-or-neutral",
@@ -79478,30 +77326,6 @@
       "full_form": "",
       "definition_zh": "引誘回答，釣魚",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "网络",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
-      "sense_id": "en-89e01528e04d95c74cbeeb63e89849ba1a1f8425",
-      "edition": "en",
-      "word": "troon out",
-      "source_line": 9191511,
-      "source_entry_sha256": "d7b04501fcf2e28c2ecaff4ed4f5ce1959a5ad5e53b45e9cec525fce828be77e",
-      "source_url": "https://en.wiktionary.org/wiki/troon%20out#English",
-      "pos": "verb",
-      "glosses": [
-        "To undergo gender transition."
-      ],
-      "tags": [
-        "Internet",
-        "derogatory",
-        "intransitive",
-        "offensive"
-      ],
-      "full_form": "",
-      "definition_zh": "经历性别转换的过渡期",
-      "definition_origin": "upstream-sense-translation",
       "usage": "网络",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
@@ -79809,7 +77633,7 @@
       "full_form": "",
       "definition_zh": "自慰",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -80025,7 +77849,7 @@
       "full_form": "",
       "definition_zh": "打，摑",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -80047,30 +77871,7 @@
       "full_form": "",
       "definition_zh": "女陰，陰戶",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
-      "sense_id": "zh-c163f3dfe806c3c5c75882d374fe8d07abc5b4b2",
-      "edition": "zh",
-      "word": "twat",
-      "source_line": 2554004,
-      "source_entry_sha256": "78295ec9514a8e7370c0723b8ccda0c517ff2831c54048000262e5c706357a1b",
-      "source_url": "https://zh.wiktionary.org/wiki/twat#英語",
-      "pos": "noun",
-      "glosses": [
-        "混蛋，笨蛋，討厭鬼"
-      ],
-      "tags": [
-        "offensive",
-        "slang",
-        "vulgar"
-      ],
-      "full_form": "",
-      "definition_zh": "混蛋，笨蛋，討厭鬼",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -80092,7 +77893,7 @@
       "full_form": "",
       "definition_zh": "深深受伤的（通常是由于另一方的故意行为造成的）",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -80114,7 +77915,7 @@
       "full_form": "",
       "definition_zh": "具有某種女陰的",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -80136,7 +77937,7 @@
       "full_form": "",
       "definition_zh": "爛醉如泥的",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -80158,7 +77959,7 @@
       "full_form": "",
       "definition_zh": "該死的",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -80311,7 +78112,7 @@
       "full_form": "",
       "definition_zh": "一丘之貉",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -80443,7 +78244,7 @@
       "full_form": "",
       "definition_zh": "确实，同意",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -81025,7 +78826,7 @@
       "full_form": "",
       "definition_zh": "强大的，不好惹的",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "非正式",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 350
     },
@@ -81112,7 +78913,7 @@
       "full_form": "",
       "definition_zh": "沒有發生性行為的",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -81710,7 +79511,7 @@
       "full_form": "",
       "definition_zh": "陰道",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 350
     },
@@ -83230,7 +81031,7 @@
       "full_form": "",
       "definition_zh": "自慰的行為",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -83254,7 +81055,7 @@
       "full_form": "",
       "definition_zh": "同人圈發生的戲劇性、動盪、分歧的事情",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -83277,7 +81078,7 @@
       "full_form": "",
       "definition_zh": "自慰，手淫",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -83299,7 +81100,7 @@
       "full_form": "",
       "definition_zh": "胡扯，胡說八道",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "网络",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -83320,7 +81121,7 @@
       "full_form": "",
       "definition_zh": "荒謬且冗長的論述",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "网络",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -83343,7 +81144,7 @@
       "full_form": "",
       "definition_zh": "廢話，胡扯",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -83367,7 +81168,7 @@
       "full_form": "",
       "definition_zh": "令人不快的人",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -83390,7 +81191,7 @@
       "full_form": "",
       "definition_zh": "自慰",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -83411,7 +81212,7 @@
       "full_form": "",
       "definition_zh": "手淫者，自慰者",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -84176,7 +81977,7 @@
       "full_form": "",
       "definition_zh": "这他妈的什么啊 （表达惊讶、震惊、不相信的情感）",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -84198,7 +81999,7 @@
       "full_form": "",
       "definition_zh": "what的語義增強：什麼鬼，什麼鳥",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -84221,7 +82022,7 @@
       "full_form": "",
       "definition_zh": "什麼鬼 /什么鬼",
       "definition_origin": "upstream-sense-translation",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -84699,7 +82500,7 @@
       "full_form": "",
       "definition_zh": "陰莖",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -84824,29 +82625,6 @@
       ],
       "full_form": "",
       "definition_zh": "知识渊博或成功的体育博彩玩家",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
-      "sense_id": "zh-4a2cd3e6bb2890c5a7f152d3f0c32acc3a011dcb",
-      "edition": "zh",
-      "word": "wise guy",
-      "source_line": 2099128,
-      "source_entry_sha256": "875e9bdbac9e0177b6cedeb20a0a3def07ff1d82e1dc1e99366d23b7ac8e7687",
-      "source_url": "https://zh.wiktionary.org/wiki/wise%20guy#英語",
-      "pos": "noun",
-      "glosses": [
-        "意大利裔美国人"
-      ],
-      "tags": [
-        "offensive",
-        "slang",
-        "slur"
-      ],
-      "full_form": "",
-      "definition_zh": "意大利裔美国人",
       "definition_origin": "upstream-chinese-edition-gloss",
       "usage": "俚语",
       "usage_origin": "upstream-tags-or-neutral",
@@ -85168,30 +82946,6 @@
       "definition_zh": "断断续续出现错误（bug）的",
       "definition_origin": "upstream-chinese-edition-gloss",
       "usage": "非正式",
-      "usage_origin": "upstream-tags-or-neutral",
-      "priority": 500
-    },
-    {
-      "sense_id": "zh-f74ec2f103fa2c43e991f549bafeee4e83e969aa",
-      "edition": "zh",
-      "word": "wop",
-      "source_line": 73540,
-      "source_entry_sha256": "7f8c3eac3e38a1afc04f76b541f54bd663e574861b1466a55cb9108a2ec165d2",
-      "source_url": "https://zh.wiktionary.org/wiki/wop#英語",
-      "pos": "noun",
-      "glosses": [
-        "有意大利血統的人"
-      ],
-      "tags": [
-        "US",
-        "derogatory",
-        "slang",
-        "slur"
-      ],
-      "full_form": "",
-      "definition_zh": "有意大利血統的人",
-      "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -86076,7 +83830,7 @@
       "full_form": "",
       "definition_zh": "性交，特別指獸迷（擬人化動物角色或相關社群成員）之間的性行為",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -86101,7 +83855,7 @@
       "full_form": "",
       "definition_zh": "獸迷間進行性交",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "俚语",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 500
     },
@@ -86149,7 +83903,7 @@
       "full_form": "",
       "definition_zh": "指動物（尤指狐狸）交配",
       "definition_origin": "upstream-chinese-edition-gloss",
-      "usage": "非正式",
+      "usage": "粗俗",
       "usage_origin": "upstream-tags-or-neutral",
       "priority": 350
     },
