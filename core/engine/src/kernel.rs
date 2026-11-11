@@ -64,7 +64,7 @@ pub struct KernelConfig {
     /// 是否启用二刷（断网/未配置云端时应关掉，省掉无谓的等待与打点）
     pub rerank_enabled: bool,
     pub chinese_on_start: bool,
-    /// 组字串最大字符数，超过后不再接收字母（防止误触把整篇文章堆在组字区）
+    /// 拼音与普通英文组字上限。英文连写使用解码器的独立上限。
     pub max_buffer_chars: usize,
     /// 候选条数上限
     pub candidate_cap: usize,

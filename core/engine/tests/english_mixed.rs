@@ -44,6 +44,116 @@ fn commits(actions: &[KernelAction]) -> Vec<&str> {
         .collect()
 }
 
+fn check_continuous_contractions() {
+    let input = "idontwanttosaygoodbye";
+    let restored = "I don't want to say goodbye";
+    let mut typing = kernel();
+    for (offset, letter) in input.char_indices() {
+        let actions = key(&mut typing, Key::Char(letter));
+        let end = offset + 1;
+        assert!(commits(&actions).is_empty());
+        let state = typing.render_state();
+        assert_eq!(state.composition, input[..end]);
+        if end >= "idont".len() {
+            assert!(
+                state
+                    .candidates
+                    .iter()
+                    .any(|candidate| candidate.consumed == end),
+                "candidate refresh stopped at {}",
+                &input[..end]
+            );
+        }
+    }
+    for (raw, expected) in [
+        ("idont", "I don't"),
+        ("idontw", "I don't want"),
+        ("idontwanttosaygoodb", restored),
+        (input, restored),
+    ] {
+        let mut k = kernel();
+        type_word(&mut k, raw);
+        let state = k.render_state();
+        assert_eq!(state.composition, raw);
+        let index =
+            state.candidates.iter().take(5).position(|candidate| {
+                candidate.text == expected && candidate.consumed == raw.len()
+            });
+        assert!(index.is_some(), "{raw}: {:?}", state.candidates);
+        assert_eq!(
+            commits(&key(
+                &mut k,
+                Key::Char(char::from(b'1' + index.unwrap() as u8))
+            )),
+            [expected]
+        );
+    }
+
+    for (raw, expected) in [
+        (input, restored),
+        ("idon'twanttosaygoodbye", restored),
+        ("icantwait", "I can't wait"),
+        ("imgoinghome", "I'm going home"),
+        ("idontknowwhattodo", "I don't know what to do"),
+        (
+            "idontwanttosaygoodbyebutihavetogohomeandiwillcallyouwhenigettheretonight",
+            "I don't want to say goodbye but I have to go home and I will call you when I get there tonight",
+        ),
+    ] {
+        let mut k = kernel();
+        type_word(&mut k, raw);
+        assert_eq!(k.render_state().composition, raw);
+        if raw.len() > 64 {
+            assert!(k.render_state().candidates.iter().any(|c| c.text == expected),
+                "a long composition must still offer its completed final word");
+        }
+        assert_eq!(commits(&key(&mut k, Key::Space)), [expected], "{raw}");
+    }
+
+    let mut k = kernel();
+    for mark in ['.', ',', '!', '?', ';', ':'] {
+        type_word(&mut k, input);
+        let actions = key(&mut k, Key::Char(mark));
+        assert_eq!(commits(&actions), [format!("{restored}{mark}")]);
+        assert!(!actions.contains(&KernelAction::PassThrough));
+    }
+    type_word(&mut k, input);
+    key(&mut k, Key::Down);
+    assert_eq!(commits(&key(&mut k, Key::Enter)), [input]);
+    type_word(&mut k, "idontw");
+    key(&mut k, Key::Backspace);
+    assert_eq!(k.render_state().composition, "idont");
+    assert!(k
+        .render_state()
+        .candidates
+        .iter()
+        .take(5)
+        .any(|c| c.text == "I don't"));
+    assert_eq!(commits(&key(&mut k, Key::Enter)), ["idont"]);
+
+    for raw in ["iamt", "international", "idontwanttosayqxvv"] {
+        type_word(&mut k, raw);
+        assert_eq!(commits(&key(&mut k, Key::Space)), [raw]);
+    }
+    type_word(&mut k, "example");
+    let actions = key(&mut k, Key::Char('.'));
+    assert_eq!(commits(&actions), ["example"]);
+    assert!(actions.contains(&KernelAction::PassThrough));
+    k.handle(InputEvent::SetEnglishAutoSpace(false));
+    type_word(&mut k, input);
+    assert_eq!(commits(&key(&mut k, Key::Space)), [format!("{input} ")]);
+    type_word(&mut k, input);
+    let actions = key(&mut k, Key::Char('?'));
+    assert_eq!(commits(&actions), [input]);
+    assert!(actions.contains(&KernelAction::PassThrough));
+
+    let full = "q".repeat(retype_english::MAX_COMPOSITION_BYTES);
+    type_word(&mut k, &full);
+    assert_eq!(k.render_state().composition, full);
+    assert_eq!(commits(&key(&mut k, Key::Char('z'))), [full]);
+    assert_eq!(commits(&key(&mut k, Key::Enter)), ["z"]);
+}
+
 #[test]
 #[ignore = "requires the prepared immutable English dictionary; run by the Windows installer build"]
 fn prepared_pinyin_tail_dictionary_and_modern_entities_keep_commit_semantics() {
@@ -60,6 +170,7 @@ fn prepared_pinyin_tail_dictionary_and_modern_entities_keep_commit_semantics() {
         })
         .expect("prepared English frequency image");
     retype_english::install(&image).unwrap();
+    check_continuous_contractions();
     for (input, chinese) in [("iwilldotheyiyang", "一样"), ("iwilldothetongyang", "同样")] {
         let mut k = kernel();
         type_word(&mut k, input);

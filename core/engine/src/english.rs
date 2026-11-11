@@ -1,6 +1,25 @@
 use super::*;
 
 impl Kernel {
+    fn restored_english(&self) -> Option<String> {
+        if !self.cfg.english_auto_space || !self.cfg.english_segmentation {
+            return None;
+        }
+        // Exact pinyin at the head of the list still requires an explicit
+        // choice. A lower-ranked or partial pinyin hit must not veto English.
+        if self.cfg.english_pinyin
+            && self.candidates.first().is_some_and(|candidate| {
+                candidate
+                    .annotation
+                    .as_ref()
+                    .is_some_and(|note| note.pinyin_match && note.pinyin_exact)
+            })
+        {
+            return None;
+        }
+        self.english.segment_exact(&self.buffer)
+    }
+
     /// Merge separate ranked streams by match evidence, never by cross-language scores.
     pub(super) fn mix_english(&mut self, chinese_word: bool) {
         let words = self.english.mixed(&self.buffer, self.learner.as_ref(), 2);
@@ -85,7 +104,12 @@ impl Kernel {
         }
         match key {
             Key::Char(c) if c.is_ascii_alphabetic() || (c == '\'' && !self.buffer.is_empty()) => {
-                if self.buffer.len() >= self.cfg.max_buffer_chars {
+                let limit = if self.cfg.english_segmentation {
+                    retype_english::MAX_COMPOSITION_BYTES
+                } else {
+                    self.cfg.max_buffer_chars
+                };
+                if self.buffer.len() >= limit {
                     self.commit_english(None, "", actions);
                 }
                 self.buffer.push(c);
@@ -110,21 +134,10 @@ impl Kernel {
             Key::Space if self.has_composition() => {
                 let index = self.english_selected.then_some(self.selected);
                 if self.cfg.english_auto_space {
-                    // A plain Space may add boundaries, never untyped letters.
-                    // Explicitly navigating to a candidate still accepts it.
-                    // This lookup is independent of the visible candidate cap.
-                    // A recognized pinyin interpretation requires explicit
-                    // acceptance. Do not respell its letters as accidental
-                    // English words (e.g. "they I yang") on a plain Space.
-                    let pinyin_interpretation = self.cfg.english_pinyin
-                        && self.candidates.iter().any(|candidate| {
-                            candidate
-                                .annotation
-                                .as_ref()
-                                .is_some_and(|note| note.pinyin_match)
-                        });
-                    if index.is_none() && self.cfg.english_segmentation && !pinyin_interpretation {
-                        if let Some(text) = self.english.segment_exact(&self.buffer) {
+                    // Plain Space restores only the already typed letters.
+                    // Navigating to a candidate explicitly accepts it instead.
+                    if index.is_none() {
+                        if let Some(text) = self.restored_english() {
                             self.buffer = text;
                         }
                     }
@@ -139,6 +152,15 @@ impl Kernel {
             // It ends only this composition; the next Enter reaches the host.
             Key::Enter if self.has_composition() && !mods.contains(Modifiers::SHIFT) => {
                 self.commit_english(None, "", actions);
+            }
+            Key::Char(c @ ('.' | ',' | '!' | '?' | ';' | ':')) if self.has_composition() => {
+                if let Some(text) = self.restored_english() {
+                    self.buffer = text;
+                    self.commit_english(None, &c.to_string(), actions);
+                } else {
+                    self.commit_english(None, "", actions);
+                    actions.push(KernelAction::PassThrough);
+                }
             }
             Key::Up | Key::Down if !self.candidates.is_empty() => {
                 self.selected = if !self.english_selected {

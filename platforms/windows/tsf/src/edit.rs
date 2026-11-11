@@ -427,6 +427,10 @@ impl Edit_Impl {
             | Work::ToggleAutoSpace => return Ok(()),
         };
         let input_chinese = session.backend.with_kernel(|k| k.is_chinese());
+        let punctuation_key = matches!(
+            self.work,
+            Work::Key(Key::Char('.' | ',' | '!' | '?' | ';' | ':'), mods) if mods.is_plain()
+        );
         let prefix_space = !input_chinese
             && session.backend.with_kernel(|k| {
                 if !k.config().english_auto_space || !k.has_composition() {
@@ -441,7 +445,7 @@ impl Edit_Impl {
                     Work::Key(Key::Char(c @ '1'..='5'), mods) if mods.is_plain() => {
                         (c as usize - '1' as usize) < k.render_state().visible().len()
                     }
-                    _ => false,
+                    _ => punctuation_key,
                 }
             });
         let spelling_before = session
@@ -459,6 +463,13 @@ impl Edit_Impl {
         let started = Instant::now();
         let actions = session.submit_in_context(event, true);
         timing.kernel_us += crate::input_profile::micros(started.elapsed());
+        // Only the restored phrase owns its punctuation. A raw word followed
+        // by a literal punctuation key must keep the exact typed adjacency.
+        let prefix_space = prefix_space
+            && (!punctuation_key
+                || !actions
+                    .iter()
+                    .any(|action| matches!(action, KernelAction::PassThrough)));
         // Inspect the source field while the composition/selection is still intact.
         // Some hosts stop exposing its scope after the commit ends the composition.
         // Keep the events deferred until every document write below succeeds.

@@ -1,13 +1,13 @@
 //! Bounded exact-word segmentation with a final unfinished word prefix.
 //! The raw composition stays authoritative; every result commits one complete
 //! alternative only after explicit selection. No IO, learning or cloud calls.
-use super::{casing, lexicon, Vocabulary};
+use super::{casing, lexicon, ranking, Vocabulary};
 use retype_types::{Candidate, CandidateLanguage, CandidateSource};
 use std::{cmp::Reverse, collections::BinaryHeap, sync::OnceLock};
 
-const MAX_INPUT: usize = 48;
+pub(super) const MAX_INPUT: usize = 128;
 const MAX_WORD: usize = 24;
-const MAX_WORDS: usize = 6;
+const MAX_WORDS: usize = 32;
 const BEAM: usize = 8;
 const MAX_RESULTS: usize = 24;
 const SPLIT_COST: f64 = 0.4;
@@ -17,12 +17,95 @@ const CONTEXT_WEIGHT: f64 = 0.95;
 const PHRASE_CONFIDENCE: f64 = 0.7;
 const MIN_ANCHOR_PROBABILITY: f64 = 0.005;
 const BACKOFF_PREFIX_CANDIDATES: usize = BEAM * 2;
-const EXACT_MAX_INPUT: usize = 64;
-const EXACT_MAX_WORDS: usize = 16;
+const EXACT_MAX_WORDS: usize = MAX_WORDS;
+const MAX_BACKOFF_RUN: usize = 2;
+const MIN_BACKOFF_WORD_PROBABILITY: f64 = 0.000_001;
 const EXACT_BEAM: usize = 32;
 const EXACT_MIN_WORD_PROBABILITY: f64 = 0.000_001;
 const EXACT_MIN_LOG_GAP: f64 = std::f64::consts::LN_2 * 3.;
+const EXACT_MIN_ALIAS_PRIOR_RATIO: u64 = 8;
+const EXACT_MIN_CONTEXT_EDGES: usize = 8;
+const EXACT_MIN_CONTEXTUAL_ODDS: f64 = 4.;
 const DATA: &[u8] = include_bytes!("../assets/bigrams.bin");
+
+pub(super) fn valid_composition(input: &str) -> bool {
+    !input.is_empty()
+        && input.len() <= MAX_INPUT
+        && input.as_bytes()[0].is_ascii_alphabetic()
+        && input.as_bytes()[input.len() - 1].is_ascii_alphabetic()
+        && input.bytes().all(|b| b.is_ascii_alphabetic() || b == b'\'')
+}
+
+fn contraction_alias(key: &str) -> Option<ranking::Row<'static>> {
+    ranking::current()?.contraction(key)
+}
+
+fn is_contraction(word: &str) -> bool {
+    word.contains('\'')
+        && ranking::current()
+            .and_then(|overlay| overlay.get(word))
+            .is_some_and(|row| row.reason == ranking::Reason::Contraction)
+}
+
+/// Recover evidence from the existing model for unambiguous expansions of
+/// reviewed contractions. The expansion is used solely for context lookup.
+fn contraction_context(word: &str) -> Option<(&str, &str)> {
+    if !is_contraction(word) {
+        return None;
+    }
+    if let Some(base) = word.strip_suffix("n't") {
+        let head = match base {
+            "ca" => "can",
+            "wo" => "will",
+            _ => base,
+        };
+        return Some((head, "not"));
+    }
+    let (head, ending) = word.split_once('\'')?;
+    let tail = match ending {
+        "m" => "am",
+        "re" => "are",
+        "ve" => "have",
+        "ll" => "will",
+        "s" if head == "let" => "us",
+        _ => return None,
+    };
+    Some((head, tail))
+}
+
+fn completed_words<'a>(vocab: &Vocabulary, key: &'a str) -> [Option<&'a str>; 2] {
+    if !super::valid_word(key) || key.len() == 1 && !matches!(key, "a" | "i") {
+        return [None, None];
+    }
+    [
+        (vocab.find(key).is_some() || is_contraction(key)).then_some(key),
+        contraction_alias(key).map(|row| row.word),
+    ]
+}
+
+fn completed_text(word: &str, raw: &str) -> String {
+    if !is_contraction(word) {
+        return casing(word, raw);
+    }
+    // Copy every typed letter in its original case and insert only the quote
+    // present in the exact reviewed alias. Contractions of I capitalize I.
+    let mut letters = raw.bytes().filter(u8::is_ascii_alphabetic);
+    word.bytes()
+        .enumerate()
+        .map(|(index, byte)| {
+            if byte == b'\'' {
+                '\''
+            } else {
+                let letter = letters.next().unwrap_or(byte);
+                char::from(if index == 0 && word.starts_with("i'") {
+                    letter.to_ascii_uppercase()
+                } else {
+                    letter
+                })
+            }
+        })
+        .collect()
+}
 
 #[derive(Clone, Copy)]
 struct Model<'a> {
@@ -138,22 +221,45 @@ impl<'a> Model<'a> {
         lo
     }
     fn conditional(&self, previous: &str, next: &str, unigram: f64) -> f64 {
-        let Some((first, end, total)) = self.find(previous).and_then(|id| self.row(id)) else {
-            return unigram;
-        };
-        if total == 0 {
+        self.smoothed(previous, self.context_probability(previous, next), unigram)
+    }
+    fn smoothed(&self, previous: &str, observed: Option<f64>, unigram: f64) -> f64 {
+        if observed.is_none()
+            && !self
+                .find(previous)
+                .and_then(|id| self.row(id))
+                .is_some_and(|(_, _, total)| total != 0)
+        {
             return unigram;
         }
-        let observed = self.find(next).map_or(0., |id| {
-            let edge = self.edge_lower(first, end, id);
-            if edge < end && self.target(edge) == id {
-                (self.count(edge) as f64 / total as f64).min(1.)
-            } else {
-                0.
-            }
-        });
-        (CONTEXT_WEIGHT * observed + (1. - CONTEXT_WEIGHT) * unigram).max(f64::MIN_POSITIVE)
+        (CONTEXT_WEIGHT * observed.unwrap_or(0.) + (1. - CONTEXT_WEIGHT) * unigram)
+            .max(f64::MIN_POSITIVE)
     }
+    fn context_probability(&self, previous: &str, next: &str) -> Option<f64> {
+        if let Some(probability) = self.observed_probability(previous, next) {
+            return Some(probability);
+        }
+        let left = contraction_context(previous).map_or(previous, |(_, tail)| tail);
+        let right = contraction_context(next).map_or(next, |(head, _)| head);
+        let expanded = (left != previous || right != next)
+            .then(|| self.observed_probability(left, right))
+            .flatten();
+        let plain_left = is_contraction(previous).then(|| previous.replace('\'', ""));
+        let plain_right = is_contraction(next).then(|| next.replace('\'', ""));
+        if plain_left.is_none() && plain_right.is_none() {
+            return None;
+        }
+        let plain = self.observed_probability(
+            plain_left.as_deref().unwrap_or(previous),
+            plain_right.as_deref().unwrap_or(next),
+        );
+        expanded
+            .into_iter()
+            .chain(plain)
+            .reduce(f64::max)
+            .map(|p| p * 0.5)
+    }
+    #[cfg(test)]
     fn observed(&self, previous: &str, next: &str) -> bool {
         self.observed_probability(previous, next).is_some()
     }
@@ -299,47 +405,127 @@ fn unigram_top(vocab: &Vocabulary, prefix: &str, limit: usize) -> Vec<usize> {
     }
     result
 }
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+struct Part<'a> {
+    start: usize,
+    end: usize,
+    word: &'a str,
+}
+
 #[derive(Clone)]
-struct Path {
-    parts: Vec<(usize, usize)>,
-    score: f32,
+struct Path<'a> {
+    parts: Vec<Part<'a>>,
+    score: f64,
     // Sum only genuinely observed completed-word transitions, never unigram
     // smoothing. This is an admission check, independent of candidate ranking.
     context_log_sum: f64,
+    observed_edges: usize,
+    backoff_run: usize,
 }
-impl Path {
+impl Path<'_> {
     fn allows_tail_backoff(&self) -> bool {
-        self.parts.len() >= 2
-            && self.context_log_sum / (self.parts.len() - 1) as f64 >= MIN_ANCHOR_PROBABILITY.ln()
+        self.observed_edges > 0
+            && self.context_log_sum / self.observed_edges as f64 >= MIN_ANCHOR_PROBABILITY.ln()
     }
 }
-fn path_text(input: &str, parts: &[(usize, usize)]) -> String {
+fn path_text(input: &str, parts: &[Part<'_>]) -> String {
     parts
         .iter()
-        .map(|(start, end)| {
-            casing(
-                &input[*start..*end].to_ascii_lowercase(),
-                &input[*start..*end],
-            )
-        })
+        .map(|part| completed_text(part.word, &input[part.start..part.end]))
         .collect::<Vec<_>>()
         .join(" ")
 }
 
 #[derive(Clone)]
-struct ExactPath {
-    ends: Vec<usize>,
+struct ExactPath<'a> {
+    parts: Vec<Part<'a>>,
     score: f64,
     observed_edges: usize,
 }
-fn exact_order(left: &ExactPath, right: &ExactPath) -> std::cmp::Ordering {
+impl ExactPath<'_> {
+    fn has_dense_context(&self, model: &Model<'_>) -> bool {
+        if self.observed_edges < EXACT_MIN_CONTEXT_EDGES
+            || self.observed_edges * 5 < self.parts.len().saturating_sub(1) * 4
+        {
+            return false;
+        }
+        let mut context_log_sum = 0.;
+        let mut missing = 0;
+        for pair in self.parts.windows(2) {
+            if let Some(probability) = model.context_probability(pair[0].word, pair[1].word) {
+                context_log_sum += probability.ln();
+                missing = 0;
+            } else {
+                missing += 1;
+                if missing > MAX_BACKOFF_RUN {
+                    return false;
+                }
+            }
+        }
+        context_log_sum / self.observed_edges as f64 >= MIN_ANCHOR_PROBABILITY.ln()
+    }
+
+    fn has_confident_margin(&self, runners: &[Self], model: &Model<'_>) -> bool {
+        if runners
+            .first()
+            .is_none_or(|runner| self.score - runner.score >= EXACT_MIN_LOG_GAP)
+        {
+            return true;
+        }
+        // A densely observed sentence can tolerate a closer alternative.
+        // Compare with the combined weight of every retained full path so
+        // several competing interpretations cannot each pass on their own.
+        self.has_dense_context(model)
+            && runners
+                .iter()
+                .map(|runner| (runner.score - self.score).exp())
+                .sum::<f64>()
+                <= 1. / EXACT_MIN_CONTEXTUAL_ODDS
+    }
+}
+fn exact_contraction_bonus(
+    vocab: &Vocabulary,
+    model: &Model<'_>,
+    key: &str,
+    parts: &[Part<'_>],
+    next: &str,
+) -> f64 {
+    let [.., left, contraction] = parts else {
+        return 0.;
+    };
+    let typed = &key[contraction.start..contraction.end];
+    if typed == contraction.word {
+        return 0.;
+    }
+    let Some((head, tail)) = contraction_context(contraction.word) else {
+        return 0.;
+    };
+    let literal_frequency = vocab.prior(typed);
+    if literal_frequency == 0 {
+        return 0.;
+    }
+    let ratio = vocab.prior(contraction.word) as f64 / literal_frequency as f64;
+    // Both neighbors must support the contraction. An expanded edge provides
+    // additional evidence beyond the corpus's apostrophe-free spelling alone.
+    if ratio < EXACT_MIN_ALIAS_PRIOR_RATIO as f64
+        || model
+            .context_probability(left.word, contraction.word)
+            .is_none()
+        || model.observed_probability(left.word, head).is_none()
+            && model.observed_probability(tail, next).is_none()
+    {
+        return 0.;
+    }
+    ratio.min(16.).ln()
+}
+fn exact_order(left: &ExactPath<'_>, right: &ExactPath<'_>) -> std::cmp::Ordering {
     right
         .score
         .total_cmp(&left.score)
-        .then_with(|| left.ends.len().cmp(&right.ends.len()))
-        .then_with(|| left.ends.cmp(&right.ends))
+        .then_with(|| left.parts.len().cmp(&right.parts.len()))
+        .then_with(|| left.parts.cmp(&right.parts))
 }
-fn admit_exact(paths: &mut Vec<ExactPath>, path: ExactPath) {
+fn admit_exact<'a>(paths: &mut Vec<ExactPath<'a>>, path: ExactPath<'a>) {
     let index = paths.partition_point(|old| exact_order(old, &path).is_le());
     if index < EXACT_BEAM {
         paths.insert(index, path);
@@ -348,7 +534,7 @@ fn admit_exact(paths: &mut Vec<ExactPath>, path: ExactPath) {
 }
 
 /// Exact completed-word paths are independent of visible completion candidates.
-/// Only spaces (and the conventional uppercase standalone I) may be introduced.
+/// Add spaces and exact reviewed contraction quotes without changing letters.
 /// All snapshots are already in memory; this function never opens a resource.
 pub(super) fn segment_exact(
     vocab: &Vocabulary,
@@ -361,7 +547,7 @@ pub(super) fn segment_exact(
     if crate::modern::protects_word(input) {
         return None;
     }
-    if input.len() < 2 || input.len() > EXACT_MAX_INPUT || !super::valid_word(input) {
+    if input.len() < 2 || !valid_composition(input) {
         return None;
     }
     let key = input.to_ascii_lowercase();
@@ -376,10 +562,13 @@ pub(super) fn segment_exact(
     {
         return None;
     }
+    if let Some(row) = contraction_alias(&key) {
+        return Some(completed_text(row.word, input));
+    }
     let model = model()?;
-    let mut paths: Vec<Vec<ExactPath>> = (0..=input.len()).map(|_| Vec::new()).collect();
+    let mut paths: Vec<Vec<ExactPath<'_>>> = (0..=input.len()).map(|_| Vec::new()).collect();
     paths[0].push(ExactPath {
-        ends: Vec::new(),
+        parts: Vec::new(),
         score: 0.,
         observed_edges: 0,
     });
@@ -388,78 +577,72 @@ pub(super) fn segment_exact(
             continue;
         }
         let previous_paths = paths[start].clone();
-        for end in start + 1..=input.len() {
-            let word = &key[start..end];
-            if !super::valid_word(word)
-                || (word.len() == 1 && !matches!(word, "a" | "i"))
-                || (word.len() > 1 && word.bytes().all(|value| value == word.as_bytes()[0]))
-                || vocab.find(word).is_none()
-            {
+        for end in start + 1..=(start + MAX_WORD).min(input.len()) {
+            let typed = &key[start..end];
+            if typed.len() > 1 && typed.bytes().all(|value| value == typed.as_bytes()[0]) {
                 continue;
             }
-            let prior = unigram(vocab, word);
-            for path in &previous_paths {
-                if path.ends.len() >= EXACT_MAX_WORDS {
+            for word in completed_words(vocab, typed).into_iter().flatten() {
+                // Space is an automatic commit. An inferred quote should not
+                // compete with an established ordinary spelling on weak priors.
+                if word != typed
+                    && vocab.prior(word)
+                        < vocab
+                            .prior(typed)
+                            .saturating_mul(EXACT_MIN_ALIAS_PRIOR_RATIO)
+                {
                     continue;
                 }
-                let probability = if path.ends.is_empty() {
-                    prior
-                } else {
-                    let previous_start = path.ends.iter().rev().nth(1).copied().unwrap_or(0);
-                    // A sparse table is not an exhaustive grammar. Missing
-                    // internal pairs use the same normalized unigram backoff;
-                    // no unfinished prefix or invented next word is admitted.
-                    model.conditional(&key[previous_start..start], word, prior)
-                };
-                let mut next = path.clone();
-                if !path.ends.is_empty() {
-                    let previous_start = path.ends.iter().rev().nth(1).copied().unwrap_or(0);
-                    if model.observed(&key[previous_start..start], word) {
-                        next.observed_edges += 1;
+                let prior = unigram(vocab, word);
+                for path in &previous_paths {
+                    if path.parts.len() >= EXACT_MAX_WORDS {
+                        continue;
                     }
+                    let observed = path
+                        .parts
+                        .last()
+                        .and_then(|part| model.context_probability(part.word, word));
+                    let probability = path
+                        .parts
+                        .last()
+                        .map_or(prior, |part| model.smoothed(part.word, observed, prior));
+                    let bonus = if observed.is_some() {
+                        exact_contraction_bonus(vocab, model, &key, &path.parts, word)
+                    } else {
+                        0.
+                    };
+                    let mut next = path.clone();
+                    next.observed_edges += usize::from(observed.is_some());
+                    next.parts.push(Part { start, end, word });
+                    next.score +=
+                        probability.ln() + bonus - if start == 0 { 0. } else { SPLIT_COST };
+                    admit_exact(&mut paths[end], next);
                 }
-                next.ends.push(end);
-                next.score += probability.ln() - if start == 0 { 0. } else { SPLIT_COST };
-                admit_exact(&mut paths[end], next);
             }
         }
     }
-    let complete = &paths[input.len()];
-    let best = complete.first()?;
-    if best.ends.len() < 2
+    let (best, runners) = paths[input.len()].split_first()?;
+    if best.parts.len() < 2
         // Dictionary abbreviations alone are not enough evidence for an
         // automatic boundary (e.g. an unfinished "iamt" is not "I amt").
         // One genuine context edge anchors a path; gaps after that may back off.
         || best.observed_edges == 0
-        || best.score / (best.ends.len() as f64) < EXACT_MIN_WORD_PROBABILITY.ln()
-        || complete
-            .get(1)
-            .is_some_and(|runner| best.score - runner.score < EXACT_MIN_LOG_GAP)
+        || best.score / (best.parts.len() as f64) < EXACT_MIN_WORD_PROBABILITY.ln()
+        || !best.has_confident_margin(runners, model)
     {
         return None;
     }
-    let mut start = 0;
-    let words: Vec<_> = best
-        .ends
-        .iter()
-        .map(|end| {
-            let raw = &input[start..*end];
-            start = *end;
-            if raw == "i" {
-                "I"
-            } else {
-                raw
-            }
-        })
-        .collect();
-    let output = words.join(" ");
-    // Keep this invariant explicit even if scoring/casing changes in the future.
-    output
-        .replace(' ', "")
-        .eq_ignore_ascii_case(input)
-        .then_some(output)
+    let output = path_text(input, &best.parts);
+    let letters = |value: &str| {
+        value
+            .bytes()
+            .filter(u8::is_ascii_alphabetic)
+            .map(|byte| byte.to_ascii_lowercase())
+            .collect::<Vec<_>>()
+    };
+    (letters(&output) == letters(input)).then_some(output)
 }
-fn admit_path(paths: &mut Vec<Path>, path: Path) {
+fn admit_path<'a>(paths: &mut Vec<Path<'a>>, path: Path<'a>) {
     paths.push(path);
     paths.sort_by(|a, b| {
         b.score
@@ -524,13 +707,16 @@ pub(super) fn complete_with_pinyin(
     metadata: &lexicon::Lexicon,
 ) -> Vec<Candidate> {
     let cap = limit.min(MAX_RESULTS);
-    if cap == 0 || input.len() < 2 || input.len() > MAX_INPUT || !super::valid_word(input) {
+    if cap == 0 || input.len() < 2 || !valid_composition(input) {
         return Vec::new();
     }
     let key = input.to_ascii_lowercase();
     // Ordinary complete words have a fully literal interpretation. Do not split
     // them merely because short high-frequency fragments can also be found.
-    if vocab.find(&key).is_some() || metadata.lookup(&key).is_some() {
+    if vocab.find(&key).is_some()
+        || metadata.lookup(&key).is_some()
+        || contraction_alias(&key).is_some()
+    {
         return Vec::new();
     }
     let Some(model) = model() else {
@@ -539,54 +725,78 @@ pub(super) fn complete_with_pinyin(
     // Whole exact pinyin retains its established stream, just like an English
     // whole word. Do not reinterpret its initial syllables as English prefixes.
     let pinyin = pinyin && !metadata.pinyin(input, 1).0;
-    let mut paths: Vec<Vec<Path>> = vec![Vec::new(); input.len() + 1];
+    let mut paths: Vec<Vec<Path<'_>>> = vec![Vec::new(); input.len() + 1];
     paths[0].push(Path {
         parts: Vec::new(),
         score: 0.,
         context_log_sum: 0.,
+        observed_edges: 0,
+        backoff_run: 0,
     });
+    let mut strong_whole_prefix = None;
     for start in 0..input.len() - 1 {
         if paths[start].is_empty() {
             continue;
         }
         let previous = paths[start].clone();
         for end in start + 1..=(start + MAX_WORD).min(input.len() - 1) {
-            let token = &key[start..end];
-            // Single-letter labels are plentiful in a spelling dictionary, but
-            // a/i are the productive standalone English words for this decoder.
-            if (token.len() == 1 && !matches!(token, "a" | "i"))
-                || !super::valid_word(token)
-                || vocab.find(token).is_none()
-            {
-                continue;
-            }
-            for path in &previous {
-                if path.parts.len() + 1 >= MAX_WORDS {
+            let typed = &key[start..end];
+            for word in completed_words(vocab, typed).into_iter().flatten() {
+                // An inferred opening quote should not create a new split in
+                // a strong whole-word prefix such as imag (image).
+                if start == 0
+                    && word != typed
+                    && *strong_whole_prefix.get_or_insert_with(|| {
+                        unigram_top(vocab, &key, 1).first().is_some_and(|&id| {
+                            unigram(vocab, vocab.word(id)) >= super::STRONG_ORDINARY
+                        })
+                    })
+                {
                     continue;
                 }
-                // A dictionary token alone is insufficient evidence for a new
-                // boundary (e.g. repeated "zzz"). Every completed transition
-                // must be observed in the frozen context model.
-                let context_log = if let Some((left, right)) = path.parts.last() {
-                    let Some(probability) = model.observed_probability(&key[*left..*right], token)
-                    else {
+                let prior = unigram(vocab, word);
+                for path in &previous {
+                    if path.parts.len() + 1 >= MAX_WORDS {
                         continue;
-                    };
-                    probability.ln()
-                } else {
-                    0.
-                };
-                let mut next = path.clone();
-                next.parts.push((start, end));
-                next.context_log_sum += context_log;
-                next.score = score(vocab, &path_text(input, &next.parts), end);
-                admit_path(&mut paths[end], next);
+                    }
+                    let left = path.parts.last();
+                    let observed = left.and_then(|part| model.context_probability(part.word, word));
+                    if left.is_some()
+                        && observed.is_none()
+                        && (!path.allows_tail_backoff()
+                            || path.backoff_run >= MAX_BACKOFF_RUN
+                            || prior < MIN_BACKOFF_WORD_PROBABILITY)
+                    {
+                        continue;
+                    }
+                    let probability =
+                        left.map_or(prior, |part| model.smoothed(part.word, observed, prior));
+                    let mut next = path.clone();
+                    next.parts.push(Part { start, end, word });
+                    if let Some(observed) = observed {
+                        next.context_log_sum += observed.ln();
+                        next.observed_edges += 1;
+                        next.backoff_run = 0;
+                    } else if left.is_some() {
+                        next.backoff_run += 1;
+                    }
+                    // Each advance scores its one new edge. Rebuilding and
+                    // rescoring every prefix would scale with its word count.
+                    next.score += probability.ln() - if left.is_some() { SPLIT_COST } else { 0. };
+                    admit_path(&mut paths[end], next);
+                }
             }
         }
     }
     let mut pool = Vec::new();
+    let mut raw_tail: Option<(usize, &Path<'_>)> = None;
     for start in 1..input.len() {
         let prefix = &key[start..];
+        if let Some(path) = paths[start].iter().find(|path| path.allows_tail_backoff()) {
+            // Iteration is in ascending byte order, so a later supported
+            // boundary preserves the longest recognized prefix.
+            raw_tail = Some((start, path));
+        }
         if prefix.len() > MAX_WORD || !super::valid_word(prefix) {
             continue;
         }
@@ -603,10 +813,9 @@ pub(super) fn complete_with_pinyin(
             Vec::new()
         };
         for path in &paths[start] {
-            let Some((previous_start, previous_end)) = path.parts.last().copied() else {
+            let Some(previous) = path.parts.last().map(|part| part.word) else {
                 continue;
             };
-            let previous = &key[previous_start..previous_end];
             let beginning = path_text(input, &path.parts);
             if path.allows_tail_backoff() {
                 for (position, hit) in pinyin_tails.iter().enumerate() {
@@ -624,15 +833,33 @@ pub(super) fn complete_with_pinyin(
                     }
                 }
             }
-            let observed = model.top(previous, prefix, BEAM);
-            let backoff = path.allows_tail_backoff();
-            if observed.is_empty() && !backoff {
-                continue;
+            let mut observed = model.top(previous, prefix, BEAM);
+            if observed.is_empty() {
+                if let Some((_, expanded_tail)) = contraction_context(previous) {
+                    observed = model.top(expanded_tail, prefix, BEAM);
+                }
+                if observed.is_empty() && is_contraction(previous) {
+                    observed = model.top(&previous.replace('\'', ""), prefix, BEAM);
+                }
             }
+            let backoff = path.allows_tail_backoff();
             let mut tails: Vec<String> = observed
                 .into_iter()
                 .map(|(id, _, _)| model.word(id).to_owned())
                 .collect();
+            let alias = contraction_alias(prefix);
+            // An exact typed word can be rarer than every completion in a
+            // top-K bucket. Keep it available, including reviewed contractions.
+            for word in completed_words(vocab, prefix).into_iter().flatten() {
+                if (backoff || model.context_probability(previous, word).is_some())
+                    && !tails.iter().any(|tail| tail == word)
+                {
+                    tails.push(word.to_owned());
+                }
+            }
+            if tails.is_empty() && !backoff {
+                continue;
+            }
             // A sparse bigram table is not an exhaustive vocabulary. A reliable
             // multiword anchor can complete its final unfinished word from the
             // bounded unigram stream, still ranked by the same smoothed model.
@@ -647,17 +874,25 @@ pub(super) fn complete_with_pinyin(
                 },
             ) {
                 let word = vocab.word(id);
-                if (backoff || model.observed(previous, word))
+                if (backoff || model.context_probability(previous, word).is_some())
                     && !tails.iter().any(|tail| tail == word)
                 {
                     tails.push(word.to_owned());
                 }
             }
             for word in tails {
-                if word.len() > MAX_WORD || !word.starts_with(prefix) || !super::valid_word(&word) {
+                let alias_match = alias.is_some_and(|row| row.word == word);
+                if word.len() > MAX_WORD
+                    || (!word.starts_with(prefix) && !alias_match)
+                    || !super::valid_word(&word)
+                {
                     continue;
                 }
-                let suffix = casing(&word, &input[start..]);
+                let suffix = if alias_match || word.eq_ignore_ascii_case(&input[start..]) {
+                    completed_text(&word, &input[start..])
+                } else {
+                    casing(&word, &input[start..])
+                };
                 let text = format!("{beginning} {suffix}");
                 let mut candidate = if let Some(id) = vocab.find(&word) {
                     vocab.candidate(id, &input[start..], metadata)
@@ -720,6 +955,20 @@ pub(super) fn complete_with_pinyin(
                     cap,
                 );
             }
+        }
+    }
+    if pool.is_empty() {
+        if let Some((start, path)) = raw_tail {
+            let suffix = &input[start..];
+            let beginning = path_text(input, &path.parts);
+            let mut candidate =
+                Candidate::new(format!("{beginning} {suffix}"), CandidateSource::Local);
+            candidate.language = CandidateLanguage::English;
+            candidate.consumed = input.len();
+            candidate.display_text = Some(suffix.to_owned());
+            candidate.comment = "保留输入".into();
+            candidate.score = score(vocab, &candidate.text, input.len());
+            return vec![candidate];
         }
     }
     pool.sort_by(|a, b| {
@@ -1019,12 +1268,69 @@ mod tests {
             .iter()
             .any(|candidate| candidate.text == "I AM TRYING"));
         let input = "i'mtr".to_owned();
-        // This frozen corpus has no "i'm" context row. Preserve the literal
-        // spelling rather than invent a contraction-normalization exception.
-        assert!(complete(&vocab, &input, 24, false).is_empty());
+        assert!(!model().unwrap().observed("i'm", "trying"));
+        assert!(model().unwrap().observed("am", "trying"));
+        assert!(complete(&vocab, &input, 24, false)
+            .iter()
+            .any(|candidate| candidate.text == "I'm trying"));
         assert_eq!(input, "i'mtr");
         assert!(score(&vocab, "I am trying to", 4) < score(&vocab, "I am trying", 4));
         assert!(score(&vocab, "invalid  text", 4).is_infinite());
+    }
+    #[test]
+    fn reviewed_contractions_consume_typed_letters_and_keep_an_unknown_tail() {
+        let vocab = frozen_vocabulary();
+        let model = model().unwrap();
+        assert!(!model.observed("i", "don't"));
+        assert!(!model.observed("don't", "want"));
+        assert!(model.observed("i", "do") && model.observed("not", "want"));
+        for (raw, expected) in [
+            ("idont", "I don't"),
+            ("idontw", "I don't want"),
+            ("idontwanttosaygoodbye", "I don't want to say goodbye"),
+        ] {
+            let hits = complete(&vocab, raw, 24, false);
+            assert_eq!(
+                hits.first().map(|c| c.text.as_str()),
+                Some(expected),
+                "{raw}"
+            );
+            assert_eq!(hits[0].consumed, raw.len());
+        }
+        assert_eq!(
+            vocab.segment_exact("idontwanttosaygoodbye").as_deref(),
+            Some("I don't want to say goodbye")
+        );
+        assert!(vocab.segment_exact("idontw").is_none());
+        let raw = "idontwantQzxQzx";
+        let hits = complete(&vocab, raw, 24, false);
+        let tail = hits.first().expect("supported prefix keeps the typed tail");
+        assert_eq!(tail.text, "I don't want QzxQzx");
+        assert_eq!(tail.display_text(), "QzxQzx");
+        assert_eq!(tail.consumed, raw.len());
+        assert!(vocab.segment_exact(raw).is_none());
+    }
+    #[test]
+    fn exact_contraction_conflicts_use_supported_context_and_preserve_ordinary_words() {
+        let vocab = frozen_vocabulary();
+        for (raw, expected) in [
+            ("icantwait", "I can't wait"),
+            ("weweregoing", "we were going"),
+        ] {
+            assert_eq!(vocab.segment_exact(raw).as_deref(), Some(expected));
+        }
+        for literal in ["cant", "well", "were", "its"] {
+            assert!(vocab.segment_exact(literal).is_none(), "{literal}");
+        }
+    }
+    #[test]
+    fn exact_long_sentence_keeps_all_typed_letters() {
+        let vocab = frozen_vocabulary();
+        let raw = "idontwanttosaygoodbyebutihavetogohomeandiwillcallyouwhenigettheretonight";
+        let expected = "I don't want to say goodbye but I have to go home and I will call you when I get there tonight";
+        assert_eq!(vocab.segment_exact(raw).as_deref(), Some(expected));
+        let with_unknown = raw.replacen("goodbye", "goodbyeqzxvv", 1);
+        assert!(vocab.segment_exact(&with_unknown).is_none());
     }
     #[test]
     fn malformed_embedded_shape_declines_without_io_or_panics() {
@@ -1181,10 +1487,10 @@ mod tests {
                 "unsafe exact split for {input}"
             );
         }
+        assert!(vocab.segment_exact(&"i".repeat(MAX_INPUT + 1)).is_none());
         assert!(vocab
-            .segment_exact(&"i".repeat(EXACT_MAX_INPUT + 1))
+            .segment_exact(&"iloveyou".repeat(EXACT_MAX_WORDS / 3 + 1))
             .is_none());
-        assert!(vocab.segment_exact(&"iloveyou".repeat(6)).is_none());
     }
     #[test]
     fn exact_segmentation_protects_complete_manual_and_metadata_words_without_io() {

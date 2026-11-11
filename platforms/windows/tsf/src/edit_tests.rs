@@ -1148,6 +1148,41 @@ fn english_acceptance_spaces_before_words_and_enter_stays_exact_raw() -> Result<
                     String::from_utf16_lossy(&lock(&data).text),
                     format!("i am robothel {chosen}")
                 );
+                let before = String::from_utf16_lossy(&lock(&data).text);
+                type_raw("hello")?;
+                request(&state, &context, Work::Key(Key::Char(','), Modifiers::NONE))?;
+                type_raw("iamrobot")?;
+                request(
+                    &state,
+                    &context,
+                    Work::Key(Key::Char('?'), Modifiers::SHIFT),
+                )?;
+                assert_eq!(
+                    String::from_utf16_lossy(&lock(&data).text),
+                    format!("{before}hello, I am robot?"),
+                    "restored English receives one prefix space and one physical mark"
+                );
+                type_raw("foo")?;
+                request(&state, &context, Work::Key(Key::Char('.'), Modifiers::NONE))?;
+                type_raw("bar")?;
+                request(&state, &context, Work::Key(Key::Enter, Modifiers::NONE))?;
+                assert_eq!(
+                    String::from_utf16_lossy(&lock(&data).text),
+                    format!("{before}hello, I am robot?foo.bar"),
+                    "literal punctuation preserves the typed adjacency"
+                );
+                for scope in [IS_PRIVATE, IS_PASSWORD] {
+                    let before = String::from_utf16_lossy(&lock(&data).text);
+                    type_raw("iamrobot")?;
+                    lock(&data).input_scope = Some(scope);
+                    request(&state, &context, Work::Key(Key::Char('.'), Modifiers::NONE))?;
+                    assert_eq!(
+                        String::from_utf16_lossy(&lock(&data).text),
+                        format!("{before}iamrobot."),
+                        "a scope change before punctuation keeps the raw composition"
+                    );
+                    lock(&data).input_scope = Some(IS_DEFAULT);
+                }
                 let before = lock(&data).text.clone();
                 type_raw("hel")?;
                 let generation = session.backend.with_kernel(|k| k.generation());

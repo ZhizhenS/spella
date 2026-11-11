@@ -10,6 +10,7 @@ mod modern;
 mod ranking;
 pub use image::{compile, current, Vocabulary, MAGIC, MAX_BYTES};
 pub use lexicon::set_manual_words;
+pub const MAX_COMPOSITION_BYTES: usize = continuous::MAX_INPUT;
 /// Resource-worker entry point. A missing sidecar supports older installations.
 /// Lookup methods below never open files or execute SQL.
 pub fn install(path: &std::path::Path) -> Result<(), String> {
@@ -209,9 +210,9 @@ impl Vocabulary {
     pub fn contains_word(&self, input: &str) -> bool {
         self.find(&input.to_ascii_lowercase()).is_some()
     }
-    /// Conservatively insert internal spaces between complete typed words.
+    /// Restore boundaries and reviewed contractions in complete typed words.
     /// None preserves the original spelling, including complete personal words.
-    /// This does not complete/correct letters, learn text, or perform filesystem IO.
+    /// This never adds or removes letters, learns text, or opens files.
     pub fn segment_exact(&self, input: &str) -> Option<String> {
         continuous::segment_exact(self, input, &lexicon::current(), &lexicon::manual())
     }
@@ -269,7 +270,7 @@ impl Vocabulary {
         segmentation: bool,
         phrases: bool,
     ) -> Vec<Candidate> {
-        if limit == 0 || !valid_word(input) {
+        if limit == 0 || !continuous::valid_composition(input) {
             return Vec::new();
         }
         self.complete_input_from(
@@ -291,8 +292,11 @@ impl Vocabulary {
         manual: &lexicon::ManualWords,
     ) -> Vec<Candidate> {
         let (pinyin, segmentation, phrases) = options;
-        let (plain, front) =
-            self.complete_from_parts(input, learner, limit, pinyin, metadata, manual);
+        let (plain, front) = if valid_word(input) {
+            self.complete_from_parts(input, learner, limit, pinyin, metadata, manual)
+        } else {
+            (Vec::new(), 0)
+        };
         if !segmentation
             || limit == 0
             || plain.iter().any(|candidate| {

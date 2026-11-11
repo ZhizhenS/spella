@@ -159,15 +159,25 @@ fn english_header(state: &RenderState) -> String {
     else {
         return raw.clone();
     };
-    let compact: String = prefix.chars().filter(|&c| c != ' ').collect();
-    if compact.is_empty()
-        || !compact.bytes().all(|c| c.is_ascii_alphabetic())
-        || raw.len() <= compact.len()
-        || !raw[..compact.len()].eq_ignore_ascii_case(&compact)
-    {
+    let mut boundary = 0;
+    for byte in prefix.bytes().filter(|&byte| byte != b' ') {
+        if !byte.is_ascii_alphabetic() && byte != b'\'' {
+            return raw.clone();
+        }
+        if raw
+            .as_bytes()
+            .get(boundary)
+            .is_some_and(|typed| byte.eq_ignore_ascii_case(typed))
+        {
+            boundary += 1;
+        } else if byte != b'\'' {
+            return raw.clone();
+        }
+    }
+    if boundary == 0 || boundary >= raw.len() {
         return raw.clone();
     }
-    format!("{} · {}", prefix.trim_matches(' '), &raw[compact.len()..])
+    format!("{} · {}", prefix.trim_matches(' '), &raw[boundary..])
 }
 
 impl PaintKey {
@@ -658,8 +668,15 @@ impl Surface {
                 egui::StrokeKind::Inside,
             );
             let mut label = english_header(state);
-            if label.chars().count() > 30 {
-                label = label.chars().take(29).chain(['…']).collect();
+            let label_len = label.chars().count();
+            if label_len > 30 {
+                label = if state.status.contains(retype_types::StatusFlags::CHINESE) {
+                    label.chars().take(29).chain(['…']).collect()
+                } else {
+                    std::iter::once('…')
+                        .chain(label.chars().skip(label_len - 29))
+                        .collect()
+                };
             }
             painter.text(
                 Pos2::new(14.0, 16.0),
@@ -1323,6 +1340,15 @@ mod tests {
     fn inferred_english_header_requires_an_exact_raw_prefix_and_stays_display_only() {
         for (raw, commit, display, chinese, expected) in [
             ("iamg", "I am going", Some("going"), false, "I am · g"),
+            ("idontw", "I don't want", Some("want"), false, "I don't · w"),
+            (
+                "idon'tw",
+                "I don't want",
+                Some("want"),
+                false,
+                "I don't · w",
+            ),
+            ("idontg", "I didn't go", Some("go"), false, "idontg"),
             ("ia", "I am", Some("am"), false, "I · a"),
             (
                 "iamt",
