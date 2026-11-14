@@ -648,3 +648,33 @@ fn pinyin_setting_refreshes_live_composition_and_discards_old_async_results() {
     assert!(k.config().english_pinyin);
     assert_eq!(k.composition_text(), "hello");
 }
+
+#[test]
+fn misspelling_suggestion_leads_and_keeps_an_explicit_selection() {
+    // Tab accepts the leading suggestion; Space still keeps the typed letters.
+    for (accept, expected) in [(Key::Tab, "definitely"), (Key::Space, "definately ")] {
+        let mut k = kernel();
+        type_word(&mut k, "definately");
+        let suggestions = retype_english::correct("definately", 8);
+        assert_eq!(suggestions[0].text, "definitely");
+        k.handle(InputEvent::EnglishCompleted {
+            gen: k.generation(),
+            candidates: suggestions,
+        });
+        assert_eq!(k.render_state().candidates[0].text, "definitely");
+        assert_eq!(commits(&key(&mut k, accept, Modifiers::NONE)), [expected]);
+    }
+    // A suggestion that arrives after the user navigated must not change
+    // which candidate the selection points at.
+    let mut k = kernel();
+    type_word(&mut k, "teh");
+    key(&mut k, Key::Down, Modifiers::NONE);
+    let selected = k.render_state().candidates[0].text.clone();
+    assert_ne!(selected, "the");
+    k.handle(InputEvent::EnglishCompleted {
+        gen: k.generation(),
+        candidates: retype_english::correct("teh", 8),
+    });
+    assert_eq!(k.render_state().candidates[0].text, "the");
+    assert_eq!(commits(&key(&mut k, Key::Tab, Modifiers::NONE)), [selected]);
+}

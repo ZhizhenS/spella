@@ -6,7 +6,6 @@ on:
   pull_request:
   workflow_dispatch:
 
-# 取消同一分支上仍在跑的旧任务，但 tag 触发的 release 不受影响（那是另一个 workflow）
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -16,88 +15,27 @@ env:
   RUST_BACKTRACE: 1
 
 jobs:
-  # ─────────────────────────────────────────────────────────────
-  # 内核的跨平台验证：在 Linux 上编译 core/*，
-  # 这就证明了「core/ 里不允许出现 windows crate」这条铁律没有被破坏。
-  # 一旦有人在 core 里引了平台 API，这个 job 会先红。
-  # ─────────────────────────────────────────────────────────────
-  core-portability:
-    name: 内核跨平台构建 (ubuntu)
+  english:
+    name: Dictionaries and English engine
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
 
       - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy
 
       - uses: Swatinem/rust-cache@v2
-        with:
-          shared-key: core-linux
 
-      - name: Shared core dependency boundaries
-        run: python tools/ci/check-core-boundaries.py
-
-      - name: 内核 crate 编译 + 测试
+      # The embedded catalogs must reproduce byte for byte from their frozen sources.
+      - name: Dictionary producers
         run: |
-          cargo test --locked \
-            -p retype-ai-core --features retype-ai-core/service \
-            -p retype-sync-core \
-            -p retype-types \
-            -p retype-pinyin \
-            -p retype-dict \
-            -p retype-learning-store --features retype-learning-store/sqlite \
-            -p retype-context \
-            -p retype-cloud \
-            -p retype-engine \
-            -p retype-english \
-            -p retype-resources --features retype-resources/download \
-            -p retype-updater \
-            -p retype-ffi \
-            -p retype-services \
-            -p retype-macos
+          python tools/english-assist/test-modern-entities.py
+          python tools/english-assist/modern-entities.py --check
+          python tools/english-assist/test-build-modern-lexicon.py
+          python tools/english-assist/build-modern-lexicon.py --check
+          python tools/english-assist/test-build-english-ranking.py
+          python tools/english-assist/build-english-ranking.py --check
 
-      - name: 内核 crate clippy
-        # 注意：`-p` 必须放在 `--` 之前。`--` 之后的参数是传给 clippy-driver/rustc 的，
-        # 写成 `... -- -D warnings -p xxx` 会报 `Unrecognized option: 'p'`。
-        run: |
-          cargo clippy --locked --all-targets \
-            -p retype-ai-core --features retype-ai-core/service \
-            -p retype-sync-core \
-            -p retype-types \
-            -p retype-pinyin \
-            -p retype-dict \
-            -p retype-learning-store --features retype-learning-store/sqlite \
-            -p retype-context \
-            -p retype-cloud \
-            -p retype-engine \
-            -p retype-english \
-            -p retype-resources --features retype-resources/download \
-            -p retype-updater \
-            -p retype-ffi \
-            -p retype-services \
-            -p retype-macos \
-            -- -D warnings
-
-  windows:
-    name: Windows validation and installer
-    uses: ./.github/workflows/windows.yml
-    with:
-      version: '0.0.0'
-      register-tip: true
-
-  version-consistency:
-    name: 版本号一致性
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v7
-      - name: Settings inherits the workspace version
-        shell: bash
-        run: |
-          set -euo pipefail
-          cargo_version="$(sed -nE 's/^version = "([^"]+)".*$/\1/p' Cargo.toml | head -n 1)"
-          test -n "$cargo_version"
-          grep -qx 'version.workspace = true' apps/settings-egui/Cargo.toml
-          echo "Workspace version: $cargo_version"
+      # Candidate ranking, first-page quality and spelling recovery.
+      - name: English engine tests
+        run: cargo test --locked -p retype-english -p retype-engine

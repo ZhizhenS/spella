@@ -368,7 +368,7 @@ pub(super) fn score(vocab: &Vocabulary, text: &str, input_len: usize) -> f32 {
     result -= letters.saturating_sub(input_len) as f64 * COMPLETION_CHAR_COST;
     result as f32
 }
-fn unigram_top(vocab: &Vocabulary, prefix: &str, limit: usize) -> Vec<usize> {
+pub(super) fn unigram_top(vocab: &Vocabulary, prefix: &str, limit: usize) -> Vec<usize> {
     let lo = vocab.lower_bound(prefix);
     let hi = vocab.lower_bound(&format!("{prefix}{{"));
     let (mut left, mut right) = (lo + vocab.size(), hi + vocab.size());

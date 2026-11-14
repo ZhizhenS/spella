@@ -8,6 +8,7 @@ mod image;
 pub mod lexicon;
 mod modern;
 mod ranking;
+mod spelling;
 pub use image::{compile, current, Vocabulary, MAGIC, MAX_BYTES};
 pub use lexicon::set_manual_words;
 pub const MAX_COMPOSITION_BYTES: usize = continuous::MAX_INPUT;
@@ -89,6 +90,12 @@ const PROMINENT_ENTITY: u32 = 10_000;
 const COMMON_WORD: f64 = 1e-6;
 /// Modern senses at or above this priority were editorially reviewed.
 const REVIEWED_SENSE: u32 = 1200;
+/// Confident spelling suggestions shown ahead of other candidates.
+const MAX_LEADING_CORRECTIONS: usize = 3;
+/// Log-probability head start of exactly typed joined words over a correction.
+const JOINED_MARGIN: f64 = 1.0;
+/// A rare real word still shows a slightly less likely look-alike (thru/through).
+const TYPED_WORD_ALLOWANCE: f64 = 2.0;
 
 fn is_entity(candidate: &Candidate) -> bool {
     candidate
@@ -852,7 +859,10 @@ impl Vocabulary {
         hits.truncate(limit);
         hits
     }
-    /// One-edit spelling suggestions (insertion/deletion/substitution/transposition).
+    /// Spelling suggestions for a word typed by ear: up to two edits or the
+    /// same sound, best first (see `spelling`). Each candidate's score is
+    /// `ln(count) - cost`, which `merge_corrections` compares with what the
+    /// typed letters could still become.
     /// Called on the background worker, never while holding the kernel lock.
     pub fn correct(&self, input: &str, limit: usize) -> Vec<Candidate> {
         if limit == 0 || !valid_word(input) || input.len() < 3 {
@@ -861,59 +871,106 @@ impl Vocabulary {
         let lexicon = lexicon::current();
         let key = input.to_ascii_lowercase();
         // A frequent real word is already spelled correctly (only/oily, very/vary).
-        if self.relative(&key) >= COMMON_WORD {
+        // A rare one may still be a slip for a far more common word that
+        // looks or sounds the same (calender/calendar, thru/through).
+        let typed = self.prior(&key) as f64;
+        if typed / self.total_frequency().max(1) as f64 >= STRONG_ORDINARY {
             return Vec::new();
         }
-        let mut ids = HashSet::new();
-        let mut add = |s: &str| {
-            if s != key {
-                if let Some(id) = self.find(s) {
-                    ids.insert(id);
-                }
-            }
-        };
-        for i in 0..key.len() {
-            add(&format!("{}{}", &key[..i], &key[i + 1..]));
-            if i + 1 < key.len() {
-                let mut swapped = key.as_bytes().to_vec();
-                swapped.swap(i, i + 1);
-                if let Ok(s) = std::str::from_utf8(&swapped) {
-                    add(s);
-                }
-            }
-            for c in b'a'..=b'z' {
-                add(&format!("{}{}{}", &key[..i], c as char, &key[i + 1..]));
-            }
-        }
-        for i in 0..=key.len() {
-            for c in b'a'..=b'z' {
-                add(&format!("{}{}{}", &key[..i], c as char, &key[i..]));
-            }
-        }
-        let overlay = ranking::current();
-        let mut ids: Vec<_> = ids
+        spelling::suggest(self, &key, limit)
             .into_iter()
-            .filter(|&id| {
-                !overlay
-                    .and_then(|overlay| overlay.get(self.word(id)))
-                    .is_some_and(|row| row.reason.demoted())
-            })
-            .collect();
-        ids.sort_by(|a, b| {
-            self.prior(self.word(*b))
-                .cmp(&self.prior(self.word(*a)))
-                .then_with(|| a.cmp(b))
-        });
-        ids.into_iter()
-            .take(limit)
-            .map(|id| {
+            .filter(|(_, score)| f64::from(*score) + TYPED_WORD_ALLOWANCE > typed.max(1.).ln())
+            .map(|(id, score)| {
                 let mut c = self.candidate(id, input, &lexicon);
+                c.score = score;
                 if c.comment.is_empty() {
                     c.comment = "拼写纠正".into();
                 }
                 c
             })
             .collect()
+    }
+    /// Place background spelling suggestions into the visible list. A
+    /// suggestion leads when it is likelier than everything the typed letters
+    /// could still become (`teh` is `the`, not the start of Tehran); the rest
+    /// follow the existing candidates. Personal words, the typed spelling
+    /// itself and exact pinyin meanings keep their places.
+    /// Returns where the leading suggestions were inserted and how many.
+    pub fn merge_corrections(
+        &self,
+        input: &str,
+        list: &mut Vec<Candidate>,
+        corrections: Vec<Candidate>,
+        cap: usize,
+    ) -> (usize, usize) {
+        let key = input.to_ascii_lowercase();
+        let total = (self.total_frequency().max(1) as f64).ln();
+        // Letters that already read as complete words (`iam`) compete as a
+        // phrase: `adress` is address, not "a dress".
+        let joined = self
+            .segment_exact(input)
+            .map(|text| f64::from(continuous::score(self, &text, input.len())) + JOINED_MARGIN);
+        // Complete pinyin is a deliberate lookup, not a misspelling.
+        let known = self.prior(&key) > 0;
+        let lookup = !known
+            && list.first().is_some_and(|candidate| {
+                candidate
+                    .annotation
+                    .as_ref()
+                    .is_some_and(|note| note.pinyin_match && note.pinyin_exact)
+            });
+        let overlay = ranking::current();
+        let reachable: f64 = continuous::unigram_top(self, &key, 5)
+            .into_iter()
+            .map(|id| self.word(id))
+            .filter(|word| {
+                *word != key
+                    && !overlay
+                        .and_then(|overlay| overlay.get(word))
+                        .is_some_and(|row| row.reason.demoted())
+            })
+            .map(|word| self.prior(word) as f64)
+            .sum();
+        // Personal words and the typed spelling keep their place when it is a
+        // dictionary word, a name or a reviewed abbreviation; an obscure
+        // abbreviation (`ADN`) does not outrank `and`.
+        let at = list
+            .iter()
+            .take_while(|candidate| {
+                candidate.source == CandidateSource::User
+                    || candidate.text.eq_ignore_ascii_case(input)
+                        && (known
+                            || is_entity(candidate)
+                            || is_lexical(candidate) && candidate.score >= REVIEWED_SENSE as f32)
+            })
+            .count();
+        let mut leading = 0;
+        for correction in corrections {
+            let known = list
+                .iter()
+                .position(|existing| existing.text.eq_ignore_ascii_case(&correction.text));
+            let score = f64::from(correction.score);
+            let leads = !lookup
+                && leading < MAX_LEADING_CORRECTIONS
+                && score.exp() > reachable
+                && joined.is_none_or(|joined| score - total > joined);
+            match known {
+                Some(index) if !leads || index < at + leading => {}
+                Some(index) => {
+                    let existing = list.remove(index);
+                    list.insert(at + leading, existing);
+                    leading += 1;
+                }
+                None if leads => {
+                    list.insert(at + leading, correction);
+                    leading += 1;
+                }
+                None if list.len() < cap => list.push(correction),
+                None => {}
+            }
+        }
+        list.truncate(cap.max(at + leading));
+        (at, leading)
     }
 }
 
@@ -1606,6 +1663,107 @@ mod tests {
             failures.is_empty(),
             "{} first-page problems: {failures:?}",
             failures.len()
+        );
+    }
+    /// The visible list after the background spelling pass, as the kernel builds it.
+    fn typed(vocab: &Vocabulary, input: &str) -> Vec<String> {
+        let mut list = vocab.complete_input(input, &Empty, 24, true, true, true);
+        vocab.merge_corrections(input, &mut list, vocab.correct(input, 8), 32);
+        list.into_iter().map(|candidate| candidate.text).collect()
+    }
+    /// The product is for people who know the word but not its spelling:
+    /// the intended word must be on the first page for common misspellings.
+    #[test]
+    fn spelling_recovers_common_misspellings() {
+        let vocab = current();
+        let (mut total, mut first, mut top3, mut page) = (0, 0, 0, 0);
+        let mut misses = Vec::new();
+        for line in include_str!("misspellings.txt")
+            .lines()
+            .filter(|line| !line.starts_with('#') && !line.trim().is_empty())
+        {
+            let (typo, want) = line.split_once(' ').expect("typo and intended word");
+            let list = typed(&vocab, typo);
+            let rank = list
+                .iter()
+                .position(|text| text.eq_ignore_ascii_case(want))
+                .map_or(usize::MAX, |index| index + 1);
+            // A rare real word (wether, thru) stays first by design.
+            let exact_first = list
+                .first()
+                .is_some_and(|text| text.eq_ignore_ascii_case(typo));
+            let rank = rank - usize::from(rank > 1 && rank != usize::MAX && exact_first);
+            total += 1;
+            first += usize::from(rank == 1);
+            top3 += usize::from(rank <= 3);
+            page += usize::from(rank <= 5);
+            if rank > 1 {
+                misses.push(format!(
+                    "{typo}->{want} #{} {:?}",
+                    if rank == usize::MAX { 0 } else { rank },
+                    &list[..list.len().min(4)]
+                ));
+            }
+        }
+        eprintln!(
+            "misspellings: {total}, first {first}, top3 {top3}, page {page}\n{}",
+            misses.join("\n")
+        );
+        assert!(total >= 200);
+        assert!(first * 100 >= total * 90, "first {first}/{total}");
+        assert!(top3 * 100 >= total * 96, "top3 {top3}/{total}");
+        assert!(page * 100 >= total * 97, "first page {page}/{total}");
+        // The scan runs once per keystroke on the background worker.
+        let started = std::time::Instant::now();
+        for typo in ["definately", "restaraunt", "teh", "fone", "neccessary"] {
+            std::hint::black_box(vocab.correct(typo, 8));
+        }
+        let each = started.elapsed() / 5;
+        eprintln!("spelling scan: {each:?} per word");
+        assert!(each < std::time::Duration::from_millis(60), "{each:?}");
+    }
+    /// Ordinary typing must not be disturbed: a prefix on its way to a common
+    /// word, joined words and exact pinyin keep their leading candidate.
+    #[test]
+    fn spelling_suggestions_do_not_lead_ordinary_typing() {
+        let vocab = current();
+        for input in [
+            "thr", "tha", "rec", "hav", "wor", "abou", "peo", "iam", "iamrobot",
+        ] {
+            let plain = vocab.complete_input(input, &Empty, 24, true, true, true);
+            let list = typed(&vocab, input);
+            assert_eq!(list[0], plain[0].text, "{input}: {list:?}");
+        }
+        // Complete pinyin is a lookup: suggestions never precede its meanings.
+        let mut hello = Candidate::new("hello", CandidateSource::Local);
+        hello.annotation = Some(retype_types::EnglishAnnotation {
+            pinyin_match: true,
+            pinyin_exact: true,
+            ..Default::default()
+        });
+        let mut list = vec![hello];
+        let suggestions = vocab.correct("nihao", 8);
+        assert_eq!(
+            vocab.merge_corrections("nihao", &mut list, suggestions, 32),
+            (0, 0)
+        );
+        assert_eq!(list[0].text, "hello");
+        // A rare real word stays first; the common word it resembles follows.
+        for (input, second) in [
+            ("calender", "calendar"),
+            ("wether", "whether"),
+            ("thru", "through"),
+        ] {
+            let list = typed(&vocab, input);
+            assert_eq!(list[0], input);
+            assert_eq!(list[1], second, "{list:?}");
+        }
+        // A frequent real word gets no suggestions at all.
+        assert!(vocab.correct("only", 8).is_empty());
+        let mut list = vec![Candidate::new("x", CandidateSource::Local)];
+        assert_eq!(
+            vocab.merge_corrections("zzq", &mut list, Vec::new(), 32),
+            (0, 0)
         );
     }
     #[test]

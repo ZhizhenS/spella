@@ -349,17 +349,15 @@ impl Kernel {
                     && self.has_composition()
                     && self.cfg.english_spelling
                 {
-                    for c in candidates {
-                        if self.candidates.len() >= 32 {
-                            break;
-                        }
-                        if !self
-                            .candidates
-                            .iter()
-                            .any(|existing| existing.text == c.text)
-                        {
-                            self.candidates.push(c);
-                        }
+                    let (at, leading) = self.english.merge_corrections(
+                        &self.buffer,
+                        &mut self.candidates,
+                        candidates,
+                        32,
+                    );
+                    // An explicit selection keeps pointing at the same candidate.
+                    if self.english_selected && self.selected >= at {
+                        self.selected += leading;
                     }
                     self.page_starts.clear();
                     actions.push(KernelAction::Render(self.render_state()));
