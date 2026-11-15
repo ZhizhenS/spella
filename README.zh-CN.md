@@ -32,7 +32,9 @@
 | `zhongyao` | 重要 | **important**、major、significant |
 | `mafan` | 麻烦 | **annoying**、inconvenient、troublesome |
 | `tushuguan` | 图书馆 | **library** |
-| `duibuqi` | 对不起 | **sorry** |
+| `duibuqi` | 对不起 | **sorry**、excuse me |
+| `shouji` | 手机 | **cell phone**、mobile phone |
+| `xinyongka` | 信用卡 | **credit card** |
 
 - 一个中文词对应多个英文词时会一起列出，各带词性和释义，方便挑最合适的。
 - 拼音没打完也能查：输入 `pingg` 就已经有 **apple**。
@@ -40,8 +42,10 @@
   **I will do the same**。
 - 真正的英文单词优先：`he`、`you`、`long` 仍然是英文；`fo` 先当作 *for* 的开头，
   而不是"佛"。
-- 查词完全离线，目前只覆盖英文是单个单词的中文词。需要两个单词的，例如"手机"
-  （*cell phone*），暂时查不到。
+- 几个中文词拼音相同时，常用的排在前面：`wanshang` 先是"晚上"（*evening*），
+  再是"玩赏"。
+- 查词完全离线，覆盖英文是单个单词、或词典里收录的短语的中文词。单个音节（例如
+  `gui` 贵）会先当作英文字母处理。
 
 ## 她还能做什么
 

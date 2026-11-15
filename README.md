@@ -34,7 +34,9 @@ the English word. No switching to a dictionary or a translator.
 | `zhongyao` | 重要 | **important**, major, significant |
 | `mafan` | 麻烦 | **annoying**, inconvenient, troublesome |
 | `tushuguan` | 图书馆 | **library** |
-| `duibuqi` | 对不起 | **sorry** |
+| `duibuqi` | 对不起 | **sorry**, excuse me |
+| `shouji` | 手机 | **cell phone**, mobile phone |
+| `xinyongka` | 信用卡 | **credit card** |
 
 - Several English words are offered when the Chinese word has several, each with
   its part of speech and meaning, so you can choose the one that fits.
@@ -43,8 +45,11 @@ the English word. No switching to a dictionary or a translator.
   spaces: `iwilldotheyiyang` offers **I will do the same**.
 - Real English words keep priority. `he`, `you` and `long` stay English, and
   `fo` is the start of *for* before it is 佛.
-- The lookup is offline and covers Chinese words whose English is a single word.
-  Words that need two, such as 手机 (*cell phone*), are not found yet.
+- When several Chinese words share the same pinyin, the common one comes first:
+  `wanshang` is 晚上 (*evening*) before 玩赏.
+- The lookup is offline. It covers Chinese words whose English is one word or a
+  short phrase found in the dictionary; a single syllable such as `gui` (贵) is
+  treated as English letters first.
 
 ## Everything else she does
 

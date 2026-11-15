@@ -45,11 +45,31 @@ class LexiconCompilerTests(unittest.TestCase):
         self.assertLessEqual(len(compiler.annotation({"translation": "中" * 500})[1]), 96)
 
     def test_pinyin_uses_plain_source_and_drops_non_word_glosses(self):
-        source = "你好 你好 [ni3 hao3] /Hello!/Hi!/(polite) hello/How are you?/long phrase/\n苹果 苹果 [ping2 guo3] /apple/\n".encode()
+        source = "你好 你好 [ni3 hao3] /Hello!/Hi!/(polite) hello/How are you?/a far too long phrase/e-mail/CL:個|个[ge4]/\n苹果 苹果 [ping2 guo3] /apple/\n".encode()
         entries = compiler.pinyin_words(source)
-        self.assertEqual(entries["nihao"], {"hello", "hi"})
+        # Short phrases are candidates; only ECDICT headwords among them are admitted.
+        self.assertEqual(entries["nihao"], {"hello", "hi", "how are you"})
         self.assertEqual(entries["pingguo"], {"apple"})
         self.assertNotIn("nh", entries)
+
+    def test_two_word_glosses_need_a_headword_and_neutral_tones_keep_their_frequency(self):
+        csv = ("word,translation,phonetic,pos,bnc,frq\n"
+               "cell phone,n. 手机,,,,\ncollect,v. 收集,,,10,10\nevening,n. 晚上,,,20,20\n"
+               "enjoy,v. 欣赏,,,30,30\nsad,adj. 悲伤,,,40,40\n").encode()
+        cedict = ("手機 手机 [shou3 ji1] /cell phone/mobile phone/\n收集 收集 [shou1 ji2] /to collect/\n"
+                  "晚上 晚上 [wan3 shang5] /evening/\n玩賞 玩赏 [wan2 shang3] /to enjoy/\n"
+                  "難過 难过 [nan2 guo4] /to feel sad/\n").encode()
+        words = "手机\tshǒu jī\t900\n收集\tshōu jí\t100\n晚上\twǎn shàng\t800\n玩赏\twán shǎng\t5\n".encode()
+        output, _ = compiler.compile_data(csv, cedict, b"collect 9\nevening 8\nenjoy 7\nsad 6\n", chinese_words=words)
+        # "mobile phone" has no headword here and is left out; the phrase leads by Chinese use.
+        self.assertEqual([r[0] for r in self.relations(output, "shouji")], ["cell phone", "collect"])
+        # 晚上 is shang5 in one source and shàng in the other; it must not rank as unused.
+        self.assertEqual([r[0] for r in self.relations(output, "wanshang")], ["evening", "enjoy"])
+        self.assertEqual([r[0] for r in self.relations(output, "nanguo")], ["sad"])
+        csv = "word,translation,phonetic,pos,bnc,frq\nexcuse me,int. 对不起,,,5,5\nsorry,adj. 抱歉,,,900,900\n".encode()
+        cedict = "對不起 对不起 [dui4 bu5 qi3] /excuse me/sorry/\n".encode()
+        output, _ = compiler.compile_data(csv, cedict, b"sorry 9\n")
+        self.assertEqual([r[0] for r in self.relations(output, "duibuqi")], ["sorry", "excuse me"])
 
     def test_binary_generation_is_deterministic_and_keeps_pinyin_words(self):
         csv = "word,translation,phonetic,pos,bnc,frq\napple,n. 苹果,æpəl,n:100,20,20\nhello,int. 你好,həlo,,30,30\nhelp,v. 帮助,help,v:100,10,10\nunused,n. 不使用,,,50,50\n".encode()

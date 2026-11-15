@@ -21,6 +21,10 @@ from collections import defaultdict
 
 MAGIC = b"RTENLX02"
 WORD = re.compile(r"[a-z](?:[a-z']{0,62}[a-z])?\Z")
+# Everyday things are often two English words (cell phone, credit card). A
+# phrase is admitted only as a complete CC-CEDICT gloss that is also an ECDICT
+# headword; it is reachable from pinyin, never offered as a completion.
+PHRASE = re.compile(r"(?=.{3,32}\Z)[a-z]+(?: [a-z]+){1,2}\Z")
 ENTRY = re.compile(r"^(\S+) (\S+) \[([^]]+)\] /(.*)/$")
 HANZI = re.compile(r"[\u3400-\u9fff\uf900-\ufaff]{1,16}\Z")
 POS = re.compile(r"^(n|v|vt|vi|adj|adv|a|ad|prep|pron|conj|num|art|int|interj|aux|abbr|pl)\.\s*", re.I)
@@ -113,9 +117,9 @@ def direct_words(gloss):
         term = re.sub(r"\([^)]*\)", "", piece).strip().lower().strip(" .!?,")
         term = re.sub(r"^(?:to|a|an) ", "", term)
         # A whole copular single-word gloss has a clear English head (be like,
-        # be fragrant). Never pick a token out of a longer phrase.
-        term = re.sub(r"^be (?=[a-z]+$)", "", term)
-        if WORD.fullmatch(term):
+        # be fragrant, feel sad). Never pick a token out of a longer phrase.
+        term = re.sub(r"^(?:be|feel) (?=[a-z]+$)", "", term)
+        if WORD.fullmatch(term) or PHRASE.fullmatch(term):
             yield term
 
 
@@ -139,6 +143,8 @@ def definition_terms(value):
 
 
 def chinese_frequencies(sources, wanted):
+    """Counts by (word, numbered reading) and, for words whose two sources
+    disagree only on a neutral tone (晚上 shang5/shang4), by (word, toneless key)."""
     result = {}
     for source in sources:
         for line in source.decode("utf-8-sig").splitlines():
@@ -149,8 +155,8 @@ def chinese_frequencies(sources, wanted):
                 count = max(0, min(int(fields[2]), 0xffffffff))
             except ValueError:
                 continue
-            pair = (fields[0], numbered_reading(fields[1]))
-            result[pair] = max(result.get(pair, 0), count)
+            for pair in ((fields[0], numbered_reading(fields[1])), (fields[0], pinyin_key(fields[1]))):
+                result[pair] = max(result.get(pair, 0), count)
     return result
 
 
@@ -167,7 +173,8 @@ def order_relations(values, records):
         word, hanzi, reading, gloss, frequency, flags, ordinal = value
         groups[(hanzi, reading)].append(value)
     for values in groups.values():
-        values.sort(key=lambda r: (bool(r[5] & 12), bool(re.match(r"^\((?:of|in|for|when|used)\b", r[3], re.I)), -(r[5] & 3 == 3), -bool(r[5] & 1), records[r[0]][3] * (r[6] + 1), r[6], r[0], r[3]))
+        # One common word answers better than a phrase (sorry before "excuse me").
+        values.sort(key=lambda r: (bool(r[5] & 12), " " in r[0], bool(re.match(r"^\((?:of|in|for|when|used)\b", r[3], re.I)), -(r[5] & 3 == 3), -bool(r[5] & 1), records[r[0]][3] * (r[6] + 1), r[6], r[0], r[3]))
     groups = sorted(groups.values(), key=lambda group: (all(r[5] & 12 for r in group), -max(r[4] for r in group), group[0][1], group[0][2]))
     maximum = max((r[4] for group in groups for r in group), default=0)
     threshold = max(1, maximum // 128)
@@ -210,7 +217,7 @@ def compile_data(ecdict, cedict, frequency, chinese_zi=b"", chinese_words=b""):
     for row in csv.DictReader(io.StringIO(ecdict.decode("utf-8-sig"))):
         original = row.get("word", "")
         word = original.lower()
-        if not WORD.fullmatch(word) or (word not in ranks and word not in related):
+        if not (WORD.fullmatch(word) or PHRASE.fullmatch(word)) or (word not in ranks and word not in related):
             continue
         part, meaning, ipa = annotation(row)
         if not meaning:
@@ -254,6 +261,8 @@ def compile_data(ecdict, cedict, frequency, chinese_zi=b"", chinese_words=b""):
             return
         traditional, simplified, reading, key, _ = term
         count = max(chinese.get((spelling, numbered_reading(reading)), 0) for spelling in (traditional, simplified))
+        if not count:
+            count = max(chinese.get((spelling, key), 0) for spelling in (traditional, simplified))
         identity = (word, simplified, reading)
         value = (word, simplified, reading, clean(gloss)[:512], count, flags, ordinal)
         previous = relations[key].get(identity)

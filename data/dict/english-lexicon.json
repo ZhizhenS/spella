@@ -1,14 +1,14 @@
 {
-  "bytes": 15098862,
+  "bytes": 17696733,
   "counts": {
-    "mappings": 121350,
-    "pinyin": 37668,
-    "words": 83367
+    "mappings": 147342,
+    "pinyin": 46241,
+    "words": 96050
   },
   "file": "english-lexicon-v2.bin",
   "format": "RTENLX02",
   "schema": 2,
-  "sha256": "cca750ec8fbd1b3366038f3a096fc48d4e2843a4a1bf5265507e6b868e7e933c",
+  "sha256": "dfba8f570b9affbbc0261e07515464cc0fa88c5b72ae825310806e0ddcab8a5d",
   "sources": {
     "cedict": {
       "content_sha256": "27699e200e87b10950711a979382c041d01136a3bcef4bf4c1c0f86bbf3cdcf4",

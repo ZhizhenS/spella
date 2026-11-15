@@ -304,8 +304,9 @@ impl Lexicon {
                 return Err(bad());
             }
             let entry = result.entry(id);
+            // A headword is one word or a short phrase (cell phone).
             if entry.word <= previous
-                || !crate::valid_word(entry.word)
+                || !entry.word.split(' ').all(crate::valid_word)
                 || entry.word.bytes().any(|c| c.is_ascii_uppercase())
                 || entry.rank == 0
             {
@@ -415,7 +416,8 @@ impl Lexicon {
             if !entry.word.starts_with(&key) {
                 break;
             }
-            if eligible(entry.word) {
+            // Phrases are reached from pinyin, never offered as completions.
+            if !entry.word.contains(' ') && eligible(entry.word) {
                 hits.push(entry);
             }
         }
