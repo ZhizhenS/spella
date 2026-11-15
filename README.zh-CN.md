@@ -4,16 +4,46 @@
 
 [English](README.md)
 
-你知道 *restaurant* 怎么读，却不确定是 *restaraunt*、*resturant* 还是
-*restaurant*。用 Spella，按读音打出来就行，她会给出你想要的那个词，旁边带着中文
-释义，上屏之前你就能确认是不是它。
+写英文卡住，通常是这两种情况，Spella 都能帮上：
+
+- **只知道中文怎么说。** 直接打拼音，得到英文单词：`canting` 给出
+  **restaurant**，`huanjing` 给出 **environment**。
+- **知道这个词，但拼不出来。** 按读音打，得到你想要的词：`restaraunt` 给出
+  **restaurant**，`fone` 给出 **phone**。
+
+每个候选都带中文释义，上屏之前你就能确认是不是它。
 
 所有功能都在本机运行。打字过程中不联网，也不记录你输入的内容。
 
 > Spella 目前在 Windows 里显示为 **English Assist 英文助手**，这是项目早期的名字，
 > 显示名会在之后的版本里改过来。
 
-## 她能做什么
+## 拼音查英文
+
+想到中文词，直接打它的拼音（不带声调、不加空格），然后选英文单词。不用切出去查
+词典或翻译。
+
+| 你输入 | 中文 | Spella 给出 |
+|---|---|---|
+| `nihao` | 你好 | **hello**、hi |
+| `pingguo` | 苹果 | **apple** |
+| `mingtian` | 明天 | **tomorrow** |
+| `pengyou` | 朋友 | **friend**、pal、companion |
+| `zhongyao` | 重要 | **important**、major、significant |
+| `mafan` | 麻烦 | **annoying**、inconvenient、troublesome |
+| `tushuguan` | 图书馆 | **library** |
+| `duibuqi` | 对不起 | **sorry** |
+
+- 一个中文词对应多个英文词时会一起列出，各带词性和释义，方便挑最合适的。
+- 拼音没打完也能查：输入 `pingg` 就已经有 **apple**。
+- 开启连写时，拼音可以接在不加空格的英文句子后面：`iwilldotheyiyang` 给出
+  **I will do the same**。
+- 真正的英文单词优先：`he`、`you`、`long` 仍然是英文；`fo` 先当作 *for* 的开头，
+  而不是"佛"。
+- 查词完全离线，目前只覆盖英文是单个单词的中文词。需要两个单词的，例如"手机"
+  （*cell phone*），暂时查不到。
+
+## 她还能做什么
 
 | 你输入 | Spella 给出 | 原因 |
 |---|---|---|
@@ -24,7 +54,6 @@
 | `probly`、`wensday` | **probably**、**Wednesday** | 漏了字母 |
 | `dont`、`im` | **don't**、**I'm** | 省略了撇号 |
 | `iamrobot` 加空格 | **I am robot** | 单词连着打，没加空格 |
-| `nihao`、`pingguo` | **hello**、**apple** | 只记得中文，用拼音查英文 |
 | `hel` | **help**、held、hello… | 普通补全，常用词优先 |
 | `idk`、`rizz`、`anthropic` | **IDK**、**rizz**、**Anthropic** | 现代词、缩写和专名 |
 

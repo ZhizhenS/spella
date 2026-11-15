@@ -4,10 +4,15 @@
 
 [简体中文](README.zh-CN.md)
 
-You know how *restaurant* sounds. You are less sure whether it is *restaraunt*,
-*resturant* or *restaurant*. Spella lets you type what you hear and offers the
-word you meant, with its Chinese meaning beside it, so you can tell it is the
-right one before it goes into your text.
+Spella helps in the two moments when writing English stops:
+
+- **You only know the word in Chinese.** Type its pinyin and get the English
+  word: `canting` gives **restaurant**, `huanjing` gives **environment**.
+- **You know the word but not its letters.** Type what you hear and get the
+  word you meant: `restaraunt` gives **restaurant**, `fone` gives **phone**.
+
+Each candidate shows its Chinese meaning, so you can tell it is the right word
+before it goes into your text.
 
 Everything runs on your computer. Nothing is sent anywhere while you type, and
 your typing is never recorded.
@@ -15,7 +20,33 @@ your typing is never recorded.
 > Spella is installed and shown in Windows as **English Assist 英文助手**. That
 > was the project's working name; the display name will follow in a later release.
 
-## What she does
+## Pinyin to English
+
+Think of the word in Chinese, type its pinyin without tones or spaces, and pick
+the English word. No switching to a dictionary or a translator.
+
+| You type | Chinese | Spella offers |
+|---|---|---|
+| `nihao` | 你好 | **hello**, hi |
+| `pingguo` | 苹果 | **apple** |
+| `mingtian` | 明天 | **tomorrow** |
+| `pengyou` | 朋友 | **friend**, pal, companion |
+| `zhongyao` | 重要 | **important**, major, significant |
+| `mafan` | 麻烦 | **annoying**, inconvenient, troublesome |
+| `tushuguan` | 图书馆 | **library** |
+| `duibuqi` | 对不起 | **sorry** |
+
+- Several English words are offered when the Chinese word has several, each with
+  its part of speech and meaning, so you can choose the one that fits.
+- Unfinished pinyin works too: `pingg` already offers **apple**.
+- With joined typing on, pinyin can end an English sentence typed without
+  spaces: `iwilldotheyiyang` offers **I will do the same**.
+- Real English words keep priority. `he`, `you` and `long` stay English, and
+  `fo` is the start of *for* before it is 佛.
+- The lookup is offline and covers Chinese words whose English is a single word.
+  Words that need two, such as 手机 (*cell phone*), are not found yet.
+
+## Everything else she does
 
 | You type | Spella offers | Why |
 |---|---|---|
@@ -26,7 +57,6 @@ your typing is never recorded.
 | `probly`, `wensday` | **probably**, **Wednesday** | letters left out |
 | `dont`, `im` | **don't**, **I'm** | apostrophe left out |
 | `iamrobot` + Space | **I am robot** | words typed without spaces |
-| `nihao`, `pingguo` | **hello**, **apple** | pinyin for a word you know in Chinese |
 | `hel` | **help**, held, hello… | ordinary completion, common words first |
 | `idk`, `rizz`, `anthropic` | **IDK**, **rizz**, **Anthropic** | modern words, abbreviations and names |
 
