@@ -96,6 +96,9 @@ const MAX_LEADING_CORRECTIONS: usize = 3;
 const JOINED_MARGIN: f64 = 1.0;
 /// A rare real word still shows a slightly less likely look-alike (thru/through).
 const TYPED_WORD_ALLOWANCE: f64 = 2.0;
+/// After the meanings of complete pinyin, only suggestions at least this
+/// likely (`ln(count) - cost`, about nine million occurrences) are added.
+const LOOKUP_SUGGESTION_FLOOR: f32 = 16.0;
 
 fn is_entity(candidate: &Candidate) -> bool {
     candidate
@@ -790,12 +793,14 @@ impl Vocabulary {
         let (exact, pinyin) = lexicon.pinyin(input, limit);
         // Preserve actual English words (he/an/you) when they are also pinyin.
         // Complete pinyin such as nihao/pingguo must reach its English meanings.
-        let known_english = self.contains_word(input)
-            || lexicon.lookup(input).is_some()
-            || hits.iter().any(|candidate| {
-                candidate.source == CandidateSource::User
-                    && candidate.text.eq_ignore_ascii_case(input)
-            });
+        let personal = hits.iter().any(|candidate| {
+            candidate.source == CandidateSource::User && candidate.text.eq_ignore_ascii_case(input)
+        });
+        let known_english =
+            self.contains_word(input) || lexicon.lookup(input).is_some() || personal;
+        // A rare English word that is also complete pinyin (canting, 餐厅) is
+        // the pinyin for someone who thinks of the word in Chinese.
+        let common_english = personal || self.relative(input) >= COMMON_WORD;
         // "fo"/"wo"/"shou" are first of all prefixes of for/would/should.
         let english_strong = self.strong_ordinary(&hits);
         // Prefix-expanded pinyin (much -> mu-chang -> pasture) is noise for a
@@ -820,7 +825,17 @@ impl Vocabulary {
             })
             .collect();
         let mut combined = Vec::new();
-        if exact && !known_english && !english_strong {
+        if exact && !common_english && !english_strong {
+            // The meanings lead. A rare English word spelled the same stays
+            // on the first page, after the two likeliest meanings.
+            let own = hits
+                .iter()
+                .position(|candidate| candidate.text.eq_ignore_ascii_case(input))
+                .map(|index| hits.remove(index));
+            let mut pinyin = pinyin.into_iter();
+            let leading = if own.is_some() { 2 } else { usize::MAX };
+            combined.extend(pinyin.by_ref().take(leading));
+            combined.extend(own);
             combined.extend(pinyin);
             combined.extend(hits);
         } else {
@@ -910,15 +925,16 @@ impl Vocabulary {
         let joined = self
             .segment_exact(input)
             .map(|text| f64::from(continuous::score(self, &text, input.len())) + JOINED_MARGIN);
-        // Complete pinyin is a deliberate lookup, not a misspelling.
+        // Complete pinyin whose meanings lead is a deliberate lookup, not a
+        // misspelling: nothing goes ahead of the meanings, and only a very
+        // likely word is worth adding after them (`diannao` is not Diana).
         let known = self.prior(&key) > 0;
-        let lookup = !known
-            && list.first().is_some_and(|candidate| {
-                candidate
-                    .annotation
-                    .as_ref()
-                    .is_some_and(|note| note.pinyin_match && note.pinyin_exact)
-            });
+        let lookup = list.first().is_some_and(|candidate| {
+            candidate
+                .annotation
+                .as_ref()
+                .is_some_and(|note| note.pinyin_match && note.pinyin_exact)
+        });
         let overlay = ranking::current();
         let reachable: f64 = continuous::unigram_top(self, &key, 5)
             .into_iter()
@@ -965,6 +981,7 @@ impl Vocabulary {
                     list.insert(at + leading, correction);
                     leading += 1;
                 }
+                None if lookup && correction.score < LOOKUP_SUGGESTION_FLOOR => {}
                 None if list.len() < cap => list.push(correction),
                 None => {}
             }
@@ -1394,6 +1411,45 @@ mod tests {
             assert_eq!(hits[0].text, "nihao");
             assert!(hits.len() <= limit);
         }
+    }
+    /// `canting` is 餐厅 long before it is a rare English adjective: complete
+    /// pinyin leads a rare English word spelled the same, which stays visible,
+    /// and spelling suggestions never push the meanings down.
+    #[test]
+    fn complete_pinyin_leads_a_rare_english_word_with_the_same_spelling() {
+        let vocabulary = small_vocabulary(b"nihao 1\nnikko 900000\nthe 100000000\n");
+        let lexicon = lexicon::fixture();
+        let none = lexicon::ManualWords::default();
+        let mut hits = vocabulary.complete_from("nihao", &Empty, 5, true, &lexicon, &none);
+        assert_eq!(hits[0].text, "hello");
+        assert!(hits[0]
+            .annotation
+            .as_ref()
+            .is_some_and(|note| note.pinyin_match && note.pinyin_exact));
+        let own = hits
+            .iter()
+            .position(|candidate| candidate.text == "nihao")
+            .expect("the English spelling stays on the first page");
+        assert!(own <= 2, "{hits:?}");
+        let before: Vec<_> = hits
+            .iter()
+            .map(|candidate| candidate.text.clone())
+            .collect();
+        // A weak look-alike is dropped; a very likely one follows the meanings.
+        let mut weak = Candidate::new("nikko", CandidateSource::Local);
+        weak.score = 9.;
+        let mut strong = Candidate::new("the", CandidateSource::Local);
+        strong.score = 18.;
+        assert_eq!(
+            vocabulary.merge_corrections("nihao", &mut hits, vec![strong, weak], 32),
+            (0, 0)
+        );
+        let after: Vec<_> = hits
+            .iter()
+            .map(|candidate| candidate.text.clone())
+            .collect();
+        assert_eq!(after[..before.len()], before[..]);
+        assert_eq!(after[before.len()..], ["the"]);
     }
     #[test]
     fn supplemental_words_manual_overrides_missing_metadata_and_zero_limits() {
